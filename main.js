@@ -46,7 +46,11 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
                 overlay.style.display = "none";
                 window.location.href = "admin.html";
             } else {
-                lanzarAviso("Contraseña incorrecta. Prueba de nuevo.");
+                overlay.style.display = "none";
+                // Corregido: Ahora el error de contraseña también es elegante
+                setTimeout(() => {
+                    lanzarAviso("Contraseña incorrecta. Acceso denegado.");
+                }, 300);
             }
         };
         container.appendChild(btnAtras);
