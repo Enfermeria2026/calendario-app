@@ -40,7 +40,6 @@ button {
 
 button:hover { background-color: #d81b60; }
 
-/* ETIQUETAS Y AVISOS */
 .label-texto {
     display: block;
     text-align: left;
@@ -97,4 +96,15 @@ button:hover { background-color: #d81b60; }
     display: flex;
     gap: 10px;
     margin-top: 20px;
+}
+
+/* Input especial dentro del modal */
+.modal-input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    border: 2px solid #ec407a;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
 }
