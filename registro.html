@@ -7,27 +7,29 @@
 </head>
 <body>
     <div class="auth-container">
-        <h2>Crear Cuenta</h2>
+        <h2>Nuevo Usuario</h2>
         <form id="registro-form">
             <input type="text" id="reg-nombre" placeholder="Nombre" required>
             <input type="text" id="reg-apellidos" placeholder="Apellidos" required>
             <input type="date" id="reg-fecha" required title="Fecha de Nacimiento">
-            <input type="email" id="reg-email" placeholder="Correo electrónico" required>
-            <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)" required>
-            <button type="submit">Registrarse</button>
+            
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="reg-id" placeholder="Crea tu ID (ej: luis99)" required>
+                <button type="button" id="btn-random" style="width: auto; background: #666; font-size: 11px; margin-top: 10px;">AZAR</button>
+            </div>
+            
+            <button type="submit">Completar Registro</button>
         </form>
-        <p>¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></p>
+        <p><a href="index.html">Volver al inicio</a></p>
     </div>
-    <!-- Copia esto en index, registro y admin -->
-<div id="miModal" class="modal-overlay">
-    <div class="modal-box">
-        <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
-        <div class="modal-btns" id="modalBtnsContainer">
-            <!-- Los botones se generarán por JavaScript según el aviso -->
+
+    <div id="miModal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
+            <div class="modal-btns" id="modalBtnsContainer"></div>
         </div>
     </div>
-</div>
 
-<script type="module" src="main.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
