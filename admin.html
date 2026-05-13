@@ -2,27 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Control - Admin</title>
+    <title>Panel Admin</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="auth-container" style="width: 80%;">
-        <h2>Panel de Administración</h2>
-        <div id="lista-usuarios">
-            <p>Cargando usuarios...</p>
-        </div>
-        <button onclick="window.location.href='index.html'" style="background-color: #666;">Cerrar Panel</button>
+    <div class="auth-container" style="width: 90%; max-width: 600px;">
+        <h2>Gestión de Usuarios</h2>
+        <div id="lista-usuarios">Cargando...</div>
+        <button onclick="window.location.href='index.html'" style="background: #666;">Cerrar Sesión</button>
     </div>
-    <!-- Copia esto en index, registro y admin -->
-<div id="miModal" class="modal-overlay">
-    <div class="modal-box">
-        <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
-        <div class="modal-btns" id="modalBtnsContainer">
-            <!-- Los botones se generarán por JavaScript según el aviso -->
-        </div>
-    </div>
-</div>
 
-<script type="module" src="main.js"></script>
+    <div id="miModal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
+            <div class="modal-btns" id="modalBtnsContainer"></div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
 </body>
 </html>
