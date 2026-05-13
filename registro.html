@@ -11,18 +11,25 @@
         <form id="registro-form">
             <input type="text" id="reg-nombre" placeholder="Nombre" required>
             <input type="text" id="reg-apellidos" placeholder="Apellidos" required>
-            <input type="date" id="reg-fecha" required title="Fecha de Nacimiento">
             
-            <div style="display: flex; gap: 5px;">
+            <label class="label-texto">Fecha de nacimiento</label>
+            <input type="date" id="reg-fecha" required>
+            
+            <label class="label-texto">Identificador</label>
+            <div class="input-group">
                 <input type="text" id="reg-id" placeholder="Crea tu ID (ej: luis99)" required>
-                <button type="button" id="btn-random" style="width: auto; background: #666; font-size: 11px; margin-top: 10px;">AZAR</button>
+                <button type="button" id="btn-random" style="width: auto; background: #666; font-size: 11px; padding: 10px;">AZAR</button>
+            </div>
+            <div class="aviso-seguridad">
+                <span>🔒</span> No compartas este ID con nadie. Es único y servirá para identificarte en tu cuenta.
             </div>
             
-            <button type="submit">Completar Registro</button>
+            <button type="submit" style="margin-top: 20px;">Completar Registro</button>
         </form>
         <p><a href="index.html">Volver al inicio</a></p>
     </div>
 
+    <!-- Modal para avisos -->
     <div id="miModal" class="modal-overlay">
         <div class="modal-box">
             <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
