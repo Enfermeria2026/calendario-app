@@ -13,15 +13,48 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- MODALES ---
+// --- FUNCIÓN DE AVISOS Y MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
-    if (!overlay) return;
-    document.getElementById('modalMsg').innerText = mensaje;
+    const msgP = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
     const container = document.getElementById('modalBtnsContainer');
+    
+    msgP.innerText = mensaje;
+    extra.innerHTML = ""; 
     container.innerHTML = "";
     overlay.style.display = "flex";
 
+    // MODO ESPECIAL: PASSWORD ADMIN
+    if (tipo === "admin_pass") {
+        const inputPass = document.createElement('input');
+        inputPass.type = "password";
+        inputPass.placeholder = "Contraseña";
+        inputPass.className = "modal-input";
+        extra.appendChild(inputPass);
+
+        const btnAtras = document.createElement('button');
+        btnAtras.innerText = "Atrás";
+        btnAtras.style.background = "#aaa";
+        btnAtras.onclick = () => overlay.style.display = "none";
+
+        const btnEntrar = document.createElement('button');
+        btnEntrar.innerText = "Entrar";
+        btnEntrar.onclick = () => {
+            if (inputPass.value === "12345") {
+                overlay.style.display = "none";
+                window.location.href = "admin.html";
+            } else {
+                alert("Contraseña incorrecta");
+                inputPass.value = "";
+            }
+        };
+        container.appendChild(btnAtras);
+        container.appendChild(btnEntrar);
+        return;
+    }
+
+    // MODOS NORMALES
     const btn = document.createElement('button');
     btn.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
     if(tipo !== "ok") btn.style.background = "#ff4d4d";
@@ -64,28 +97,30 @@ if (formReg) {
                     fecha: document.getElementById('reg-fecha').value,
                     userId: id
                 });
-                lanzarAviso("¡Cuenta creada! ID: " + id, "ok", () => {
+                lanzarAviso("¡Cuenta creada! Tu ID es: " + id, "ok", () => {
                     window.location.href = "index.html";
                 });
             }
-        } catch (error) { lanzarAviso("Error al guardar: " + error.message); }
+        } catch (error) { lanzarAviso("Error al guardar."); }
     });
 }
 
-// --- LOGIN ---
+// --- LOGIN CON ACCESO ADMIN PROTEGIDO ---
 const formLog = document.getElementById('login-form');
 if (formLog) {
     formLog.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const id = document.getElementById('login-id').value.toLowerCase().trim();
-        if (id === "administrador") {
-            window.location.href = "admin.html";
+        const id = document.getElementById('login-id').value.trim();
+
+        if (id.toLowerCase() === "administrador") {
+            lanzarAviso("Introduce la contraseña maestra:", "admin_pass");
             return;
         }
+
         try {
-            const userSnap = await getDoc(doc(db, "usuarios", id));
+            const userSnap = await getDoc(doc(db, "usuarios", id.toLowerCase()));
             if (userSnap.exists()) {
-                lanzarAviso("¡Hola " + userSnap.data().nombre + "! Accediendo...");
+                lanzarAviso("¡Hola " + userSnap.data().nombre + "!");
             } else {
                 lanzarAviso("Identificador no encontrado.");
             }
@@ -93,7 +128,7 @@ if (formLog) {
     });
 }
 
-// --- ADMIN ---
+// --- ADMIN PANEL ---
 const lista = document.getElementById('lista-usuarios');
 if (lista) {
     const cargar = async () => {
