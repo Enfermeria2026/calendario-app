@@ -66,3 +66,35 @@ button:hover { background-color: #d81b60; }
     gap: 10px;
     margin-top: 20px;
 }
+/* Estilos para etiquetas de texto encima de los inputs */
+.label-texto {
+    display: block;
+    text-align: left;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+
+/* Mensaje de advertencia del ID */
+.aviso-seguridad {
+    color: #d32f2f;
+    font-size: 11px;
+    text-align: left;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Ajuste para el grupo del ID y el botón Azar */
+.input-group {
+    display: flex; 
+    gap: 5px; 
+    align-items: center;
+}
+
+.input-group input {
+    margin: 0; /* Quitamos el margen para que alinee bien con el botón */
+}
