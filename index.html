@@ -7,25 +7,22 @@
 </head>
 <body>
     <div class="auth-container">
-        <h2>¡Hola de nuevo!</h2>
+        <h2>Bienvenido</h2>
         <form id="login-form">
-            <input type="text" id="login-email" placeholder="Correo electrónico o Usuario" required>
-            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <input type="text" id="login-id" placeholder="Tu Identificador" required>
             <button type="submit">Entrar</button>
         </form>
-        <p>¿Aún no tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
+        <p>¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a></p>
     </div>
-    <!-- Copia esto en index, registro y admin -->
-<div id="miModal" class="modal-overlay">
-    <div class="modal-box">
-        <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
-        <div class="modal-btns" id="modalBtnsContainer">
-            <!-- Los botones se generarán por JavaScript según el aviso -->
+
+    <!-- Modal para avisos -->
+    <div id="miModal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
+            <div class="modal-btns" id="modalBtnsContainer"></div>
         </div>
     </div>
-</div>
 
-<script type="module" src="main.js"></script>
-
+    <script type="module" src="main.js"></script>
 </body>
 </html>
