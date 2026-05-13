@@ -22,10 +22,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const msgP = document.getElementById('modalMsg');
     const container = document.getElementById('modalBtnsContainer');
 
-    if (!overlay || !msgP || !container) {
-        alert(mensaje);
-        return;
-    }
+    if (!overlay) return;
 
     msgP.innerText = mensaje;
     container.innerHTML = "";
@@ -58,7 +55,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     }
 }
 
-// --- REGISTRO CORREGIDO ---
+// --- REGISTRO ---
 const formReg = document.getElementById('registro-form');
 if (formReg) {
     formReg.addEventListener('submit', async (e) => {
@@ -66,31 +63,27 @@ if (formReg) {
         try {
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
-            
+            const nombre = document.getElementById('reg-nombre').value;
+            const apellidos = document.getElementById('reg-apellidos').value;
+
             const res = await createUserWithEmailAndPassword(auth, email, pass);
             await sendEmailVerification(res.user);
             
+            // GUARDAMOS NOMBRE Y APELLIDOS
             await setDoc(doc(db, "usuarios", res.user.uid), {
-                nombre: document.getElementById('reg-nombre').value,
-                apellidos: document.getElementById('reg-apellidos').value,
-                email: email
+                nombre: nombre,
+                apellidos: apellidos,
+                email: email,
+                uid: res.user.uid
             });
 
-            lanzarAviso("¡Registro con éxito! Se ha enviado un correo de verificación.", "ok", () => {
+            lanzarAviso("¡Registro con éxito! Revisa tu email.", "ok", () => {
                 window.location.href = "index.html";
             });
-
         } catch (err) {
-            // TRADUCCIÓN DE ERRORES DE FIREBASE
-            let mensajeError = "Hubo un problema al registrarse.";
-            if (err.code === 'auth/email-already-in-use') {
-                mensajeError = "Este correo electrónico ya está registrado. Prueba a iniciar sesión.";
-            } else if (err.code === 'auth/weak-password') {
-                mensajeError = "La contraseña es muy corta (mínimo 6 caracteres).";
-            } else if (err.code === 'auth/invalid-email') {
-                mensajeError = "El formato del correo no es válido.";
-            }
-            lanzarAviso(mensajeError);
+            let msg = "Error: " + err.message;
+            if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado.";
+            lanzarAviso(msg);
         }
     });
 }
@@ -104,9 +97,7 @@ if (formLog) {
         const pass = document.getElementById('login-password').value;
 
         if (user === "Administrador" && pass === "Administrador") {
-            lanzarAviso("Accediendo al Panel...", "ok", () => {
-                window.location.href = "admin.html";
-            });
+            window.location.href = "admin.html";
             return;
         }
 
@@ -117,33 +108,35 @@ if (formLog) {
             } else {
                 lanzarAviso("Verifica tu correo primero.");
             }
-        } catch (err) {
-            lanzarAviso("Correo o contraseña incorrectos.");
-        }
+        } catch (err) { lanzarAviso("Datos incorrectos."); }
     });
 }
 
-// --- ADMIN ---
+// --- ADMIN (ACTUALIZADO CON NOMBRE Y APELLIDOS) ---
 const lista = document.getElementById('lista-usuarios');
 if (lista) {
     const cargar = async () => {
+        lista.innerHTML = "Cargando...";
         const snap = await getDocs(collection(db, "usuarios"));
         lista.innerHTML = "";
-        if (snap.empty) { lista.innerHTML = "No hay usuarios en la base de datos."; }
         
         snap.forEach(d => {
             const u = d.data();
             const item = document.createElement('div');
-            item.style.padding = "10px";
-            item.style.borderBottom = "1px solid #eee";
+            item.style.cssText = "padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;";
+            
+            // AQUÍ SE MUESTRAN NOMBRE Y APELLIDOS
             item.innerHTML = `
-                <span><strong>${u.nombre}</strong> (${u.email})</span>
-                <button style="float:right; background:red; padding:5px 10px; width:auto;" id="btn-${d.id}">Borrar</button>
+                <div style="text-align: left;">
+                    <strong style="font-size: 1.1em;">${u.nombre} ${u.apellidos}</strong><br>
+                    <small style="color: #666;">${u.email}</small>
+                </div>
+                <button style="width: auto; background: #ff4d4d; padding: 5px 15px;" id="btn-${d.id}">Borrar</button>
             `;
             lista.appendChild(item);
             
             document.getElementById(`btn-${d.id}`).onclick = () => {
-                lanzarAviso("¿Borrar de la base de datos? (El usuario seguirá en Authentication)", "confirmar", async () => {
+                lanzarAviso(`¿Borrar a ${u.nombre} de la base de datos? Recuerda borrarlo también en Authentication para que pueda volver a registrarse.`, "confirmar", async () => {
                     await deleteDoc(doc(db, "usuarios", d.id));
                     cargar();
                 });
