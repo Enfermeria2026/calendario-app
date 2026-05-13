@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Tu configuración (ya está puesta la tuya)
 const firebaseConfig = {
     apiKey: "AIzaSyCARU84ybJ42rDV5W_UJr5NkwhO7BYvE3I",
     authDomain: "calendario-79929.firebaseapp.com",
@@ -17,30 +16,26 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- FUNCIÓN DE REGISTRO ---
+// --- REGISTRO ---
 const formRegistro = document.getElementById('registro-form');
 if (formRegistro) {
     formRegistro.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const email = document.getElementById('reg-email').value;
-        const pass = document.getElementById('reg-password').value;
-        const nombre = document.getElementById('reg-nombre').value;
-        const apellidos = document.getElementById('reg-apellidos').value;
-        const fechaNac = document.getElementById('reg-fecha').value;
-
         try {
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-password').value;
+            
             const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
             await sendEmailVerification(userCredential.user);
             
             await setDoc(doc(db, "usuarios", userCredential.user.uid), {
-                nombre: nombre,
-                apellidos: apellidos,
-                fechaNacimiento: fechaNac,
+                nombre: document.getElementById('reg-nombre').value,
+                apellidos: document.getElementById('reg-apellidos').value,
+                fechaNacimiento: document.getElementById('reg-fecha').value,
                 email: email
             });
 
-            alert("¡ÉXITO! Se ha enviado un correo de verificación. Por favor, revísalo.");
+            alert("¡ÉXITO TOTAL! Revisa tu correo ahora.");
             window.location.href = "index.html";
         } catch (error) {
             alert("Error: " + error.message);
@@ -48,7 +43,7 @@ if (formRegistro) {
     });
 }
 
-// --- FUNCIÓN DE LOGIN ---
+// --- LOGIN (CON ACCESO ADMIN) ---
 const formLogin = document.getElementById('login-form');
 if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
@@ -56,16 +51,51 @@ if (formLogin) {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
 
+        // ACCESO SECRETO ADMINISTRADOR
+        if (email === "Administrador" && pass === "Administrador") {
+            window.location.href = "admin.html";
+            return;
+        }
+
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, pass);
             if (userCredential.user.emailVerified) {
-                alert("¡Bienvenido/a!");
+                alert("¡Bienvenido!");
                 // window.location.href = "dashboard.html"; 
             } else {
-                alert("Primero debes verificar tu correo. Revisa tu bandeja de entrada.");
+                alert("Por favor, verifica tu correo primero.");
             }
         } catch (error) {
-            alert("Error al entrar: " + error.message);
+            alert("Datos incorrectos.");
         }
     });
+}
+
+// --- LÓGICA DEL PANEL ADMIN ---
+const listaDiv = document.getElementById('lista-usuarios');
+if (listaDiv) {
+    const cargarUsuarios = async () => {
+        listaDiv.innerHTML = "";
+        const querySnapshot = await getDocs(collection(db, "usuarios"));
+        querySnapshot.forEach((usuarioDoc) => {
+            const datos = usuarioDoc.data();
+            const p = document.createElement('div');
+            p.style.borderBottom = "1px solid #eee";
+            p.style.padding = "10px";
+            p.innerHTML = `
+                <strong>${datos.nombre} ${datos.apellidos}</strong> (${datos.email})
+                <button onclick="borrarUser('${usuarioDoc.id}')" style="width: 80px; background: red; font-size: 10px; margin-left: 10px;">Borrar</button>
+            `;
+            listaDiv.appendChild(p);
+        });
+    };
+
+    window.borrarUser = async (id) => {
+        if(confirm("¿Seguro que quieres borrar este usuario?")) {
+            await deleteDoc(doc(db, "usuarios", id));
+            cargarUsuarios();
+        }
+    };
+
+    cargarUsuarios();
 }
