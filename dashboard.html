@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Calendario - Inicio</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body style="display: block;"> <!-- Quitamos el flex para el dashboard -->
+    <header class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <i class="fas fa-bars" id="menu-toggle" style="cursor: pointer; font-size: 20px;"></i>
+            <span id="header-usuario" style="font-weight: bold;">Nombre Usuario</span>
+        </div>
+        <button class="btn-unirse" style="background: white; color: #ec407a; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">Unirse a un calendario</button>
+    </header>
+
+    <nav class="sidebar" id="sidebar">
+        <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
+        <button class="sidebar-btn"><i class="fas fa-tasks"></i> Mis acontecimientos</button>
+        <button class="sidebar-btn"><i class="fas fa-user-circle"></i> Mi perfil</button>
+        <button class="sidebar-btn" id="btn-cerrar-sesion" style="margin-top: 20px;"><i class="fas fa-power-off"></i> Cerrar sesión</button>
+    </nav>
+
+    <main class="main-content">
+        <div id="lista-calendarios">
+            <p style="color: #888; margin-top: 50px;">No tienes calendarios activos</p>
+        </div>
+    </main>
+
+    <button class="btn-flotante" id="btn-crear">+</button>
+
+    <div id="miModal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
+            <div id="modalExtra"></div>
+            <div class="modal-btns" id="modalBtnsContainer"></div>
+        </div>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
