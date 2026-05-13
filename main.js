@@ -13,19 +13,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- FUNCIÓN DE AVISOS ELEGANTES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
     document.getElementById('modalMsg').innerText = mensaje;
     const container = document.getElementById('modalBtnsContainer');
     container.innerHTML = "";
     overlay.style.display = "flex";
-
     const btn = document.createElement('button');
     btn.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
     if(tipo !== "ok") btn.style.background = "#ff4d4d";
     btn.onclick = () => { overlay.style.display = "none"; if(callback) callback(); };
-    
     if(tipo !== "ok") {
         const btnCan = document.createElement('button');
         btnCan.innerText = "Cancelar";
@@ -36,7 +33,6 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     container.appendChild(btn);
 }
 
-// --- GENERADOR DE ID ALEATORIO ---
 const btnRandom = document.getElementById('btn-random');
 if(btnRandom) {
     btnRandom.onclick = () => {
@@ -45,7 +41,6 @@ if(btnRandom) {
     };
 }
 
-// --- REGISTRO ---
 const formReg = document.getElementById('registro-form');
 if (formReg) {
     formReg.addEventListener('submit', async (e) => {
@@ -53,9 +48,8 @@ if (formReg) {
         const id = document.getElementById('reg-id').value.toLowerCase().trim();
         const docRef = doc(db, "usuarios", id);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
-            lanzarAviso("Este Identificador ya existe. Prueba otro.");
+            lanzarAviso("Este Identificador ya existe.");
         } else {
             await setDoc(docRef, {
                 nombre: document.getElementById('reg-nombre').value,
@@ -63,57 +57,45 @@ if (formReg) {
                 fecha: document.getElementById('reg-fecha').value,
                 userId: id
             });
-            lanzarAviso("¡Cuenta creada! Tu ID es: " + id, "ok", () => {
-                window.location.href = "index.html";
-            });
+            lanzarAviso("Cuenta creada. ID: " + id, "ok", () => { window.location.href = "index.html"; });
         }
     });
 }
 
-// --- LOGIN ---
 const formLog = document.getElementById('login-form');
 if (formLog) {
     formLog.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('login-id').value.toLowerCase().trim();
-
         if (id === "administrador") {
             window.location.href = "admin.html";
             return;
         }
-
         const userSnap = await getDoc(doc(db, "usuarios", id));
         if (userSnap.exists()) {
-            lanzarAviso("¡Hola " + userSnap.data().nombre + "! Bienvenida.");
+            lanzarAviso("¡Hola " + userSnap.data().nombre + "!");
         } else {
             lanzarAviso("Identificador no encontrado.");
         }
     });
 }
 
-// --- PANEL ADMIN ---
 const lista = document.getElementById('lista-usuarios');
 if (lista) {
     const cargar = async () => {
-        lista.innerHTML = "Cargando...";
         const snap = await getDocs(collection(db, "usuarios"));
         lista.innerHTML = "";
         snap.forEach(d => {
             const u = d.data();
             const div = document.createElement('div');
             div.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
-            div.innerHTML = `
-                <div style="text-align:left;">
-                    <strong>${u.nombre} ${u.apellidos}</strong><br>
-                    <small style="color: #ec407a;">ID: ${u.userId}</small>
-                </div>
-                <button onclick="borrarTotal('${d.id}')" style="width:auto; background:#ff4d4d; padding:5px 15px;">Borrar</button>
-            `;
+            div.innerHTML = `<div><strong>${u.nombre} ${u.apellidos}</strong><br><small>ID: ${u.userId}</small></div>
+                             <button onclick="borrarTotal('${d.id}')" style="width:auto; background:#ff4d4d; padding:5px 15px;">Borrar</button>`;
             lista.appendChild(div);
         });
     };
     window.borrarTotal = (id) => {
-        lanzarAviso("¿Borrar definitivamente a " + id + "?", "confirmar", async () => {
+        lanzarAviso("¿Borrar a " + id + "?", "confirmar", async () => {
             await deleteDoc(doc(db, "usuarios", id));
             cargar();
         });
