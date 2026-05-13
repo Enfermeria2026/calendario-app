@@ -16,15 +16,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- FUNCIÓN DE MODAL PERSONALIZADO ---
+// --- FUNCIÓN DEL CUADRO ELEGANTE ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
     const msgP = document.getElementById('modalMsg');
-    const btnContainer = document.getElementById('modalBtnsContainer');
-    
+    const container = document.getElementById('modalBtnsContainer');
+
+    if (!overlay || !msgP || !container) {
+        console.error("No se encontraron los elementos del modal en el HTML");
+        alert(mensaje); // Si falla el modal, al menos sale el alert viejo
+        return;
+    }
+
     msgP.innerText = mensaje;
-    btnContainer.innerHTML = ""; // Limpiar botones
-    overlay.style.display = "flex";
+    container.innerHTML = "";
+    overlay.style.display = "flex"; // AQUÍ SE MUESTRA
 
     if (tipo === "ok") {
         const btn = document.createElement('button');
@@ -33,111 +39,94 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
             overlay.style.display = "none";
             if (callback) callback();
         };
-        btnContainer.appendChild(btn);
-    } else if (tipo === "confirmar") {
-        const btnSi = document.createElement('button');
-        btnSi.innerText = "Eliminar";
-        btnSi.style.background = "red";
-        btnSi.onclick = () => {
-            overlay.style.display = "none";
-            if (callback) callback(true);
-        };
-        
+        container.appendChild(btn);
+    } else {
         const btnNo = document.createElement('button');
         btnNo.innerText = "Cancelar";
         btnNo.className = "btn-secundario";
-        btnNo.onclick = () => {
+        btnNo.onclick = () => overlay.style.display = "none";
+        
+        const btnSi = document.createElement('button');
+        btnSi.innerText = "Eliminar";
+        btnSi.style.background = "#ff4d4d";
+        btnSi.onclick = () => {
             overlay.style.display = "none";
-            if (callback) callback(false);
+            if (callback) callback();
         };
         
-        btnContainer.appendChild(btnNo);
-        btnContainer.appendChild(btnSi);
+        container.appendChild(btnNo);
+        container.appendChild(btnSi);
     }
 }
 
 // --- REGISTRO ---
-const formRegistro = document.getElementById('registro-form');
-if (formRegistro) {
-    formRegistro.addEventListener('submit', async (e) => {
+const formReg = document.getElementById('registro-form');
+if (formReg) {
+    formReg.addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
-            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-            await sendEmailVerification(userCredential.user);
-            
-            await setDoc(doc(db, "usuarios", userCredential.user.uid), {
+            const res = await createUserWithEmailAndPassword(auth, email, pass);
+            await sendEmailVerification(res.user);
+            await setDoc(doc(db, "usuarios", res.user.uid), {
                 nombre: document.getElementById('reg-nombre').value,
                 apellidos: document.getElementById('reg-apellidos').value,
-                fechaNacimiento: document.getElementById('reg-fecha').value,
                 email: email
             });
-
-            lanzarAviso("¡Registro con éxito! Por favor, verifica tu correo.", "ok", () => {
+            lanzarAviso("¡Éxito! Revisa tu email.", "ok", () => {
                 window.location.href = "index.html";
             });
-        } catch (error) {
-            lanzarAviso("Error: " + error.message);
-        }
+        } catch (err) { lanzarAviso("Error: " + err.message); }
     });
 }
 
 // --- LOGIN ---
-const formLogin = document.getElementById('login-form');
-if (formLogin) {
-    formLogin.addEventListener('submit', async (e) => {
+const formLog = document.getElementById('login-form');
+if (formLog) {
+    formLog.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value;
+        const user = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
 
-        if (email === "Administrador" && pass === "Administrador") {
-            lanzarAviso("Entrando al Panel de Control...", "ok", () => {
+        if (user === "Administrador" && pass === "Administrador") {
+            lanzarAviso("Accediendo al Panel...", "ok", () => {
                 window.location.href = "admin.html";
             });
             return;
         }
 
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-            if (userCredential.user.emailVerified) {
+            const res = await signInWithEmailAndPassword(auth, user, pass);
+            if (res.user.emailVerified) {
                 lanzarAviso("¡Bienvenida!");
             } else {
-                lanzarAviso("Verifica tu correo antes de entrar.");
+                lanzarAviso("Verifica tu correo primero.");
             }
-        } catch (error) {
-            lanzarAviso("Datos incorrectos.");
-        }
+        } catch (err) { lanzarAviso("Datos incorrectos."); }
     });
 }
 
-// --- ADMIN PANEL ---
-const listaDiv = document.getElementById('lista-usuarios');
-if (listaDiv) {
-    const cargarUsuarios = async () => {
-        listaDiv.innerHTML = "Cargando...";
-        const snapshot = await getDocs(collection(db, "usuarios"));
-        listaDiv.innerHTML = "";
-        snapshot.forEach(docSnap => {
-            const user = docSnap.data();
-            const div = document.createElement('div');
-            div.style.padding = "10px";
-            div.style.borderBottom = "1px solid #eee";
-            div.innerHTML = `
-                ${user.nombre} (${user.email}) 
-                <button onclick="borrarUser('${docSnap.id}')" style="width:70px; background:red; font-size:10px; float:right;">Borrar</button>
-            `;
-            listaDiv.appendChild(div);
+// --- ADMIN ---
+const lista = document.getElementById('lista-usuarios');
+if (lista) {
+    const cargar = async () => {
+        const snap = await getDocs(collection(db, "usuarios"));
+        lista.innerHTML = "";
+        snap.forEach(d => {
+            const u = d.data();
+            const item = document.createElement('div');
+            item.style.padding = "10px";
+            item.style.borderBottom = "1px solid #eee";
+            item.innerHTML = `${u.nombre} <button style="float:right; background:red; padding:5px 10px; width:auto;" id="btn-${d.id}">Borrar</button>`;
+            lista.appendChild(item);
+            document.getElementById(`btn-${d.id}`).onclick = () => {
+                lanzarAviso("¿Borrar definitivamente?", "confirmar", async () => {
+                    await deleteDoc(doc(db, "usuarios", d.id));
+                    cargar();
+                });
+            };
         });
     };
-
-    window.borrarUser = (id) => {
-        lanzarAviso("¿Seguro que quieres borrar este usuario definitivamente?", "confirmar", async (confirmado) => {
-            if (confirmado) {
-                await deleteDoc(doc(db, "usuarios", id));
-                cargarUsuarios();
-            }
-        });
-    };
-    cargarUsuarios();
+    cargar();
 }
