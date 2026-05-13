@@ -23,14 +23,13 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const container = document.getElementById('modalBtnsContainer');
 
     if (!overlay || !msgP || !container) {
-        console.error("No se encontraron los elementos del modal en el HTML");
-        alert(mensaje); // Si falla el modal, al menos sale el alert viejo
+        alert(mensaje);
         return;
     }
 
     msgP.innerText = mensaje;
     container.innerHTML = "";
-    overlay.style.display = "flex"; // AQUÍ SE MUESTRA
+    overlay.style.display = "flex";
 
     if (tipo === "ok") {
         const btn = document.createElement('button');
@@ -59,7 +58,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     }
 }
 
-// --- REGISTRO ---
+// --- REGISTRO CORREGIDO ---
 const formReg = document.getElementById('registro-form');
 if (formReg) {
     formReg.addEventListener('submit', async (e) => {
@@ -67,17 +66,32 @@ if (formReg) {
         try {
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
+            
             const res = await createUserWithEmailAndPassword(auth, email, pass);
             await sendEmailVerification(res.user);
+            
             await setDoc(doc(db, "usuarios", res.user.uid), {
                 nombre: document.getElementById('reg-nombre').value,
                 apellidos: document.getElementById('reg-apellidos').value,
                 email: email
             });
-            lanzarAviso("¡Éxito! Revisa tu email.", "ok", () => {
+
+            lanzarAviso("¡Registro con éxito! Se ha enviado un correo de verificación.", "ok", () => {
                 window.location.href = "index.html";
             });
-        } catch (err) { lanzarAviso("Error: " + err.message); }
+
+        } catch (err) {
+            // TRADUCCIÓN DE ERRORES DE FIREBASE
+            let mensajeError = "Hubo un problema al registrarse.";
+            if (err.code === 'auth/email-already-in-use') {
+                mensajeError = "Este correo electrónico ya está registrado. Prueba a iniciar sesión.";
+            } else if (err.code === 'auth/weak-password') {
+                mensajeError = "La contraseña es muy corta (mínimo 6 caracteres).";
+            } else if (err.code === 'auth/invalid-email') {
+                mensajeError = "El formato del correo no es válido.";
+            }
+            lanzarAviso(mensajeError);
+        }
     });
 }
 
@@ -103,7 +117,9 @@ if (formLog) {
             } else {
                 lanzarAviso("Verifica tu correo primero.");
             }
-        } catch (err) { lanzarAviso("Datos incorrectos."); }
+        } catch (err) {
+            lanzarAviso("Correo o contraseña incorrectos.");
+        }
     });
 }
 
@@ -113,15 +129,21 @@ if (lista) {
     const cargar = async () => {
         const snap = await getDocs(collection(db, "usuarios"));
         lista.innerHTML = "";
+        if (snap.empty) { lista.innerHTML = "No hay usuarios en la base de datos."; }
+        
         snap.forEach(d => {
             const u = d.data();
             const item = document.createElement('div');
             item.style.padding = "10px";
             item.style.borderBottom = "1px solid #eee";
-            item.innerHTML = `${u.nombre} <button style="float:right; background:red; padding:5px 10px; width:auto;" id="btn-${d.id}">Borrar</button>`;
+            item.innerHTML = `
+                <span><strong>${u.nombre}</strong> (${u.email})</span>
+                <button style="float:right; background:red; padding:5px 10px; width:auto;" id="btn-${d.id}">Borrar</button>
+            `;
             lista.appendChild(item);
+            
             document.getElementById(`btn-${d.id}`).onclick = () => {
-                lanzarAviso("¿Borrar definitivamente?", "confirmar", async () => {
+                lanzarAviso("¿Borrar de la base de datos? (El usuario seguirá en Authentication)", "confirmar", async () => {
                     await deleteDoc(doc(db, "usuarios", d.id));
                     cargar();
                 });
