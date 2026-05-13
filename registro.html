@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendario - Registro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Crear Cuenta</h2>
+        <form id="registro-form">
+            <input type="text" id="reg-nombre" placeholder="Nombre" required>
+            <input type="text" id="reg-apellidos" placeholder="Apellidos" required>
+            <input type="date" id="reg-fecha" required title="Fecha de Nacimiento">
+            <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+            <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)" required>
+            <button type="submit">Registrarse</button>
+        </form>
+        <p>¿Ya tienes cuenta? <a href="index.html">Inicia sesión</a></p>
+    </div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
