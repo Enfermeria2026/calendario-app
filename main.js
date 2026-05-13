@@ -13,19 +13,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- FUNCIÓN DE AVISOS Y MODALES ---
+// --- FUNCIÓN DE AVISOS ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
     const msgP = document.getElementById('modalMsg');
     const extra = document.getElementById('modalExtra');
     const container = document.getElementById('modalBtnsContainer');
     
+    if(!overlay || !msgP || !container) return;
+
     msgP.innerText = mensaje;
-    extra.innerHTML = ""; 
+    if(extra) extra.innerHTML = ""; 
     container.innerHTML = "";
     overlay.style.display = "flex";
 
-    // MODO ESPECIAL: PASSWORD ADMIN
     if (tipo === "admin_pass") {
         const inputPass = document.createElement('input');
         inputPass.type = "password";
@@ -54,7 +55,6 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
         return;
     }
 
-    // MODOS NORMALES
     const btn = document.createElement('button');
     btn.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
     if(tipo !== "ok") btn.style.background = "#ff4d4d";
@@ -70,13 +70,13 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     container.appendChild(btn);
 }
 
-// --- AZAR ---
+// --- BOTÓN AZAR ---
 const btnRandom = document.getElementById('btn-random');
 if(btnRandom) {
-    btnRandom.onclick = () => {
+    btnRandom.addEventListener('click', () => {
         const azar = Math.random().toString(36).substring(2, 7);
         document.getElementById('reg-id').value = azar;
-    };
+    });
 }
 
 // --- REGISTRO ---
@@ -85,8 +85,8 @@ if (formReg) {
     formReg.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('reg-id').value.toLowerCase().trim();
-        const docRef = doc(db, "usuarios", id);
         try {
+            const docRef = doc(db, "usuarios", id);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 lanzarAviso("Este Identificador ya existe.");
@@ -97,28 +97,28 @@ if (formReg) {
                     fecha: document.getElementById('reg-fecha').value,
                     userId: id
                 });
-                lanzarAviso("¡Cuenta creada! Tu ID es: " + id, "ok", () => {
+                lanzarAviso("¡Cuenta creada! ID: " + id, "ok", () => {
                     window.location.href = "index.html";
                 });
             }
-        } catch (error) { lanzarAviso("Error al guardar."); }
+        } catch (error) { lanzarAviso("Error: " + error.message); }
     });
 }
 
-// --- LOGIN CON ACCESO ADMIN PROTEGIDO ---
+// --- LOGIN ---
 const formLog = document.getElementById('login-form');
 if (formLog) {
     formLog.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const id = document.getElementById('login-id').value.trim();
+        const idInput = document.getElementById('login-id').value.trim();
 
-        if (id.toLowerCase() === "administrador") {
+        if (idInput.toLowerCase() === "administrador") {
             lanzarAviso("Introduce la contraseña maestra:", "admin_pass");
             return;
         }
 
         try {
-            const userSnap = await getDoc(doc(db, "usuarios", id.toLowerCase()));
+            const userSnap = await getDoc(doc(db, "usuarios", idInput.toLowerCase()));
             if (userSnap.exists()) {
                 lanzarAviso("¡Hola " + userSnap.data().nombre + "!");
             } else {
@@ -128,7 +128,7 @@ if (formLog) {
     });
 }
 
-// --- ADMIN PANEL ---
+// --- ADMIN ---
 const lista = document.getElementById('lista-usuarios');
 if (lista) {
     const cargar = async () => {
@@ -145,17 +145,17 @@ if (lista) {
                         <strong>${u.nombre} ${u.apellidos}</strong><br>
                         <small style="color:#ec407a;">ID: ${u.userId}</small>
                     </div>
-                    <button id="btn-${d.id}" style="width:auto; background:#ff4d4d; padding:5px 15px; margin:0;">Borrar</button>
+                    <button id="btn-del-${d.id}" style="width:auto; background:#ff4d4d; padding:5px 15px; margin:0;">Borrar</button>
                 `;
                 lista.appendChild(div);
-                document.getElementById(`btn-${d.id}`).onclick = () => {
+                document.getElementById(`btn-del-${d.id}`).onclick = () => {
                     lanzarAviso("¿Borrar a " + u.nombre + "?", "confirmar", async () => {
                         await deleteDoc(doc(db, "usuarios", d.id));
                         cargar();
                     });
                 };
             });
-        } catch (error) { lista.innerHTML = "Error al cargar."; }
+        } catch (error) { lista.innerHTML = "Error."; }
     };
     cargar();
 }
