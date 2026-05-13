@@ -13,7 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- FUNCIÓN DE AVISOS ---
+// --- SISTEMA DE MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
     const msgP = document.getElementById('modalMsg');
@@ -46,8 +46,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
                 overlay.style.display = "none";
                 window.location.href = "admin.html";
             } else {
-                alert("Contraseña incorrecta");
-                inputPass.value = "";
+                lanzarAviso("Contraseña incorrecta. Prueba de nuevo.");
             }
         };
         container.appendChild(btnAtras);
@@ -55,107 +54,119 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
         return;
     }
 
-    const btn = document.createElement('button');
-    btn.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
-    if(tipo !== "ok") btn.style.background = "#ff4d4d";
-    btn.onclick = () => { overlay.style.display = "none"; if(callback) callback(); };
+    const btnOk = document.createElement('button');
+    btnOk.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
+    if(tipo !== "ok") btnOk.style.background = "#ff4d4d";
+    btnOk.onclick = () => {
+        overlay.style.display = "none";
+        if (callback) callback();
+    };
     
-    if(tipo !== "ok") {
+    if(tipo === "confirmar") {
         const btnCan = document.createElement('button');
         btnCan.innerText = "Cancelar";
         btnCan.style.background = "#aaa";
         btnCan.onclick = () => overlay.style.display = "none";
         container.appendChild(btnCan);
     }
-    container.appendChild(btn);
+    container.appendChild(btnOk);
 }
 
-// --- BOTÓN AZAR ---
+// --- LÓGICA DE REGISTRO ---
 const btnRandom = document.getElementById('btn-random');
 if(btnRandom) {
-    btnRandom.addEventListener('click', () => {
+    btnRandom.onclick = () => {
         const azar = Math.random().toString(36).substring(2, 7);
         document.getElementById('reg-id').value = azar;
-    });
+    };
 }
 
-// --- REGISTRO ---
 const formReg = document.getElementById('registro-form');
 if (formReg) {
-    formReg.addEventListener('submit', async (e) => {
+    formReg.onsubmit = async (e) => {
         e.preventDefault();
-        const id = document.getElementById('reg-id').value.toLowerCase().trim();
+        const idInput = document.getElementById('reg-id').value.toLowerCase().trim();
         try {
-            const docRef = doc(db, "usuarios", id);
+            const docRef = doc(db, "usuarios", idInput);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                lanzarAviso("Este Identificador ya existe.");
+                lanzarAviso("Este Identificador ya existe. Elige otro.");
             } else {
                 await setDoc(docRef, {
                     nombre: document.getElementById('reg-nombre').value,
                     apellidos: document.getElementById('reg-apellidos').value,
                     fecha: document.getElementById('reg-fecha').value,
-                    userId: id
+                    userId: idInput
                 });
-                lanzarAviso("¡Cuenta creada! ID: " + id, "ok", () => {
+                lanzarAviso("¡Cuenta creada! Tu ID es: " + idInput, "ok", () => {
                     window.location.href = "index.html";
                 });
             }
-        } catch (error) { lanzarAviso("Error: " + error.message); }
-    });
+        } catch (error) { lanzarAviso("Error al guardar: " + error.message); }
+    };
 }
 
-// --- LOGIN ---
+// --- LÓGICA DE LOGIN ---
 const formLog = document.getElementById('login-form');
 if (formLog) {
-    formLog.addEventListener('submit', async (e) => {
+    formLog.onsubmit = async (e) => {
         e.preventDefault();
-        const idInput = document.getElementById('login-id').value.trim();
+        const idValue = document.getElementById('login-id').value.trim();
 
-        if (idInput.toLowerCase() === "administrador") {
+        if (idValue.toLowerCase() === "administrador") {
             lanzarAviso("Introduce la contraseña maestra:", "admin_pass");
             return;
         }
 
         try {
-            const userSnap = await getDoc(doc(db, "usuarios", idInput.toLowerCase()));
+            const userSnap = await getDoc(doc(db, "usuarios", idValue.toLowerCase()));
             if (userSnap.exists()) {
-                lanzarAviso("¡Hola " + userSnap.data().nombre + "!");
+                lanzarAviso("¡Hola " + userSnap.data().nombre + "! Bienvenida.");
             } else {
                 lanzarAviso("Identificador no encontrado.");
             }
-        } catch (error) { lanzarAviso("Error al entrar."); }
-    });
+        } catch (error) { lanzarAviso("Error al conectar."); }
+    };
 }
 
-// --- ADMIN ---
-const lista = document.getElementById('lista-usuarios');
-if (lista) {
-    const cargar = async () => {
-        lista.innerHTML = "Cargando...";
+// --- LÓGICA DEL PANEL ADMIN ---
+const listaDiv = document.getElementById('lista-usuarios');
+if (listaDiv) {
+    const cargarUsuarios = async () => {
+        listaDiv.innerHTML = "Cargando usuarios...";
         try {
             const snap = await getDocs(collection(db, "usuarios"));
-            lista.innerHTML = "";
-            snap.forEach(d => {
-                const u = d.data();
-                const div = document.createElement('div');
-                div.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
-                div.innerHTML = `
+            listaDiv.innerHTML = "";
+            if(snap.empty) listaDiv.innerHTML = "No hay usuarios registrados.";
+
+            snap.forEach(docSnap => {
+                const u = docSnap.data();
+                const item = document.createElement('div');
+                item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
+                item.innerHTML = `
                     <div style="text-align:left;">
                         <strong>${u.nombre} ${u.apellidos}</strong><br>
                         <small style="color:#ec407a;">ID: ${u.userId}</small>
                     </div>
-                    <button id="btn-del-${d.id}" style="width:auto; background:#ff4d4d; padding:5px 15px; margin:0;">Borrar</button>
                 `;
-                lista.appendChild(div);
-                document.getElementById(`btn-del-${d.id}`).onclick = () => {
-                    lanzarAviso("¿Borrar a " + u.nombre + "?", "confirmar", async () => {
-                        await deleteDoc(doc(db, "usuarios", d.id));
-                        cargar();
+                
+                const btnBorrar = document.createElement('button');
+                btnBorrar.innerText = "Borrar";
+                btnBorrar.style.cssText = "width:auto; background:#ff4d4d; padding:5px 15px; margin:0;";
+                btnBorrar.onclick = () => {
+                    lanzarAviso(`¿Eliminar a ${u.nombre}?`, "confirmar", async () => {
+                        await deleteDoc(doc(db, "usuarios", docSnap.id));
+                        cargarUsuarios();
                     });
                 };
+
+                item.appendChild(btnBorrar);
+                listaDiv.appendChild(item);
             });
-        } catch (error) { lista.innerHTML = "Error."; }
+        } catch (err) { listaDiv.innerHTML = "Error al cargar."; }
     };
-    cargar();
+    cargarUsuarios();
+
+    const btnCerrar = document.getElementById('btn-cerrar-sesion');
+    if(btnCerrar) btnCerrar.onclick = () => window.location.href = 'index.html';
 }
