@@ -97,6 +97,10 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     container.appendChild(btnOk);
 }
 
+// Funciones globales de carga
+window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
+window.ocultarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); };
+
 // --- LOGICA DASHBOARD ---
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
@@ -105,10 +109,31 @@ if(menuToggle && sidebar) {
 }
 
 const headerUser = document.getElementById('header-usuario');
-if(headerUser) {
-    const nombre = localStorage.getItem('userName') || "Usuario";
-    const apellidos = localStorage.getItem('userLastName') || "";
-    headerUser.innerText = nombre + " " + apellidos;
+const idActivo = localStorage.getItem('usuario_activo'); // Variable añadida
+
+// NUEVO: Cargar datos reales en el dashboard
+if (headerUser && idActivo) {
+    window.mostrarCarga();
+    
+    // Función auto-ejecutable para consultar Firebase
+    (async () => {
+        try {
+            const docRef = doc(db, "usuarios", idActivo);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                headerUser.innerText = `${data.nombre} ${data.apellidos}`.trim();
+                // Aquí en un futuro cargarás "lista-calendarios"
+            }
+        } catch (error) {
+            console.error("Error al cargar dashboard:", error);
+        } finally {
+            window.ocultarCarga();
+        }
+    })();
+} else if (headerUser && !idActivo) {
+    // Si no hay idActivo, lo mandamos al index
+    window.location.href = "index.html";
 }
 
 const btnCerrar = document.getElementById('btn-cerrar-sesion');
