@@ -1,46 +1,65 @@
-// 1. Importamos la base de datos desde tu archivo de configuración y las herramientas de Firestore
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// 2. MAGIA MULTIUSUARIO: Obtenemos el ID de la persona que está usando la app
-// (Esto se debe guardar en el localStorage cuando el usuario hace login o se registra)
 const miID = localStorage.getItem('usuario_activo');
 
-// Si por algún motivo entra aquí sin ID (ej. escribió la ruta directa), le avisamos
 if (!miID) {
     console.error("Error: No hay usuario logueado en esta sesión.");
-    // window.location.href = "index.html"; // (Opcional: descomenta esto para echarlo al Login)
 }
 
 let trabajosLocal = [];
 let indiceEditando = -1;
+let fotoBase64 = ""; // Variable para guardar la foto en formato texto
 
-// 3. Al abrir la página, vamos a Firebase a por los datos del usuario logueado
-document.addEventListener('DOMContentLoaded', cargarDatosFirebase);
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDatosFirebase();
+    
+    // --- NUEVO: ESCUCHAR CUANDO SE ELIGE UNA FOTO ---
+    const inputFoto = document.getElementById('input-foto');
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function(event) {
+            const archivo = event.target.files[0];
+            if (archivo) {
+                const lector = new FileReader();
+                lector.onload = function(e) {
+                    fotoBase64 = e.target.result; // Convertimos la imagen a código Base64
+                    // Mostramos la imagen al instante en el círculo
+                    document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
+                };
+                lector.readAsDataURL(archivo);
+            }
+        });
+    }
+});
 
 async function cargarDatosFirebase() {
-    if (!miID) return; // Si no hay ID, paramos aquí
+    if (!miID) return; 
     
     document.getElementById('perfil-id').value = miID;
     
     try {
-        // Le decimos a Firebase: "Búscame en 'usuarios' el documento de ESTE usuario"
         const docRef = doc(db, "usuarios", miID);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const datos = docSnap.data();
-            // Rellenamos los campos con lo que hay en la nube
+            
             document.getElementById('perfil-nombre').value = datos.nombre || "";
             document.getElementById('perfil-apellidos').value = datos.apellidos || "";
             document.getElementById('perfil-fecha').value = datos.fecha || "";
             document.getElementById('perfil-desc').value = datos.descripcion || "";
             
+            // --- NUEVO: CARGAR LA FOTO SI EXISTE ---
+            if (datos.foto) {
+                fotoBase64 = datos.foto;
+                document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
+            } else {
+                document.getElementById('profile-display').innerHTML = `<i class="fas fa-user"></i>`;
+            }
+            
             trabajosLocal = datos.trabajos || [];
             cargarListaTrabajos();
             actualizarNombreHeader();
-        } else {
-            console.log("El usuario es nuevo y no tiene datos extra guardados todavía.");
         }
     } catch (error) {
         console.error("Error conectando con Firebase:", error);
@@ -55,13 +74,11 @@ function actualizarNombreHeader() {
     }
 }
 
-// 4. Guardar los datos en Firebase (Solo los del usuario logueado)
 async function guardarPerfil() {
-    if (!miID) return; // Por seguridad
+    if (!miID) return;
 
     const campos = ['perfil-nombre', 'perfil-apellidos', 'perfil-fecha', 'perfil-desc'];
     
-    // Bloquear campos visualmente
     campos.forEach(id => {
         const input = document.getElementById(id);
         input.readOnly = true;
@@ -70,21 +87,20 @@ async function guardarPerfil() {
         input.style.borderColor = "#eee";
     });
 
-    // Recopilar la información
     const datosAGuardar = {
         userId: miID,
         nombre: document.getElementById('perfil-nombre').value,
         apellidos: document.getElementById('perfil-apellidos').value,
         fecha: document.getElementById('perfil-fecha').value,
         descripcion: document.getElementById('perfil-desc').value,
-        trabajos: trabajosLocal
+        trabajos: trabajosLocal,
+        foto: fotoBase64 // --- NUEVO: GUARDAMOS LA FOTO EN FIREBASE ---
     };
 
     try {
-        // Enviamos todo a Firestore con { merge: true } para que actualice sin borrar otros datos posibles
         await setDoc(doc(db, "usuarios", miID), datosAGuardar, { merge: true });
         actualizarNombreHeader();
-        mostrarMensaje("¡Nube actualizada!", "Tus datos se han guardado en Firebase con éxito.");
+        mostrarMensaje("¡Nube actualizada!", "Tus datos y tu foto se han guardado con éxito.");
     } catch (error) {
         console.error("Error al guardar en Firebase:", error);
         mostrarMensaje("Error", "No se pudieron guardar los datos.");
@@ -119,7 +135,6 @@ function guardarTrabajo() {
         }
         cargarListaTrabajos();
         cerrarModales();
-        // Para que se guarde permanentemente en la nube
         guardarPerfil(); 
     }
 }
@@ -179,8 +194,6 @@ function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('active');
 }
 
-// 5. ATENCIÓN: Como usamos type="module", el HTML no "ve" las funciones automáticamente. 
-// Tenemos que enlazarlas a la ventana global (window) así:
 window.editarCampo = editarCampo;
 window.guardarPerfil = guardarPerfil;
 window.abrirModalTrabajo = abrirModalTrabajo;
