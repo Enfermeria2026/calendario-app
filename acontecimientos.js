@@ -1,199 +1,248 @@
 import { db } from "./firebase-config.js";
-import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { collection, addDoc, query, where, getDocs, doc, getDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const miID = localStorage.getItem('usuario_activo');
-let userJobs = [];
-let selectedDays = []; // Para repetir semanalmente
-let eventosCargados = [];
-let paginaActual = 1;
-const itemsPorPagina = 10;
-let editandoID = null;
+let misTrabajos = [];
+let diasSemanaSelec = [];
+let diasVariosSelec = [];
+let todosLosEventos = [];
+let pagActual = 1;
+const limite = 10;
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!miID) window.location.href = "index.html";
-    
-    await cargarDatosUsuario();
-    await cargarAcontecimientos();
+    await cargarPerfil();
+    await cargarLista();
+    generarCalendarioMulti();
     configurarSelectorSemanal();
 });
 
-// 1. Cargar trabajos del perfil para el desplegable
-async function cargarDatosUsuario() {
-    const docRef = doc(db, "usuarios", miID);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        const data = docSnap.data();
+// --- CARGA INICIAL ---
+async function cargarPerfil() {
+    const d = await getDoc(doc(db, "usuarios", miID));
+    if (d.exists()) {
+        const data = d.data();
         document.getElementById('header-usuario').innerText = `${data.nombre} ${data.apellidos}`;
-        userJobs = data.trabajos || [];
+        misTrabajos = data.trabajos || [];
     }
 }
 
-// 2. Lógica de los desplegables dinámicos
-window.toggleTipoDetalle = () => {
+// --- LOGICA DEL MODAL ---
+window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
-    const divTrabajo = document.getElementById('div-trabajo');
-    const divOtro = document.getElementById('div-otro');
-    const selectTrabajo = document.getElementById('ev-trabajo-select');
-    const aviso = document.getElementById('aviso-trabajo');
+    const divTrabajo = document.getElementById('div-trabajo-select');
+    const divOtro = document.getElementById('div-otro-texto');
+    const selectTrabajos = document.getElementById('ev-trabajo-id');
+    const errorJobs = document.getElementById('error-no-jobs');
+    const btnSave = document.getElementById('btn-save-event');
 
     divTrabajo.classList.add('hidden');
     divOtro.classList.add('hidden');
+    btnSave.disabled = false;
+    btnSave.style.opacity = "1";
 
     if (tipo === "Trabajo") {
         divTrabajo.classList.remove('hidden');
-        selectTrabajo.innerHTML = "";
-        if (userJobs.length === 0) {
-            aviso.classList.remove('hidden');
+        if (misTrabajos.length === 0) {
+            errorJobs.classList.remove('hidden');
+            selectTrabajos.classList.add('hidden');
+            btnSave.disabled = true;
+            btnSave.style.opacity = "0.5";
         } else {
-            aviso.classList.add('hidden');
-            userJobs.forEach(j => {
-                let opt = document.createElement('option');
-                opt.value = j; opt.innerText = j;
-                selectTrabajo.appendChild(opt);
-            });
+            errorJobs.classList.add('hidden');
+            selectTrabajos.classList.remove('hidden');
+            selectTrabajos.innerHTML = misTrabajos.map(t => `<option value="${t}">${t}</option>`).join('');
         }
     } else if (tipo === "Otro") {
         divOtro.classList.remove('hidden');
     }
 };
 
-window.toggleFechaDetalle = () => {
+window.actualizarInterfazFecha = () => {
     const tipo = document.getElementById('ev-fecha-tipo').value;
-    document.querySelectorAll('.fecha-seccion').forEach(s => s.classList.add('hidden'));
-    document.getElementById(`fecha-${tipo}`).classList.remove('hidden');
+    document.querySelectorAll('.fecha-box').forEach(b => b.classList.add('hidden'));
+    document.getElementById(`box-${tipo}`).classList.remove('hidden');
 };
 
-// 3. Configurar el selector de días de la semana (L, M, X...)
 function configurarSelectorSemanal() {
-    document.querySelectorAll('.day-circle').forEach(circle => {
-        circle.onclick = () => {
-            const day = circle.getAttribute('data-day');
-            if (selectedDays.includes(day)) {
-                selectedDays = selectedDays.filter(d => d !== day);
-                circle.classList.remove('day-selected');
+    document.querySelectorAll('.day-circle').forEach(c => {
+        c.onclick = () => {
+            const d = c.dataset.day;
+            if (diasSemanaSelec.includes(d)) {
+                diasSemanaSelec = diasSemanaSelec.filter(item => item !== d);
+                c.classList.remove('day-selected');
             } else {
-                selectedDays.push(day);
-                circle.classList.add('day-selected');
+                diasSemanaSelec.push(d);
+                c.classList.add('day-selected');
             }
         };
     });
 }
 
-// 4. GUARDAR ACONTECIMIENTO (Con validación de turno nocturno)
-window.guardarAcontecimiento = async () => {
+function generarCalendarioMulti() {
+    const cont = document.getElementById('calendar-multi');
+    const hoy = new Date();
+    // Generamos 31 días desde hoy para elegir
+    for(let i=0; i<31; i++) {
+        let f = new Date(); f.setDate(hoy.getDate() + i);
+        let diaStr = f.toISOString().split('T')[0];
+        let item = document.createElement('div');
+        item.className = "date-item";
+        item.innerText = f.getDate();
+        item.onclick = () => {
+            if (diasVariosSelec.includes(diaStr)) {
+                diasVariosSelec = diasVariosSelec.filter(x => x !== diaStr);
+                item.classList.remove('date-selected');
+            } else {
+                diasVariosSelec.push(diaStr);
+                item.classList.add('date-selected');
+            }
+        };
+        cont.appendChild(item);
+    }
+}
+
+// --- GUARDADO Y VALIDACIÓN ---
+window.validarYGuardar = async () => {
     const titulo = document.getElementById('ev-titulo').value.trim();
     const tipo = document.getElementById('ev-tipo').value;
-    const fechaTipo = document.getElementById('ev-fecha-tipo').value;
-    const horaInicio = document.getElementById('ev-hora-inicio').value;
-    const horaFin = document.getElementById('ev-hora-fin').value;
+    const hIni = document.getElementById('ev-hora-ini').value;
+    const hFin = document.getElementById('ev-hora-fin').value;
+    const fTipo = document.getElementById('ev-fecha-tipo').value;
 
-    if (!titulo || !horaInicio || !horaFin) {
-        alert("Rellena los campos obligatorios.");
+    if (!titulo || !tipo || !hIni || !hFin) {
+        lanzarAviso("Por favor, rellena los campos obligatorios.");
         return;
     }
 
-    // Validación Turno Nocturno (Ej: 22:00 a 06:00)
-    if (horaFin < horaInicio) {
-        const confirmar = confirm("La hora de fin es anterior a la de inicio. ¿Este evento termina al día siguiente? (Ideal para turnos de noche)");
-        if (!confirmar) return;
+    if (hFin < hIni) {
+        lanzarAviso("¿Estás seguro de que el evento finaliza un día después?", "confirmar", procesarGuardado);
+    } else {
+        procesarGuardado();
     }
-
-    const nuevoEv = {
-        userId: miID,
-        titulo,
-        tipo,
-        tipoDetalle: tipo === "Trabajo" ? document.getElementById('ev-trabajo-select').value : 
-                     tipo === "Otro" ? document.getElementById('ev-tipo-otro').value : "",
-        lugar: document.getElementById('ev-lugar').value,
-        fechaTipo,
-        horaInicio,
-        horaFin,
-        fechaCreacion: new Date().toISOString()
-    };
-
-    // Manejo de fechas según tipo
-    if (fechaTipo === "especifico") nuevoEv.fechaValor = document.getElementById('ev-date-single').value;
-    else if (fechaTipo === "semanal") nuevoEv.fechaValor = selectedDays;
-    else nuevoEv.fechaValor = document.getElementById('ev-date-multiple').value;
-
-    try {
-        if (editandoID) {
-            await updateDoc(doc(db, "acontecimientos", editandoID), nuevoEv);
-        } else {
-            await addDoc(collection(db, "acontecimientos"), nuevoEv);
-        }
-        cerrarModales();
-        location.reload();
-    } catch (e) { console.error(e); }
 };
 
-// 5. CARGAR Y PAGINAR
-async function cargarAcontecimientos() {
-    const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
-    const snap = await getDocs(q);
-    eventosCargados = [];
-    snap.forEach(d => eventosCargados.push({ id: d.id, ...d.data() }));
+async function procesarGuardado() {
+    const fTipo = document.getElementById('ev-fecha-tipo').value;
+    let fechasFinales = [];
 
-    // Ordenar cronológico (Simplificado: por fecha de creación o valor si es específico)
-    eventosCargados.sort((a, b) => new Date(a.fechaCreacion) - new Date(b.fechaCreacion));
-    
-    renderizarPagina();
+    if (fTipo === "especifico") {
+        fechasFinales.push(document.getElementById('ev-date-single').value);
+    } else if (fTipo === "semanal") {
+        const fFin = new Date(document.getElementById('ev-date-end').value);
+        let actual = new Date();
+        while (actual <= fFin) {
+            if (diasSemanaSelec.includes(actual.getDay().toString())) {
+                fechasFinales.push(actual.toISOString().split('T')[0]);
+            }
+            actual.setDate(actual.getDate() + 1);
+        }
+    } else {
+        fechasFinales = diasVariosSelec;
+    }
+
+    if (fechasFinales.length === 0 || fechasFinales.some(f => !f)) {
+        lanzarAviso("Debes seleccionar al menos una fecha válida.");
+        return;
+    }
+
+    // Guardar por separado
+    try {
+        for (let f of fechasFinales) {
+            await addDoc(collection(db, "acontecimientos"), {
+                userId: miID,
+                titulo: document.getElementById('ev-titulo').value,
+                tipo: document.getElementById('ev-tipo').value,
+                detalle: document.getElementById('ev-tipo').value === "Trabajo" ? document.getElementById('ev-trabajo-id').value : document.getElementById('ev-otro-nombre').value,
+                lugar: document.getElementById('ev-lugar').value,
+                fecha: f,
+                horaInicio: document.getElementById('ev-hora-ini').value,
+                horaFin: document.getElementById('ev-hora-fin').value
+            });
+        }
+        location.reload();
+    } catch (e) { console.error(e); }
 }
 
-function renderizarPagina() {
-    const inicio = (paginaActual - 1) * itemsPorPagina;
-    const fin = inicio + itemsPorPagina;
-    const lista = eventosCargados.slice(inicio, fin);
+// --- LISTADO Y PAGINACIÓN ---
+async function cargarLista() {
+    const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
+    const snap = await getDocs(q);
+    todosLosEventos = [];
+    snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
     
-    const contenedor = document.getElementById('contenedor-eventos');
-    contenedor.innerHTML = "";
+    // Orden cronológico
+    todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + a.horaInicio) - new Date(b.fecha + "T" + b.horaInicio));
 
-    lista.forEach(ev => {
+    if (todosLosEventos.length === 0) {
+        document.getElementById('subtitulo-vacio').classList.remove('hidden');
+    }
+    renderizar();
+}
+
+function renderizar() {
+    const totalPags = Math.ceil(todosLosEventos.length / limite) || 1;
+    const inicio = (pagActual - 1) * limite;
+    const fragmento = todosLosEventos.slice(inicio, inicio + limite);
+
+    const cont = document.getElementById('contenedor-eventos');
+    cont.innerHTML = "";
+
+    fragmento.forEach(ev => {
+        const fFormat = new Date(ev.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const div = document.createElement('div');
         div.className = "event-card";
         div.innerHTML = `
             <div>
-                <strong>${ev.titulo}</strong> <br>
-                <small>${ev.horaInicio} - ${ev.horaFin} (${ev.tipo})</small>
+                <strong style="color:#333; font-size:16px;">${ev.titulo}</strong> <small style="color:#ec407a; margin-left:10px;">${fFormat}</small><br>
+                <small style="color:#666;">${ev.horaInicio} - ${ev.horaFin} (${ev.detalle || ev.tipo})</small>
             </div>
             <div>
-                <i class="fas fa-edit" style="color: #ec407a; cursor:pointer; margin-right:15px;" onclick="prepararEdicion('${ev.id}')"></i>
-                <i class="fas fa-trash" style="color: #666; cursor:pointer;" onclick="borrarEvento('${ev.id}')"></i>
+                <i class="fas fa-trash" style="color:#bbb; cursor:pointer;" onclick="pedirBorrado('${ev.id}')"></i>
             </div>
         `;
-        contenedor.appendChild(div);
+        cont.appendChild(div);
     });
 
-    document.getElementById('page-info').innerText = `Página ${paginaActual}`;
-    document.getElementById('btn-prev').disabled = paginaActual === 1;
-    document.getElementById('btn-next').disabled = fin >= eventosCargados.length;
+    document.getElementById('page-info').innerText = `Página ${pagActual} de ${totalPags}`;
+    document.getElementById('btn-prev').disabled = pagActual === 1;
+    document.getElementById('btn-next').disabled = pagActual === totalPags;
+    
+    if (todosLosEventos.length <= limite) document.getElementById('paginacion-box').style.display = "none";
 }
 
-// Botones paginación
-document.getElementById('btn-prev').onclick = () => { if(paginaActual > 1) { paginaActual--; renderizarPagina(); }};
-document.getElementById('btn-next').onclick = () => { if((paginaActual * itemsPorPagina) < eventosCargados.length) { paginaActual++; renderizarPagina(); }};
+// --- MODALES Y UTILIDADES ---
+function lanzarAviso(msg, tipo = "ok", cb = null) {
+    const modal = document.getElementById('miModal');
+    document.getElementById('modalMsg').innerText = msg;
+    const container = document.getElementById('modalBtnsContainer');
+    container.innerHTML = "";
+    modal.style.display = "flex";
 
-window.abrirModalEvento = () => {
-    editandoID = null;
-    document.getElementById('modal-titulo-accion').innerText = "Nuevo Acontecimiento";
-    document.getElementById('modal-evento').style.display = "flex";
-};
+    const btnOk = document.createElement('button');
+    btnOk.innerText = "Aceptar";
+    btnOk.onclick = () => { modal.style.display="none"; if(cb) cb(); };
+    
+    if(tipo === "confirmar") {
+        const btnCan = document.createElement('button');
+        btnCan.innerText = "Cancelar"; btnCan.style.background = "#aaa";
+        btnCan.onclick = () => modal.style.display="none";
+        container.appendChild(btnCan);
+    }
+    container.appendChild(btnOk);
+}
 
-window.cerrarModales = () => {
-    document.getElementById('modal-evento').style.display = "none";
-};
-
-window.borrarEvento = async (id) => {
-    if(confirm("¿Borrar este acontecimiento?")) {
+window.pedirBorrado = (id) => {
+    lanzarAviso("¿Estás seguro de eliminar este acontecimiento?", "confirmar", async () => {
         await deleteDoc(doc(db, "acontecimientos", id));
         location.reload();
-    }
+    });
 };
 
+window.abrirModalEvento = () => document.getElementById('modal-evento').style.display = "flex";
+window.cerrarModales = () => document.getElementById('modal-evento').style.display = "none";
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
+window.cerrarSesion = () => { localStorage.clear(); window.location.href="index.html"; };
 
-// Función para cerrar sesión desde cualquier pantalla
-window.cerrarSesion = () => {
-    localStorage.clear();
-    window.location.href = 'index.html';
-};
+document.getElementById('btn-prev').onclick = () => { pagActual--; renderizar(); };
+document.getElementById('btn-next').onclick = () => { pagActual++; renderizar(); };
