@@ -15,12 +15,20 @@ body {
     background: white;
     padding: 40px 30px;
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Sombra más profunda y elegante */
     width: 100%;
     max-width: 400px;
     text-align: center;
     box-sizing: border-box;
     margin: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 /* INPUTS ELEGANTES */
@@ -29,21 +37,30 @@ input {
     padding: 14px;
     margin: 10px 0;
     border: 1px solid #eee;
-    border-radius: 10px;
-    background-color: #fafafa;
+    border-radius: 12px;
+    background-color: #f9f9f9;
     box-sizing: border-box;
     font-size: 15px;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
+input:focus {
+    border-color: #ec407a;
+    background-color: white;
+    outline: none;
+    box-shadow: 0 0 10px rgba(236, 64, 122, 0.15);
+}
+
+/* ETIQUETAS A LA IZQUIERDA (COMO PEDISTE) */
 .label-texto {
     display: block;
-    text-align: right;
+    text-align: left; /* Ahora a la izquierda */
     font-size: 13px;
     font-weight: 600;
-    color: #666;
+    color: #555;
     margin-top: 15px;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
+    padding-left: 5px;
 }
 
 .input-group {
@@ -56,14 +73,19 @@ input {
 
 #btn-random {
     width: auto !important;
-    padding: 12px 15px;
-    background-color: #444;
+    padding: 12px 18px;
+    background-color: #333;
     color: white;
     border-radius: 10px;
     font-size: 11px;
     margin: 0 !important;
     cursor: pointer;
+    font-weight: bold;
+    border: none;
+    transition: background 0.3s;
 }
+
+#btn-random:hover { background-color: #000; }
 
 /* --- DASHBOARD --- */
 .header {
@@ -83,7 +105,6 @@ input {
 
 .header-left { display: flex; align-items: center; gap: 20px; }
 
-/* RECUPERADA ANIMACIÓN MENÚ */
 .menu-icon {
     font-size: 22px;
     cursor: pointer;
@@ -92,10 +113,10 @@ input {
 }
 
 .menu-icon:hover {
-    transform: scale(1.25);
+    transform: scale(1.2);
 }
 
-/* BOTÓN UNIRSE CON SOMBRA */
+/* BOTÓN UNIRSE - POSICIÓN FIJA (SIN SALTO) */
 .btn-unirse {
     background: white;
     color: #000;
@@ -105,15 +126,15 @@ input {
     font-size: 14px;
     cursor: pointer;
     font-weight: 400;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Sombra añadida */
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; /* Eliminado el transform */
 }
 
 .btn-unirse:hover {
     background-color: #fce4ec !important;
     color: #ec407a !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    /* Ya no tiene translateY para que no "suba" */
 }
 
 .sidebar {
@@ -123,21 +144,18 @@ input {
     width: 260px;
     height: calc(100% - 60px);
     background: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    box-shadow: 2px 0 15px rgba(0,0,0,0.05);
     transition: 0.3s;
     z-index: 900;
-    display: flex;
-    flex-direction: column; /* Ayuda a alinear botones */
 }
 
 .sidebar.active { left: 0; }
 
-/* BOTONES SIDEBAR - DISTANCIA UNIFICADA */
 .sidebar-btn {
     display: flex !important;
     align-items: center !important;
     gap: 15px !important;
-    padding: 20px 25px !important; /* Espacio idéntico para todos */
+    padding: 20px 25px !important;
     color: #444;
     font-size: 16px;
     border: none;
@@ -145,14 +163,14 @@ input {
     width: 100%;
     cursor: pointer;
     text-align: left;
-    margin: 0 !important; /* Eliminado cualquier margen extra */
+    margin: 0 !important;
     box-sizing: border-box;
+    transition: background 0.2s;
 }
 
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
 
-/* Forzamos que cerrar sesión no tenga nada distinto */
 #btn-cerrar-sesion {
     margin-top: 0 !important;
 }
@@ -161,7 +179,6 @@ input {
     margin-top: 60px;
     width: 100%;
     padding: 40px 20px;
-    align-self: flex-start;
 }
 
 .btn-flotante {
@@ -175,7 +192,7 @@ input {
     font-size: 30px;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(236, 64, 122, 0.4);
+    box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3);
     transition: 0.3s;
     display: flex;
     align-items: center;
@@ -183,18 +200,37 @@ input {
 }
 .btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
 
-/* AVISO SEGURIDAD ROJO PEQUEÑO */
+/* AVISO SEGURIDAD */
 .aviso-seguridad {
-    color: #e53935 !important;
+    color: #d32f2f !important;
     font-size: 11px;
     text-align: left;
     margin-top: 12px;
     line-height: 1.4;
+    font-weight: 500;
 }
+
+/* BOTONES PRINCIPALES */
+.btn-principal {
+    width: 100%;
+    padding: 14px;
+    background-color: #ec407a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.3s;
+}
+
+.btn-principal:hover { background-color: #d81b60; }
 
 /* AJUSTES MÓVIL */
 @media (max-width: 600px) {
-    .auth-container { margin: 15px; padding: 30px 20px; }
+    .auth-container { 
+        margin: 15px; 
+        padding: 35px 25px; 
+    }
     .header-left span { display: none; }
-    .sidebar { width: 85%; }
 }
