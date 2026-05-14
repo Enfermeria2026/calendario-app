@@ -19,18 +19,25 @@ function mostrarCarga() { document.getElementById('pantalla-carga').classList.re
 function ocultarCarga() { document.getElementById('pantalla-carga').classList.add('hidden'); }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (!miID) window.location.href = "index.html";
+    // Si no hay ID, cortamos la ejecución y salimos inmediatamente
+    if (!miID) {
+        window.location.href = "index.html";
+        return; 
+    }
     
-    // Mostramos la carga al iniciar
     mostrarCarga();
     
-    await cargarPerfil();
-    await cargarLista();
-    renderizarCalendarioModal();
-    configurarSelectorSemanal();
-    
-    // Ocultamos cuando todo está listo
-    ocultarCarga();
+    try {
+        await cargarPerfil();
+        await cargarLista();
+        renderizarCalendarioModal();
+        configurarSelectorSemanal();
+    } catch (error) {
+        console.error("Error al cargar la página:", error);
+    } finally {
+        // Pase lo que pase en el bloque anterior (errores o aciertos), esto SIEMPRE se ejecuta
+        ocultarCarga();
+    }
 });
 
 async function cargarPerfil() {
@@ -118,9 +125,16 @@ window.marcarParaBorrar = (id) => {
 window.borrarSeleccionados = () => {
     if (idsSeleccionados.length === 0) return;
     lanzarAviso(`¿Eliminar definitivamente los ${idsSeleccionados.length} acontecimientos?`, "confirmar", async () => {
-        mostrarCarga(); // <-- Mostramos carga antes de borrar
-        for (let id of idsSeleccionados) await deleteDoc(doc(db, "acontecimientos", id));
-        location.reload();
+        mostrarCarga();
+        try {
+            for (let id of idsSeleccionados) {
+                await deleteDoc(doc(db, "acontecimientos", id));
+            }
+            location.reload();
+        } catch (error) {
+            console.error(error);
+            ocultarCarga(); // Seguridad en caso de error
+        }
     });
 };
 
@@ -216,7 +230,7 @@ async function procesarGuardado() {
         return;
     }
     
-    mostrarCarga(); // <-- Activamos la rueda mientras Firebase procesa la información
+    mostrarCarga();
     
     try {
         if (idEditando) {
@@ -246,7 +260,7 @@ async function procesarGuardado() {
         location.reload();
     } catch (e) { 
         console.error(e); 
-        ocultarCarga(); // Ocultar si hay error para no dejar la pantalla bloqueada
+        ocultarCarga(); // Seguridad en caso de error
     }
 }
 
@@ -300,30 +314,40 @@ function renderizar() {
 }
 
 window.prepararEdicion = async (id) => {
-    mostrarCarga(); // <-- Mostramos carga mientras recuperamos datos para editar
-    idEditando = id;
-    const d = await getDoc(doc(db, "acontecimientos", id));
-    if (d.exists()) {
-        const ev = d.data();
-        document.getElementById('modal-titulo-accion').innerText = "Editar Acontecimiento";
-        document.getElementById('ev-titulo').value = ev.titulo;
-        document.getElementById('ev-tipo').value = ev.tipo;
-        actualizarInterfazTipo();
-        document.getElementById('ev-lugar').value = ev.lugar || "";
-        document.getElementById('ev-fecha-tipo').value = "especifico";
-        actualizarInterfazFecha();
-        document.getElementById('ev-date-single').value = ev.fecha;
-        document.getElementById('ev-hora-ini').value = ev.horaInicio;
-        document.getElementById('ev-hora-fin').value = ev.horaFin;
-        ocultarCarga(); // Ya lo tenemos
-        document.getElementById('modal-evento').style.display = "flex";
+    mostrarCarga();
+    try {
+        idEditando = id;
+        const d = await getDoc(doc(db, "acontecimientos", id));
+        if (d.exists()) {
+            const ev = d.data();
+            document.getElementById('modal-titulo-accion').innerText = "Editar Acontecimiento";
+            document.getElementById('ev-titulo').value = ev.titulo;
+            document.getElementById('ev-tipo').value = ev.tipo;
+            actualizarInterfazTipo();
+            document.getElementById('ev-lugar').value = ev.lugar || "";
+            document.getElementById('ev-fecha-tipo').value = "especifico";
+            actualizarInterfazFecha();
+            document.getElementById('ev-date-single').value = ev.fecha;
+            document.getElementById('ev-hora-ini').value = ev.horaInicio;
+            document.getElementById('ev-hora-fin').value = ev.horaFin;
+            document.getElementById('modal-evento').style.display = "flex";
+        }
+    } catch (error) {
+        console.error(error);
+    } finally {
+        ocultarCarga(); // Seguridad garantizada
     }
 };
 
 window.pedirBorrado = (id) => lanzarAviso("¿Borrar definitivamente este acontecimiento?", "confirmar", async () => { 
-    mostrarCarga(); // <-- Mostramos carga
-    await deleteDoc(doc(db, "acontecimientos", id)); 
-    location.reload(); 
+    mostrarCarga();
+    try {
+        await deleteDoc(doc(db, "acontecimientos", id)); 
+        location.reload(); 
+    } catch (error) {
+        console.error(error);
+        ocultarCarga(); // Seguridad garantizada
+    }
 });
 
 function lanzarAviso(msg, tipo = "ok", cb = null) {
