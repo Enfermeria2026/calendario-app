@@ -44,6 +44,32 @@
             <div class="modal-btns" id="modalBtnsContainer"></div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="modal-crear-calendario" style="display: none;">
+        <div class="modal-box" style="max-width: 480px; text-align: left; padding: 30px;">
+            <h3 style="margin-bottom: 25px; font-size: 22px;">Nuevo Calendario</h3>
+
+            <label class="label-texto" style="display: block; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 14px;">Nombre del calendario *</label>
+            <input type="text" id="cal-nombre" class="modal-input" placeholder="Ej: Turnos Planta 3" style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f9f9f9; font-family: inherit; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;">
+
+            <label class="label-texto" style="display: block; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 14px;">Descripción (Opcional)</label>
+            <textarea id="cal-desc" class="modal-input" placeholder="Escribe un breve propósito para este calendario..." style="width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f9f9f9; font-family: inherit; font-size: 14px; height: 80px; margin-bottom: 20px; resize: none; box-sizing: border-box;"></textarea>
+
+            <label class="label-texto" style="display: block; margin-bottom: 8px; font-weight: bold; color: #555; font-size: 14px;">Código de Acceso (Comparte este número)</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="cal-codigo" class="modal-input" readonly style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #eee; background: #f0f0f0; color: #ec407a; font-weight: 800; text-align: center; letter-spacing: 4px; font-size: 18px; margin-bottom: 0; pointer-events: none; box-sizing: border-box;">
+                <button onclick="copiarCodigo()" class="sidebar-btn" style="margin: 0; width: 55px; justify-content: center; background: white; border: 1px solid #ec407a; color: #ec407a; border-radius: 12px; padding: 0; display: flex; align-items: center;" title="Copiar código">
+                    <i class="fas fa-copy" style="margin: 0; font-size: 18px;"></i>
+                </button>
+            </div>
+
+            <div class="modal-btns">
+                <button onclick="cerrarModalCalendario()" style="background: #f5f5f5; color: #666; border: 1px solid #ddd;">Cancelar</button>
+                <button onclick="guardarCalendario()" style="background: #ec407a; color: white; border: none;">Crear Calendario</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="main.js"></script>
 </body>
 </html>
