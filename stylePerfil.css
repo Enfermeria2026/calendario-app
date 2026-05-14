@@ -1,21 +1,20 @@
-/* --- LIMPIEZA DE CONFLICTOS (ESTO ES LO MÁS IMPORTANTE) --- */
+/* --- LIMPIEZA DE CONFLICTOS --- */
 html, body {
-    height: auto !important; /* Permite que la página crezca hacia abajo */
-    overflow-y: auto !important; /* Solo un scroll: el de toda la vida */
-    background-color: #fff5f8; /* El color rosita de fondo */
+    height: auto !important;
+    overflow-y: auto !important;
+    background-color: #fff5f8;
 }
 
-/* Forzamos a que el contenedor principal no intente centrarse ni cortarse */
 .main-content {
     display: block !important;
     height: auto !important;
-    padding-top: 100px !important; /* Espacio para que la cabecera no tape nada */
+    padding-top: 100px !important;
     padding-bottom: 50px;
     overflow: visible !important;
 }
 
 .auth-container {
-    display: block !important; /* Quitamos el flex que centra cosas */
+    display: block !important;
     height: auto !important;
     min-height: auto !important;
     max-width: 500px;
@@ -85,11 +84,34 @@ html, body {
     border: 1px solid #eee;
 }
 
-.input-group input, .input-group textarea {
+.input-group input {
     border: none !important;
     background: transparent !important;
     margin-bottom: 0 !important;
     flex-grow: 1;
+    height: 45px;
+    padding: 0 15px;
+    font-family: inherit;
+}
+
+/* --- CORRECCIÓN TEXTAREA (DESCRIPCIÓN) --- */
+.input-group textarea {
+    border: none !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+    flex-grow: 1;
+    padding: 14px 15px;
+    font-family: inherit; /* Arregla fuente monospace */
+    font-size: 14px;
+    resize: none; /* Quita tirador de esquina */
+    height: 100px;
+    outline: none;
+    color: #333;
+}
+
+.input-group textarea::placeholder {
+    font-family: inherit;
+    color: #999;
 }
 
 .edit-btn {
