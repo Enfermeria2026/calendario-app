@@ -11,7 +11,7 @@ const limite = 10;
 let modoSeleccion = false;
 let idsSeleccionados = [];
 let fechaCalModal = new Date();
-const HOY_REAL = new Date(); // Para bloquear pasado
+const HOY_REAL = new Date();
 let idEditando = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,17 +31,11 @@ async function cargarPerfil() {
     }
 }
 
-// --- CALENDARIO DEL MODAL (CON BLOQUEO DE PASADO) ---
 window.cambiarMesCal = (dir) => {
     const nuevaFecha = new Date(fechaCalModal);
     nuevaFecha.setMonth(nuevaFecha.getMonth() + dir);
-    
-    // No permitir ir antes del mes actual
     if (nuevaFecha.getFullYear() < HOY_REAL.getFullYear() || 
-       (nuevaFecha.getFullYear() === HOY_REAL.getFullYear() && nuevaFecha.getMonth() < HOY_REAL.getMonth())) {
-        return;
-    }
-    
+       (nuevaFecha.getFullYear() === HOY_REAL.getFullYear() && nuevaFecha.getMonth() < HOY_REAL.getMonth())) return;
     fechaCalModal = nuevaFecha;
     renderizarCalendarioModal();
 };
@@ -52,34 +46,23 @@ function renderizarCalendarioModal() {
     const btnPrev = document.getElementById('btn-cal-prev');
     if(!cont || !labelMes) return;
     cont.innerHTML = "";
-
     const mes = fechaCalModal.getMonth();
     const anio = fechaCalModal.getFullYear();
-    
-    // Bloquear botón atrás si es el mes actual
     const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
     btnPrev.disabled = esMesActual;
-
     labelMes.innerText = fechaCalModal.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-
     const primerDia = new Date(anio, mes, 1).getDay();
     const ultimoDia = new Date(anio, mes + 1, 0).getDate();
     let startDay = (primerDia === 0) ? 6 : primerDia - 1;
-
     for (let i = 0; i < startDay; i++) cont.appendChild(document.createElement('div'));
-
     for (let d = 1; d <= ultimoDia; d++) {
         const fechaLoop = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const fechaObj = new Date(anio, mes, d);
         const item = document.createElement('div');
         item.className = "date-item";
         item.innerText = d;
-
-        // Comprobar si el día ya pasó (solo en el mes actual)
         const esPasado = esMesActual && d < HOY_REAL.getDate();
-        if (esPasado) {
-            item.classList.add('past');
-        } else {
+        if (esPasado) item.classList.add('past');
+        else {
             if (diasVariosSelec.includes(fechaLoop)) item.classList.add('date-selected');
             item.onclick = () => {
                 if (diasVariosSelec.includes(fechaLoop)) {
@@ -95,7 +78,6 @@ function renderizarCalendarioModal() {
     }
 }
 
-// --- SELECCIÓN MÚLTIPLE ---
 window.toggleModoSeleccion = () => {
     modoSeleccion = !modoSeleccion;
     const btn = document.getElementById('btn-toggle-sel');
@@ -122,7 +104,6 @@ window.borrarSeleccionados = () => {
     });
 };
 
-// --- LOGICA MODAL ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
@@ -130,10 +111,8 @@ window.actualizarInterfazTipo = () => {
     const selT = document.getElementById('ev-trabajo-id');
     const err = document.getElementById('error-no-jobs');
     const btn = document.getElementById('btn-save-event');
-
     divT.classList.add('hidden'); divO.classList.add('hidden');
     btn.disabled = false; btn.style.opacity = "1";
-
     if (tipo === "Trabajo") {
         divT.classList.remove('hidden');
         if (misTrabajos.length === 0) {
@@ -172,23 +151,17 @@ window.validarYGuardar = async () => {
     const tipo = document.getElementById('ev-tipo').value;
     const hIni = document.getElementById('ev-hora-ini').value;
     const hFin = document.getElementById('ev-hora-fin').value;
-
     if (!titulo || !tipo || !hIni || !hFin) {
         lanzarAviso("Rellena todos los campos.");
         return;
     }
-
-    if (hFin < hIni) {
-        lanzarAviso("¿Finaliza al día siguiente?", "confirmar", procesarGuardado);
-    } else {
-        procesarGuardado();
-    }
+    if (hFin < hIni) lanzarAviso("¿Finaliza al día siguiente?", "confirmar", procesarGuardado);
+    else procesarGuardado();
 };
 
 async function procesarGuardado() {
     const fTipo = document.getElementById('ev-fecha-tipo').value;
     let fechas = [];
-
     if (fTipo === "especifico") fechas.push(document.getElementById('ev-date-single').value);
     else if (fTipo === "semanal") {
         const fFin = new Date(document.getElementById('ev-date-end').value);
@@ -198,12 +171,10 @@ async function procesarGuardado() {
             actual.setDate(actual.getDate() + 1);
         }
     } else fechas = diasVariosSelec;
-
     if (fechas.length === 0 || fechas.some(f => !f)) {
         lanzarAviso("Selecciona fechas válidas.");
         return;
     }
-
     try {
         if (idEditando) {
             await updateDoc(doc(db, "acontecimientos", idEditando), {
@@ -248,7 +219,6 @@ function renderizar() {
     const inicio = (pagActual - 1) * limite;
     const lista = todosLosEventos.slice(inicio, inicio + limite);
     document.getElementById('barra-seleccion').style.display = todosLosEventos.length > 1 ? "flex" : "none";
-
     const cont = document.getElementById('contenedor-eventos');
     if(!cont) return;
     cont.innerHTML = "";
@@ -272,7 +242,6 @@ function renderizar() {
         `;
         cont.appendChild(div);
     });
-
     document.getElementById('page-info').innerText = `Página ${pagActual} de ${totalPags}`;
     document.getElementById('btn-prev').disabled = pagActual === 1;
     document.getElementById('btn-next').disabled = pagActual === totalPags;
