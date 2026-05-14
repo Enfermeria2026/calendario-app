@@ -30,7 +30,6 @@ async function cargarPerfil() {
     }
 }
 
-// --- CALENDARIO DEL MODAL ---
 window.cambiarMesCal = (dir) => {
     fechaCalModal.setMonth(fechaCalModal.getMonth() + dir);
     renderizarCalendarioModal();
@@ -39,7 +38,7 @@ window.cambiarMesCal = (dir) => {
 function renderizarCalendarioModal() {
     const cont = document.getElementById('calendar-multi');
     const labelMes = document.getElementById('cal-mes-nombre');
-    if(!cont) return;
+    if(!cont || !labelMes) return;
     cont.innerHTML = "";
     const mes = fechaCalModal.getMonth();
     const anio = fechaCalModal.getFullYear();
@@ -70,7 +69,6 @@ function renderizarCalendarioModal() {
     }
 }
 
-// --- SELECCIÓN MÚLTIPLE ---
 window.toggleModoSeleccion = () => {
     modoSeleccion = !modoSeleccion;
     const btn = document.getElementById('btn-toggle-sel');
@@ -97,7 +95,6 @@ window.borrarSeleccionados = () => {
     });
 };
 
-// --- LOGICA MODAL ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
@@ -142,7 +139,6 @@ function configurarSelectorSemanal() {
     });
 }
 
-// --- GUARDAR ---
 window.validarYGuardar = async () => {
     const titulo = document.getElementById('ev-titulo').value.trim();
     const tipo = document.getElementById('ev-tipo').value;
@@ -209,7 +205,6 @@ async function procesarGuardado() {
     } catch (e) { console.error(e); }
 }
 
-// --- LISTA ---
 async function cargarLista() {
     const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
     const snap = await getDocs(q);
@@ -227,6 +222,7 @@ function renderizar() {
     document.getElementById('barra-seleccion').style.display = todosLosEventos.length > 1 ? "flex" : "none";
 
     const cont = document.getElementById('contenedor-eventos');
+    if(!cont) return;
     cont.innerHTML = "";
     lista.forEach(ev => {
         const fFormat = new Date(ev.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -255,7 +251,6 @@ function renderizar() {
     document.getElementById('paginacion-box').style.display = todosLosEventos.length > 0 ? "flex" : "none";
 }
 
-// --- UTILIDADES ---
 window.prepararEdicion = async (id) => {
     idEditando = id;
     const d = await getDoc(doc(db, "acontecimientos", id));
