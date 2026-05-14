@@ -110,9 +110,9 @@
 
             <div id="box-varios" class="fecha-box hidden">
                 <div class="cal-header">
-                    <button class="cal-btn" onclick="cambiarMesCal(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <span id="cal-mes-nombre" style="font-weight: bold;"></span>
-                    <button class="cal-btn" onclick="cambiarMesCal(1)"><i class="fas fa-chevron-right"></i></button>
+                    <button class="cal-btn" id="btn-cal-prev" onclick="cambiarMesCal(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <span id="cal-mes-nombre"></span>
+                    <button class="cal-btn" id="btn-cal-next" onclick="cambiarMesCal(1)"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 <div id="calendar-multi" class="multi-date-container"></div>
             </div>
