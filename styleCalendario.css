@@ -1,0 +1,52 @@
+/* =========================================================
+   ESTILOS DE CALENDARIOS COMPARTIDOS Y SUS MODALES
+   ========================================================= */
+
+/* --- Modal de Crear Calendario --- */
+.input-codigo-acceso {
+    flex: 1; 
+    padding: 14px; 
+    border-radius: 12px; 
+    border: 1px solid #eee; 
+    background: #f0f0f0; 
+    color: #ec407a; 
+    font-weight: 800; 
+    text-align: center; 
+    letter-spacing: 4px; 
+    font-size: 18px; 
+    margin-bottom: 0; 
+    pointer-events: none; 
+    box-sizing: border-box;
+}
+
+.btn-copiar-codigo {
+    margin: 0; 
+    width: 55px; 
+    justify-content: center; 
+    background: white; 
+    border: 1px solid #ec407a; 
+    color: #ec407a; 
+    border-radius: 12px; 
+    padding: 0; 
+    display: flex; 
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-copiar-codigo:hover {
+    background: #fff0f5;
+}
+
+.btn-copiar-codigo:active {
+    transform: scale(0.9);
+}
+
+/* Espacio reservado para el futuro interior del calendario (cuadrícula, miembros, etc.) */
+.calendario-grid {
+    /* Lo diseñaremos en el siguiente paso */
+}
+
+.lista-miembros {
+    /* Lo diseñaremos en el siguiente paso */
+}
