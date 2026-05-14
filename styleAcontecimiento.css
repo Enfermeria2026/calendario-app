@@ -3,6 +3,7 @@ html, body {
     height: auto !important;
     overflow-y: auto !important;
     background-color: #fff5f8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .main-content {
@@ -14,10 +15,11 @@ html, body {
     margin: 0 auto;
 }
 
+/* --- CABECERA DE PÁGINA --- */
 .main-content h2 { text-align: center; color: #333; margin-bottom: 5px; font-weight: 700; }
 #subtitulo-vacio { text-align: center; color: #999; font-size: 14px; margin-bottom: 20px; }
 
-/* --- BARRA DE HERRAMIENTAS Y BOTONES --- */
+/* --- BARRA DE SELECCIÓN --- */
 .barra-herramientas {
     display: flex;
     justify-content: space-between;
@@ -40,11 +42,12 @@ html, body {
 }
 
 .btn-accion-secundario:hover { background-color: #fff0f5 !important; border-color: #ec407a; }
+#btn-borrar-masivo:hover { background-color: #fff5f5 !important; }
 .btn-accion-secundario.activo { background: #ec407a; color: white; }
 .btn-accion-secundario.activo:hover { background-color: #d81b60 !important; border-color: #d81b60; }
 .btn-accion-secundario:active { transform: scale(0.96); }
 
-/* --- TARJETAS --- */
+/* --- TARJETAS (Ahora estáticas, sin hover que las eleve) --- */
 .event-card {
     background: white;
     padding: 18px 20px;
@@ -55,26 +58,11 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: transform 0.2s;
+    /* Eliminada la transition transform que la hacía subir */
 }
 
-.event-card:hover { transform: translateY(-2px); }
-
-.check-seleccion {
-    width: 22px;
-    height: 22px;
-    margin-right: 15px;
-    accent-color: #ec407a;
-    cursor: pointer;
-}
-
-.event-actions i {
-    color: #ccc;
-    margin-left: 18px;
-    cursor: pointer;
-    font-size: 18px;
-    transition: color 0.3s;
-}
+.check-seleccion { width: 22px; height: 22px; margin-right: 15px; accent-color: #ec407a; cursor: pointer; }
+.event-actions i { color: #ccc; margin-left: 18px; cursor: pointer; font-size: 18px; transition: color 0.3s; }
 .event-actions i:hover { color: #ec407a; }
 
 /* --- BOTÓN FLOTANTE (FAB) --- */
@@ -83,7 +71,7 @@ html, body {
     bottom: 30px;
     right: 30px;
     background: #ec407a;
-    color: white;
+    color: white !important;
     width: 65px;
     height: 65px;
     border-radius: 50%;
@@ -97,14 +85,7 @@ html, body {
     padding: 0 !important;
 }
 
-.fab i {
-    font-size: 28px;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: block !important;
-}
-
+.fab i { font-size: 28px !important; line-height: 1 !important; display: block !important; margin: 0 !important; }
 .fab:hover { transform: scale(1.1) rotate(90deg); background-color: #d81b60; }
 
 /* --- MODAL Y SELECTORES --- */
@@ -138,50 +119,25 @@ html, body {
 }
 
 .cal-btn { 
-    background: #fff0f5; 
-    border: 1px solid #fce4ec; 
-    color: #ec407a; 
-    cursor: pointer; 
-    width: 35px; 
-    height: 35px; 
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background: #fff0f5; border: 1px solid #fce4ec; color: #ec407a; 
+    width: 35px; height: 35px; border-radius: 10px; cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
     transition: all 0.2s;
 }
 .cal-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-#cal-mes-nombre {
-    font-weight: 700;
-    font-size: 15px;
-    color: #333;
-    white-space: nowrap;
-    text-transform: capitalize;
-}
+#cal-mes-nombre { font-weight: 700; font-size: 15px; color: #333; white-space: nowrap; text-transform: capitalize; }
 
 .multi-date-container {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    padding: 15px;
-    background: #f9f9f9;
-    border: 1px solid #eee;
-    border-top: none;
-    border-radius: 0 0 12px 12px;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    padding: 15px; background: #f9f9f9; border: 1px solid #eee;
+    border-top: none; border-radius: 0 0 12px 12px;
 }
 
 .date-item {
-    aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 13px;
-    border-radius: 8px;
-    cursor: pointer;
-    background: white;
-    border: 1px solid #eee;
-    transition: all 0.2s;
+    aspect-ratio: 1; display: flex; justify-content: center; align-items: center;
+    font-size: 13px; border-radius: 8px; cursor: pointer; background: white;
+    border: 1px solid #eee; transition: all 0.2s;
 }
 
 .date-item.past { color: #ccc; background: #fafafa; pointer-events: none; }
@@ -196,5 +152,25 @@ html, body {
 .week-picker { display: flex; justify-content: space-between; margin-bottom: 20px; }
 .day-circle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #eee; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 13px; font-weight: bold; color: #888; background: white; transition: all 0.3s; }
 .day-selected { background: #4CAF50 !important; color: white !important; border-color: #4CAF50 !important; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3); }
+
+/* --- PANTALLA DE CARGA (NUEVO) --- */
+.loader-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 9999; color: white; font-weight: bold; font-size: 16px;
+}
+
+.spinner {
+    width: 50px; height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid #ec407a;
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes girar { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .hidden { display: none !important; }
