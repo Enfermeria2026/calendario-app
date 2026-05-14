@@ -6,7 +6,7 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center; /* Centrado vertical absoluto */
+    align-items: center;
     min-height: 100vh;
 }
 
@@ -15,18 +15,12 @@ body {
     background: white;
     padding: 40px 30px;
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Sombra suave */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 400px; /* Ancho elegante en PC */
+    max-width: 400px;
     text-align: center;
     box-sizing: border-box;
     margin: 20px;
-}
-
-h2 {
-    color: #333;
-    margin-bottom: 25px;
-    font-weight: 700;
 }
 
 /* INPUTS ELEGANTES */
@@ -42,14 +36,6 @@ input {
     transition: all 0.3s;
 }
 
-input:focus {
-    border-color: #ec407a;
-    background-color: white;
-    outline: none;
-    box-shadow: 0 0 8px rgba(236, 64, 122, 0.2);
-}
-
-/* ETIQUETAS A LA DERECHA */
 .label-texto {
     display: block;
     text-align: right;
@@ -60,65 +46,24 @@ input:focus {
     margin-bottom: 2px;
 }
 
-/* GRUPO AZAR EN LÍNEA */
 .input-group {
     display: flex;
     gap: 10px;
     align-items: center;
 }
 
-.input-group input {
-    margin: 0;
-    flex: 1;
-}
+.input-group input { margin: 0; flex: 1; }
 
 #btn-random {
     width: auto !important;
     padding: 12px 15px;
-    background-color: #444; /* Gris oscuro elegante */
+    background-color: #444;
     color: white;
     border-radius: 10px;
     font-size: 11px;
     margin: 0 !important;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* BOTÓN PRINCIPAL ROSA */
-button[type="submit"], .btn-principal {
-    width: 100%;
-    padding: 14px;
-    background-color: #ec407a;
-    color: white;
-    border: none;
-    border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 20px;
-    transition: background 0.3s, transform 0.2s;
 }
-
-button[type="submit"]:hover {
-    background-color: #d81b60;
-    transform: translateY(-1px);
-}
-
-/* AVISO SEGURIDAD ROJO PEQUEÑO */
-.aviso-seguridad {
-    color: #e53935 !important; /* Rojo elegante */
-    font-size: 11px;
-    text-align: left;
-    margin-top: 12px;
-    line-height: 1.4;
-    display: flex;
-    gap: 6px;
-}
-
-/* ENLACES */
-p { color: #666; font-size: 14px; margin-top: 20px; }
-a { color: #ec407a; text-decoration: none; font-weight: 600; }
-a:hover { text-decoration: underline; }
 
 /* --- DASHBOARD --- */
 .header {
@@ -138,41 +83,61 @@ a:hover { text-decoration: underline; }
 
 .header-left { display: flex; align-items: center; gap: 20px; }
 
+/* RECUPERADA ANIMACIÓN MENÚ */
+.menu-icon {
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    display: inline-block;
+}
+
+.menu-icon:hover {
+    transform: scale(1.25);
+}
+
+/* BOTÓN UNIRSE CON SOMBRA */
 .btn-unirse {
     background: white;
     color: #000;
     border: none;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 20px;
     font-size: 14px;
     cursor: pointer;
-    font-weight: 400; /* No negrita */
+    font-weight: 400;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Sombra añadida */
+    transition: all 0.3s ease;
 }
 
 .btn-unirse:hover {
     background-color: #fce4ec !important;
     color: #ec407a !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transform: translateY(-1px);
 }
 
 .sidebar {
     position: fixed;
     left: -260px;
-    top: 60px; /* Debajo de la barra */
+    top: 60px;
     width: 260px;
     height: calc(100% - 60px);
     background: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
     transition: 0.3s;
     z-index: 900;
+    display: flex;
+    flex-direction: column; /* Ayuda a alinear botones */
 }
 
 .sidebar.active { left: 0; }
 
+/* BOTONES SIDEBAR - DISTANCIA UNIFICADA */
 .sidebar-btn {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 18px 25px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    padding: 20px 25px !important; /* Espacio idéntico para todos */
     color: #444;
     font-size: 16px;
     border: none;
@@ -180,10 +145,17 @@ a:hover { text-decoration: underline; }
     width: 100%;
     cursor: pointer;
     text-align: left;
+    margin: 0 !important; /* Eliminado cualquier margen extra */
+    box-sizing: border-box;
 }
 
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
+
+/* Forzamos que cerrar sesión no tenga nada distinto */
+#btn-cerrar-sesion {
+    margin-top: 0 !important;
+}
 
 .main-content {
     margin-top: 60px;
@@ -205,18 +177,24 @@ a:hover { text-decoration: underline; }
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(236, 64, 122, 0.4);
     transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
 
-/* --- AJUSTES MÓVIL (CORRECCIÓN FINAL) --- */
+/* AVISO SEGURIDAD ROJO PEQUEÑO */
+.aviso-seguridad {
+    color: #e53935 !important;
+    font-size: 11px;
+    text-align: left;
+    margin-top: 12px;
+    line-height: 1.4;
+}
+
+/* AJUSTES MÓVIL */
 @media (max-width: 600px) {
-    .auth-container {
-        padding: 30px 20px;
-        margin: 15px;
-        /* Quitamos el posible desplazamiento abajo */
-    }
-    
-    .header-left span { display: none; } /* Oculta nombre usuario en móvil */
-    
+    .auth-container { margin: 15px; padding: 30px 20px; }
+    .header-left span { display: none; }
     .sidebar { width: 85%; }
 }
