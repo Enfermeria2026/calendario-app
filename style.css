@@ -41,19 +41,6 @@ button {
     cursor: pointer;
     font-weight: bold;
     margin-top: 10px;
-    transition: background 0.3s;
-}
-
-button:hover { background-color: #d81b60; }
-
-.label-texto {
-    display: block;
-    text-align: left;
-    font-size: 14px;
-    font-weight: bold;
-    color: #555;
-    margin-bottom: 2px;
-    margin-top: 12px;
 }
 
 /* --- ESTILOS DASHBOARD --- */
@@ -61,13 +48,13 @@ button:hover { background-color: #d81b60; }
     background-color: #ec407a;
     color: white;
     padding: 0 20px;
-    display: grid; /* Cambiado a Grid para centrado perfecto */
-    grid-template-columns: 1fr auto; 
-    align-items: center;
+    display: flex; /* Cambiamos a flex para control total */
+    justify-content: space-between;
+    align-items: center; /* CENTRADO VERTICAL ABSOLUTO */
     position: fixed;
     top: 0; left: 0;
     width: 100%;
-    height: 60px;
+    height: 60px; /* Altura fija de la barra */
     z-index: 100;
     box-sizing: border-box;
 }
@@ -83,7 +70,6 @@ button:hover { background-color: #d81b60; }
     cursor: pointer;
     transition: transform 0.2s;
 }
-
 .menu-icon:hover { transform: scale(1.2); }
 
 #header-usuario {
@@ -91,27 +77,28 @@ button:hover { background-color: #d81b60; }
     white-space: nowrap;
 }
 
-/* BOTÓN UNIRSE - COLORES SEGÚN CAPTURA */
+/* BOTÓN UNIRSE - SIN NEGRITA Y CENTRADO */
 .btn-unirse {
     background-color: white !important;
-    color: black !important; /* Texto negro por defecto */
+    color: black !important;
     border: none;
     padding: 8px 18px;
     border-radius: 20px;
-    font-weight: bold;
+    font-weight: normal !important; /* QUITAMOS LA NEGRITA */
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: inline-flex;
+    
+    /* Forzamos que el botón no tenga márgenes que lo desvíen */
+    margin: 0 !important; 
+    display: flex;
     align-items: center;
-    height: fit-content;
-    line-height: 1;
+    justify-content: center;
 }
 
 .btn-unirse:hover {
-    /* Colores exactos de la Captura de pantalla 2026-05-14 114753.png */
-    background-color: #fce4ec !important; /* Fondo rosa clarito */
-    color: #ec407a !important;           /* Texto rosa intenso */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background-color: #fce4ec !important; /* Fondo rosa clarito menú */
+    color: #ec407a !important;           /* Texto rosa botones menú */
 }
 
 /* MENÚ LATERAL */
