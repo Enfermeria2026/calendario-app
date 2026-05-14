@@ -288,17 +288,18 @@ button:hover {
 /* --- CENTRADO FORZADO DE BOTONES EN TODOS LOS MODALES --- */
 .modal-btns {
     display: flex !important;
-    justify-content: center !important; /* Centra los botones */
-    gap: 15px !important; /* Espacio entre ellos */
+    justify-content: center !important; 
+    gap: 15px !important; 
     margin-top: 25px !important;
     width: 100%;
 }
 
 .modal-btns button {
-    flex: 1 !important; /* Hace que ambos midan lo mismo */
-    max-width: 160px !important; /* Que no se estiren demasiado en PC */
+    flex: 1 !important; 
+    max-width: 220px !important; /* <--- ¡Aquí está la magia! Aumentado de 160 a 220 */
     width: 100% !important;
-    padding: 12px 15px !important;
+    padding: 14px 15px !important; /* Un poco más de margen arriba y abajo */
     box-sizing: border-box;
     text-align: center;
+    font-size: 15px !important; /* Letra un puntito más grande y legible */
 }
