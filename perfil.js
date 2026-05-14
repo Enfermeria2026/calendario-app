@@ -1,24 +1,27 @@
-// 1. Importamos la base de datos y las herramientas de Firestore (incluyendo deleteDoc)
+// 1. Importamos la base de datos y las herramientas de Firestore
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-// 2. MAGIA MULTIUSUARIO: Obtenemos el ID de la persona logueada
+// Funciones globales de carga
+function mostrarCarga() { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); }
+function ocultarCarga() { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); }
+
+// 2. MAGIA MULTIUSUARIO
 const miID = localStorage.getItem('usuario_activo');
 
 if (!miID) {
     console.error("Error: No hay usuario logueado en esta sesión.");
-    // window.location.href = "index.html"; // Opcional para redirigir si alguien entra sin login
+    // window.location.href = "index.html"; 
 }
 
 let trabajosLocal = [];
 let indiceEditando = -1;
-let fotoBase64 = ""; // Variable para guardar la foto en texto
+let fotoBase64 = ""; 
 
-// 3. Al abrir la página, preparamos la foto y cargamos los datos
+// 3. Al abrir la página
 document.addEventListener('DOMContentLoaded', () => {
-    cargarDatosFirebase();
+    cargarDatosFirebase(); 
     
-    // Escuchar cuando el usuario elige una foto nueva
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
         inputFoto.addEventListener('change', function(event) {
@@ -26,8 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (archivo) {
                 const lector = new FileReader();
                 lector.onload = function(e) {
-                    fotoBase64 = e.target.result; // Convertimos imagen a código
-                    // Mostramos la imagen al instante
+                    fotoBase64 = e.target.result; 
                     document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
                 };
                 lector.readAsDataURL(archivo);
@@ -40,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function cargarDatosFirebase() {
     if (!miID) return; 
     
+    mostrarCarga();
     document.getElementById('perfil-id').value = miID;
     
     try {
@@ -49,13 +52,11 @@ async function cargarDatosFirebase() {
         if (docSnap.exists()) {
             const datos = docSnap.data();
             
-            // Rellenar campos de texto
             document.getElementById('perfil-nombre').value = datos.nombre || "";
             document.getElementById('perfil-apellidos').value = datos.apellidos || "";
             document.getElementById('perfil-fecha').value = datos.fecha || "";
             document.getElementById('perfil-desc').value = datos.descripcion || "";
             
-            // Cargar la foto si ya tenía una guardada
             if (datos.foto) {
                 fotoBase64 = datos.foto;
                 document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
@@ -63,17 +64,17 @@ async function cargarDatosFirebase() {
                 document.getElementById('profile-display').innerHTML = `<i class="fas fa-user"></i>`;
             }
             
-            // Cargar lista de trabajos
             trabajosLocal = datos.trabajos || [];
             cargarListaTrabajos();
             actualizarNombreHeader();
         }
     } catch (error) {
         console.error("Error conectando con Firebase:", error);
+    } finally {
+        ocultarCarga();
     }
 }
 
-// Actualizar nombre arriba a la izquierda
 function actualizarNombreHeader() {
     const nombre = document.getElementById('perfil-nombre').value;
     const apellidos = document.getElementById('perfil-apellidos').value;
@@ -86,9 +87,9 @@ function actualizarNombreHeader() {
 async function guardarPerfil() {
     if (!miID) return;
 
+    mostrarCarga();
+
     const campos = ['perfil-nombre', 'perfil-apellidos', 'perfil-fecha', 'perfil-desc'];
-    
-    // Bloquear campos visualmente
     campos.forEach(id => {
         const input = document.getElementById(id);
         input.readOnly = true;
@@ -104,7 +105,7 @@ async function guardarPerfil() {
         fecha: document.getElementById('perfil-fecha').value,
         descripcion: document.getElementById('perfil-desc').value,
         trabajos: trabajosLocal,
-        foto: fotoBase64 // Guardar la foto
+        foto: fotoBase64 
     };
 
     try {
@@ -114,6 +115,8 @@ async function guardarPerfil() {
     } catch (error) {
         console.error("Error al guardar en Firebase:", error);
         mostrarMensaje("Error", "No se pudieron guardar los datos.");
+    } finally {
+        ocultarCarga();
     }
 }
 
@@ -145,14 +148,14 @@ function guardarTrabajo() {
         }
         cargarListaTrabajos();
         cerrarModales();
-        guardarPerfil(); // Guardar en Firebase automáticamente
+        guardarPerfil(); 
     }
 }
 
 function borrarTrabajo(index) {
     trabajosLocal.splice(index, 1); 
     cargarListaTrabajos();
-    guardarPerfil(); // Guardar en Firebase automáticamente
+    guardarPerfil(); 
 }
 
 // --- FUNCIONES DE LA INTERFAZ ---
@@ -189,19 +192,16 @@ async function confirmarEliminacionFinal() {
     
     try {
         cerrarModales(); 
+        mostrarCarga();
         
-        // Borramos el usuario de Firebase
         await deleteDoc(doc(db, "usuarios", miID));
-        
-        // Borramos la memoria local (cierre de sesión)
         localStorage.clear();
-        
-        // Redirigimos al inicio
         window.location.href = "index.html"; 
         
     } catch (error) {
         console.error("Error al eliminar la cuenta en Firebase:", error);
         mostrarMensaje("Error", "Hubo un problema y no se pudo eliminar la cuenta.");
+        ocultarCarga();
     }
 }
 
@@ -222,7 +222,7 @@ function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('active');
 }
 
-// 7. EXPORTAR FUNCIONES AL HTML (Obligatorio al usar type="module")
+// 7. EXPORTAR FUNCIONES AL HTML
 window.editarCampo = editarCampo;
 window.guardarPerfil = guardarPerfil;
 window.abrirModalTrabajo = abrirModalTrabajo;
