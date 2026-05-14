@@ -166,10 +166,10 @@ button:hover {
     color: black;
     border: none;
     padding: 0 18px !important;
-    height: 34px !important; /* Altura fija para centrar perfecto */
+    height: 34px !important;
     border-radius: 20px;
     font-size: 14px;
-    font-weight: normal !important; /* FUERA NEGRITA */
+    font-weight: normal !important;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     
@@ -177,7 +177,6 @@ button:hover {
     white-space: nowrap; 
     flex-shrink: 0; 
     
-    /* Reglas para centrado vertical absoluto en la barra */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -226,7 +225,7 @@ button:hover {
     cursor: pointer;
     text-align: left;
     font-size: 16px;
-    font-weight: normal !important; /* FUERA NEGRITA */
+    font-weight: normal !important;
 }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
@@ -251,8 +250,12 @@ button:hover {
 }
 .btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
 
-/* AJUSTES MÓVIL */
+/* --- AJUSTES MÓVIL (SÓLO CENTRADO PERFECTO) --- */
 @media (max-width: 600px) {
-    .auth-container { margin: 15px; padding: 30px 20px; width: 90%; }
+    .auth-container, .admin-container, .modal-box { 
+        margin: auto !important; /* MAGIA DE CENTRADO ABSOLUTO */
+        padding: 30px 20px; 
+        width: 90%; 
+    }
     .header-left span { display: none; }
 }
