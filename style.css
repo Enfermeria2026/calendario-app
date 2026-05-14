@@ -298,3 +298,19 @@ button:hover {
 .hidden { 
     display: none !important; 
 }
+
+/* --- CENTRADO FORZADO DE BOTONES EN MODALES --- */
+.modal-btns {
+    display: flex !important;
+    justify-content: center !important; /* Centra los botones */
+    gap: 15px !important; /* Espacio entre ellos */
+    margin-top: 25px !important;
+    width: 100%;
+}
+
+.modal-btns button {
+    flex: 1 !important; /* Hace que ambos midan lo mismo */
+    max-width: 160px !important; /* Que no se estiren demasiado en PC */
+    width: 100% !important;
+    padding: 12px 15px !important;
+}
