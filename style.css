@@ -303,3 +303,13 @@ button:hover {
     text-align: center;
     font-size: 15px !important; /* Letra un puntito más grande y legible */
 }
+
+/* --- ASEGURAR QUE EL MODAL DE AVISOS ESTÉ SIEMPRE ARRIBA --- */
+#miModal {
+    z-index: 99990 !important;
+}
+
+
+
+
+
