@@ -18,141 +18,126 @@
     <nav class="header">
         <div class="header-left">
             <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
-            <span id="header-usuario">Cargando...</span>
+            <span id="header-usuario">Usuario</span>
         </div>
         <button class="btn-unirse">Unirse a un calendario</button>
     </nav>
 
-    ```
+    <div class="sidebar" id="sidebar">
+        <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
+        <button class="sidebar-btn" onclick="location.href='acontecimientos.html'"><i class="fas fa-list"></i> Mis acontecimientos</button>
+        <button class="sidebar-btn" onclick="location.href='perfil.html'"><i class="fas fa-user"></i> Mi perfil</button>
+        <button class="sidebar-btn" id="btn-cerrar-sesion" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
+    </div>
 
----
-
-### 5. Archivo: `perfil.js`
-*He añadido el `mostrarCarga()` y el bloque `try...finally` en las funciones que se comunican con Firebase.*
-
-```javascript
-// 1. Importamos la base de datos y las herramientas de Firestore
-import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-// Funciones de carga
-function mostrarCarga() { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); }
-function ocultarCarga() { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); }
-
-// 2. MAGIA MULTIUSUARIO
-const miID = localStorage.getItem('usuario_activo');
-
-if (!miID) {
-    console.error("Error: No hay usuario logueado en esta sesión.");
-    window.location.href = "index.html"; 
-}
-
-let trabajosLocal = [];
-let indiceEditando = -1;
-let fotoBase64 = ""; 
-
-// 3. Al abrir la página
-document.addEventListener('DOMContentLoaded', () => {
-    cargarDatosFirebase(); // Esta función ahora se encarga de mostrar y ocultar la carga
-    
-    const inputFoto = document.getElementById('input-foto');
-    if (inputFoto) {
-        inputFoto.addEventListener('change', function(event) {
-            const archivo = event.target.files[0];
-            if (archivo) {
-                const lector = new FileReader();
-                lector.onload = function(e) {
-                    fotoBase64 = e.target.result; 
-                    document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
-                };
-                lector.readAsDataURL(archivo);
-            }
-        });
-    }
-});
-
-// 4. Descargar los datos desde Firebase
-async function cargarDatosFirebase() {
-    if (!miID) return; 
-    
-    mostrarCarga(); // <-- Activamos la carga
-    document.getElementById('perfil-id').value = miID;
-    
-    try {
-        const docRef = doc(db, "usuarios", miID);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const datos = docSnap.data();
+    <main class="main-content">
+        <div class="auth-container">
+            <h2 style="margin-bottom: 20px;">Mi Perfil</h2>
             
-            document.getElementById('perfil-nombre').value = datos.nombre || "";
-            document.getElementById('perfil-apellidos').value = datos.apellidos || "";
-            document.getElementById('perfil-fecha').value = datos.fecha || "";
-            document.getElementById('perfil-desc').value = datos.descripcion || "";
-            
-            if (datos.foto) {
-                fotoBase64 = datos.foto;
-                document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
-            } else {
-                document.getElementById('profile-display').innerHTML = `<i class="fas fa-user"></i>`;
-            }
-            
-            trabajosLocal = datos.trabajos || [];
-            cargarListaTrabajos();
-            actualizarNombreHeader();
-        }
-    } catch (error) {
-        console.error("Error conectando con Firebase:", error);
-    } finally {
-        ocultarCarga(); // <-- Pase lo que pase, ocultamos la carga
-    }
-}
+            <div class="profile-pic-container">
+                <div class="profile-pic" id="profile-display">
+                    <i class="fas fa-user"></i>
+                </div>
+                <label for="input-foto" class="edit-icon-photo">
+                    <i class="fas fa-pencil-alt"></i>
+                </label>
+                <input type="file" id="input-foto" accept="image/*" style="display: none;">
+            </div>
 
-// Actualizar nombre arriba
-function actualizarNombreHeader() {
-    const nombre = document.getElementById('perfil-nombre').value;
-    const apellidos = document.getElementById('perfil-apellidos').value;
-    if(nombre || apellidos) {
-        document.getElementById('header-usuario').innerText = `${nombre} ${apellidos}`.trim();
-    }
-}
+            <div class="perfil-info">
+                <div class="campo-editable">
+                    <label class="label-texto">Nombre</label>
+                    <div class="input-group">
+                        <input type="text" id="perfil-nombre" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-nombre')"></i>
+                    </div>
+                </div>
 
-// 5. Guardar los cambios en Firebase
-async function guardarPerfil() {
-    if (!miID) return;
+                <div class="campo-editable">
+                    <label class="label-texto">Apellidos</label>
+                    <div class="input-group">
+                        <input type="text" id="perfil-apellidos" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-apellidos')"></i>
+                    </div>
+                </div>
 
-    mostrarCarga(); // <-- Carga al guardar
+                <div class="campo-editable">
+                    <label class="label-texto">Fecha de nacimiento</label>
+                    <div class="input-group">
+                        <input type="date" id="perfil-fecha" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-fecha')"></i>
+                    </div>
+                </div>
 
-    const campos = ['perfil-nombre', 'perfil-apellidos', 'perfil-fecha', 'perfil-desc'];
-    campos.forEach(id => {
-        const input = document.getElementById(id);
-        input.readOnly = true;
-        input.style.pointerEvents = "none";
-        input.style.backgroundColor = "#f9f9f9";
-        input.style.borderColor = "#eee";
-    });
+                <div class="campo-editable">
+                    <label class="label-texto">Descripción</label> 
+                    <div class="input-group" style="align-items: flex-start;">
+                        <textarea id="perfil-desc" placeholder="Escribe algo sobre ti..." readonly></textarea>
+                        <i class="fas fa-pencil-alt edit-btn" style="margin-top: 15px;" onclick="editarCampo('perfil-desc')"></i>
+                    </div>
+                </div>
+            </div>
 
-    const datosAGuardar = {
-        userId: miID,
-        nombre: document.getElementById('perfil-nombre').value,
-        apellidos: document.getElementById('perfil-apellidos').value,
-        fecha: document.getElementById('perfil-fecha').value,
-        descripcion: document.getElementById('perfil-desc').value,
-        trabajos: trabajosLocal,
-        foto: fotoBase64 
-    };
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
 
-    try {
-        await setDoc(doc(db, "usuarios", miID), datosAGuardar, { merge: true });
-        actualizarNombreHeader();
-        mostrarMensaje("¡Nube actualizada!", "Tus datos y tu foto se han guardado con éxito.");
-    } catch (error) {
-        console.error("Error al guardar:", error);
-        mostrarMensaje("Error", "No se pudieron guardar los datos.");
-    } finally {
-        ocultarCarga();
-    }
-}
+            <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Mis Lugares de Trabajo</h3>
+            <div id="lista-trabajos" class="lista-items"></div>
+            <button class="sidebar-btn" style="justify-content: center; color: #ec407a; margin-top: 10px !important;" onclick="abrirModalTrabajo()">
+                <i class="fas fa-plus-circle"></i> Añadir lugar de trabajo
+            </button>
 
-// ... (Tu lógica de LÓGICA DE TRABAJOS, FUNCIONES DE INTERFAZ Y ELIMINAR CUENTA sigue igual) ...
-// (Recuerda añadir mostrarCarga() y try/finally en 'confirmarEliminacionFinal' si quieres que también gire ahí)
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+            <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Seguridad</h3>
+            <div class="campo-editable">
+                <label class="label-texto">Identificador único</label>
+                <div class="input-group">
+                    <input type="text" id="perfil-id" disabled>
+                    <i class="fas fa-lock" style="color: #ccc; margin-left: 10px;"></i>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 25px;">
+                <button class="btn-principal" onclick="guardarPerfil()">Guardar Cambios</button>
+                <button class="btn-principal" style="background-color: #e53935;" onclick="abrirModalEliminar()">Eliminar mi cuenta</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modal-trabajo">
+        <div class="modal-box">
+            <h3 id="titulo-modal-trabajo">Nuevo Trabajo</h3>
+            <input type="text" id="nuevo-trabajo" placeholder="Nombre del centro...">
+            <div class="modal-btns">
+                <button class="btn-principal" style="background-color: #888; margin-top: 0;" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-principal" style="margin-top: 0;" onclick="guardarTrabajo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-eliminar">
+        <div class="modal-box">
+            <i class="fas fa-exclamation-triangle" style="color: #e53935; font-size: 40px; margin-bottom: 15px;"></i>
+            <h3>¿Eliminar cuenta?</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Esta acción borrará tus datos de Firebase permanentemente.</p>
+            <div class="modal-btns">
+                <button class="btn-principal" style="background-color: #888; margin-top: 0;" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-principal" style="background-color: #e53935; margin-top: 0;" onclick="confirmarEliminacionFinal()">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-mensaje">
+        <div class="modal-box">
+            <i class="fas fa-check-circle" style="color: #ec407a; font-size: 40px; margin-bottom: 15px;"></i>
+            <h3 id="mensaje-titulo">Guardado</h3>
+            <p id="mensaje-texto">Operación realizada.</p>
+            <div class="modal-btns">
+                <button class="btn-principal" onclick="cerrarModales()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="perfil.js"></script>
+</body>
+</html>
