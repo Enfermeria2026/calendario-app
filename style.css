@@ -2,46 +2,103 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background-color: #fce4ec;
     margin: 0;
-    overflow-x: hidden;
+    display: flex; /* Recuperamos el centrado */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* CABECERA CORREGIDA */
+/* EL CUADRO BLANCO ELEGANTE */
+.auth-container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    width: 350px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #ec407a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+button:hover { background-color: #d81b60; }
+
+.label-texto {
+    display: block;
+    text-align: left;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 2px;
+    margin-top: 12px;
+}
+
+.aviso-seguridad {
+    color: #d32f2f !important;
+    font-size: 11px;
+    text-align: left;
+    margin-top: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    line-height: 1.4;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.input-group input { margin: 0; }
+
+/* --- ESTILOS DASHBOARD (ARREGLADOS) --- */
 .header {
     background-color: #ec407a;
     color: white;
     padding: 10px 20px;
     display: flex;
-    justify-content: space-between; /* Separa el nombre del botón */
+    justify-content: space-between;
     align-items: center;
     position: fixed;
-    top: 0; 
+    top: 0; left: 0;
     width: 100%;
     z-index: 100;
     box-sizing: border-box;
-    height: 60px; /* Altura fija para que sea uniforme */
+    height: 60px;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-shrink: 0; /* Evita que el nombre se encoja */
+    flex-shrink: 0;
 }
 
 #header-usuario {
     font-weight: bold;
-    white-space: nowrap; /* ¡ESTO EVITA LAS DOS LÍNEAS! */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Si el nombre es larguísimo, pone puntos suspensivos */
-    max-width: 200px; /* Límite para que no pise al botón en móviles */
+    white-space: nowrap; /* Nombre en una sola línea */
 }
 
-.menu-icon {
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* BOTÓN AJUSTADO AL CONTENIDO */
 .btn-unirse {
     background: white;
     color: #ec407a;
@@ -50,12 +107,10 @@ body {
     border-radius: 20px;
     font-weight: bold;
     cursor: pointer;
-    white-space: nowrap; /* Evita que el texto del botón se rompa */
-    width: auto; /* Solo ocupa lo que mide el texto */
-    flex-shrink: 0; /* Evita que el botón se haga pequeño */
+    width: auto; /* Ajustado al texto */
+    flex-shrink: 0;
 }
 
-/* MENÚ LATERAL */
 .sidebar {
     position: fixed;
     left: -250px;
@@ -90,11 +145,11 @@ body {
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 
-/* CONTENIDO */
 .main-content {
     margin-top: 80px;
-    padding: 20px;
+    width: 100%;
     text-align: center;
+    align-self: flex-start; /* Para que no se centre verticalmente como el login */
 }
 
 .btn-flotante {
@@ -103,8 +158,7 @@ body {
     right: 30px;
     background-color: #ec407a;
     color: white;
-    width: 60px;
-    height: 60px;
+    width: 60px; height: 60px;
     border-radius: 50%;
     font-size: 30px;
     border: none;
@@ -132,6 +186,4 @@ body {
     text-align: center;
     width: 300px;
 }
-
 .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-.modal-input { width: 100%; padding: 10px; margin-top: 15px; border: 2px solid #ec407a; border-radius: 8px; text-align: center; }
