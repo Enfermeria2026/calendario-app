@@ -1,6 +1,5 @@
 /* --- ESTILOS EXCLUSIVOS DE MI PERFIL --- */
 
-/* Contenedor de la foto */
 .profile-pic-container {
     position: relative;
     width: 130px;
@@ -29,7 +28,6 @@
     object-fit: cover;
 }
 
-/* Icono de lápiz sobre la foto */
 .edit-icon-photo {
     position: absolute;
     bottom: 5px;
@@ -49,9 +47,23 @@
 }
 .edit-icon-photo:hover { background: #000; }
 
-/* Campos de información */
 .campo-editable {
     margin-bottom: 20px;
+}
+
+/* --- BLOQUEO TOTAL DE INPUTS HASTA PULSAR EL LÁPIZ --- */
+.perfil-info input[readonly], 
+.perfil-info textarea[readonly] {
+    pointer-events: none; /* Evita que se pueda hacer clic o seleccionar */
+}
+
+/* El ID que no se puede tocar nunca */
+input:disabled {
+    background-color: #f0f0f0 !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+    border: 1px solid #ddd !important;
+    pointer-events: none;
 }
 
 .edit-btn {
@@ -63,7 +75,6 @@
 }
 .edit-btn:hover { transform: scale(1.3); }
 
-/* Textarea para la descripción */
 textarea {
     width: 100%;
     padding: 14px;
@@ -82,7 +93,6 @@ textarea:focus {
     border-color: #ec407a;
 }
 
-/* Lista de trabajos */
 .lista-items {
     text-align: left;
 }
@@ -99,9 +109,6 @@ textarea:focus {
     border: 1px solid rgba(236, 64, 122, 0.1);
 }
 
-/* Ajustes para móviles */
 @media (max-width: 600px) {
-    .auth-container {
-        margin: 10px auto !important;
-    }
+    .auth-container { margin: 10px auto !important; }
 }
