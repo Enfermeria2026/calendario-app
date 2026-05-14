@@ -1,6 +1,10 @@
-// 1. Importamos la base de datos centralizada y las herramientas (Añadido addDoc)
+// 1. Importamos la base de datos centralizada y las herramientas
 import { db } from "./firebase-config.js";
 import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+// Funciones globales de carga
+window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
+window.ocultarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); };
 
 // --- MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
@@ -42,7 +46,6 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
         return;
     }
 
-    // NUEVO: Formulario de recuperación
     if (tipo === "recuperar") {
         const inpNombre = document.createElement('input');
         inpNombre.placeholder = "Nombre"; inpNombre.className = "modal-input"; inpNombre.style.marginBottom = "10px";
@@ -68,7 +71,6 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
             }
             btnEnv.innerText = "Enviando...";
             btnEnv.disabled = true;
-            // Guardamos en Firebase en la colección 'solicitudes'
             await addDoc(collection(db, "solicitudes"), {
                 nombre: inpNombre.value,
                 apellidos: inpApellidos.value,
@@ -97,10 +99,6 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     container.appendChild(btnOk);
 }
 
-// Funciones globales de carga
-window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
-window.ocultarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); };
-
 // --- LOGICA DASHBOARD ---
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
@@ -109,31 +107,25 @@ if(menuToggle && sidebar) {
 }
 
 const headerUser = document.getElementById('header-usuario');
-const idActivo = localStorage.getItem('usuario_activo'); // Variable añadida
+const idActivo = localStorage.getItem('usuario_activo');
 
-// NUEVO: Cargar datos reales en el dashboard
-if (headerUser && idActivo) {
-    window.mostrarCarga();
-    
-    // Función auto-ejecutable para consultar Firebase
-    (async () => {
-        try {
-            const docRef = doc(db, "usuarios", idActivo);
-            const docSnap = await getDoc(docRef);
+if(headerUser) {
+    const nombre = localStorage.getItem('userName') || "Usuario";
+    const apellidos = localStorage.getItem('userLastName') || "";
+    headerUser.innerText = nombre + " " + apellidos;
+
+    // Carga de Firebase real para el Dashboard
+    if (idActivo) {
+        window.mostrarCarga();
+        getDoc(doc(db, "usuarios", idActivo)).then(docSnap => {
             if (docSnap.exists()) {
-                const data = docSnap.data();
-                headerUser.innerText = `${data.nombre} ${data.apellidos}`.trim();
-                // Aquí en un futuro cargarás "lista-calendarios"
+                const d = docSnap.data();
+                headerUser.innerText = `${d.nombre} ${d.apellidos}`.trim();
             }
-        } catch (error) {
-            console.error("Error al cargar dashboard:", error);
-        } finally {
+        }).finally(() => {
             window.ocultarCarga();
-        }
-    })();
-} else if (headerUser && !idActivo) {
-    // Si no hay idActivo, lo mandamos al index
-    window.location.href = "index.html";
+        });
+    }
 }
 
 const btnCerrar = document.getElementById('btn-cerrar-sesion');
@@ -211,7 +203,6 @@ const buzonBtn = document.getElementById('btn-buzon');
 const notifDot = document.getElementById('notif-dot');
 
 if (listaAdmin) {
-    // Función para cargar usuarios
     const cargar = async () => {
         const snap = await getDocs(collection(db, "usuarios"));
         listaAdmin.innerHTML = "";
@@ -229,7 +220,6 @@ if (listaAdmin) {
     };
     cargar();
 
-    // NUEVO: Función para comprobar el buzón
     const comprobarBuzon = async () => {
         const snap = await getDocs(collection(db, "solicitudes"));
         if (!snap.empty) {
@@ -241,7 +231,6 @@ if (listaAdmin) {
     };
     comprobarBuzon();
 
-    // NUEVO: Al hacer clic en el buzón
     if (buzonBtn) {
         buzonBtn.onclick = async () => {
             const snap = await comprobarBuzon();
