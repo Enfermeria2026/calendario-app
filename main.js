@@ -1,17 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyCARU84ybJ42rDV5W_UJr5NkwhO7BYvE3I",
-    authDomain: "calendario-79929.firebaseapp.com",
-    projectId: "calendario-79929",
-    storageBucket: "calendario-79929.firebasestorage.app",
-    messagingSenderId: "592556572094",
-    appId: "1:592556572094:web:023aa4ee9feee18a0b4def"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// 1. Importamos la base de datos centralizada y las herramientas (Actualizado a v12.13.0)
+import { db } from "./firebase-config.js";
+import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 // --- MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
@@ -83,7 +72,7 @@ if(headerUser) {
 const btnCerrar = document.getElementById('btn-cerrar-sesion');
 if(btnCerrar) {
     btnCerrar.onclick = () => {
-        localStorage.clear();
+        localStorage.clear(); // Esto borra todo al salir, incluido el usuario_activo
         window.location.href = 'index.html';
     };
 }
@@ -107,7 +96,8 @@ if (formReg) {
                 nombre: document.getElementById('reg-nombre').value,
                 apellidos: document.getElementById('reg-apellidos').value,
                 fecha: document.getElementById('reg-fecha').value,
-                userId: id
+                userId: id,
+                trabajos: [] // Dejamos la lista de trabajos vacía por defecto
             });
             lanzarAviso("¡Cuenta creada!", "ok", () => { window.location.href = "index.html"; });
         }
@@ -120,15 +110,21 @@ if (formLog) {
     formLog.onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('login-id').value.trim();
+        
         if (id.toLowerCase() === "administrador") {
             lanzarAviso("Contraseña maestra:", "admin_pass");
             return;
         }
+        
         const userSnap = await getDoc(doc(db, "usuarios", id.toLowerCase()));
         if (userSnap.exists()) {
             const data = userSnap.data();
+            
+            // ¡ESTAS SON LAS LÍNEAS MÁGICAS!
             localStorage.setItem('userName', data.nombre);
             localStorage.setItem('userLastName', data.apellidos);
+            localStorage.setItem('usuario_activo', id.toLowerCase()); // Guardamos quién es para el perfil
+            
             window.location.href = "dashboard.html";
         } else {
             lanzarAviso("ID no encontrado.");
