@@ -136,16 +136,14 @@ if(btnCerrar) {
     };
 }
 
-// --- NUEVO: LÓGICA DE CALENDARIOS (DASHBOARD) ---
+// --- LOGICA DE CALENDARIOS (DASHBOARD) ---
 const btnCrear = document.getElementById('btn-crear');
 
 if (btnCrear) {
     btnCrear.onclick = () => {
-        // Generar código de 9 cifras aleatorio: de 100000000 a 999999999
         const codigoAleatorio = Math.floor(100000000 + Math.random() * 900000000);
         document.getElementById('cal-codigo').value = codigoAleatorio;
         
-        // Limpiar campos
         document.getElementById('cal-nombre').value = "";
         document.getElementById('cal-desc').value = "";
         
@@ -183,12 +181,12 @@ window.guardarCalendario = async () => {
             codigo_acceso: codigo,
             creador: idActivo,
             fecha_creacion: new Date().toISOString(),
-            miembros: [idActivo] // El creador es el primer miembro por defecto
+            miembros: [idActivo],
+            admins: [idActivo] // <-- AÑADIDA LÓGICA DE ADMINISTRADOR
         });
         
         window.cerrarModalCalendario();
         lanzarAviso("¡Calendario creado con éxito!");
-        // Aquí en el futuro llamaremos a la función para recargar la lista visual de calendarios
     } catch (error) {
         console.error("Error al crear calendario:", error);
         lanzarAviso("Hubo un error al crear el calendario.");
@@ -249,7 +247,6 @@ if (formLog) {
     };
 }
 
-// NUEVO: Enlace de recuperar contraseña en el Login
 const linkOlvido = document.getElementById('link-olvido');
 if (linkOlvido) {
     linkOlvido.onclick = (e) => {
