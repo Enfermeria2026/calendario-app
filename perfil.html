@@ -1,81 +1,147 @@
-<main class="main-content" style="padding-top: 80px;">
-    
-    <!-- CONTENEDOR ÚNICO PARA TODO EL PERFIL -->
-    <div class="auth-container" style="max-width: 500px; margin: 20px auto; height: auto; overflow: visible;">
-        
-        <!-- SECCIÓN 1: DATOS PERSONALES -->
-        <h2>Mi Perfil</h2>
-        
-        <div class="profile-pic-container">
-            <div class="profile-pic" id="profile-display">
-                <i class="fas fa-user"></i>
-            </div>
-            <label for="input-foto" class="edit-icon-photo">
-                <i class="fas fa-pencil-alt"></i>
-            </label>
-            <input type="file" id="input-foto" accept="image/*" style="display: none;">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Calendario</title>
+    <!-- Los enlaces que faltaban en tu captura: -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="stylePerfil.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR -->
+    <nav class="header">
+        <div class="header-left">
+            <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
+            <span id="header-usuario">Usuario</span>
         </div>
+        <button class="btn-unirse">Unirse a un calendario</button>
+    </nav>
 
-        <div class="perfil-info">
-            <div class="campo-editable">
-                <label class="label-texto">Nombre</label>
-                <div class="input-group">
-                    <input type="text" id="perfil-nombre" readonly>
-                    <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-nombre')"></i>
-                </div>
-            </div>
+    <!-- MENÚ LATERAL -->
+    <div class="sidebar" id="sidebar">
+        <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
+        <button class="sidebar-btn" onclick="location.href='acontecimientos.html'"><i class="fas fa-list"></i> Mis acontecimientos</button>
+        <button class="sidebar-btn" onclick="location.href='perfil.html'"><i class="fas fa-user"></i> Mi perfil</button>
+        <button class="sidebar-btn" id="btn-cerrar-sesion" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
+    </div>
 
-            <div class="campo-editable">
-                <label class="label-texto">Apellidos</label>
-                <div class="input-group">
-                    <input type="text" id="perfil-apellidos" readonly>
-                    <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-apellidos')"></i>
-                </div>
-            </div>
-
-            <div class="campo-editable">
-                <label class="label-texto">Fecha de nacimiento</label>
-                <div class="input-group">
-                    <input type="date" id="perfil-fecha" readonly>
-                    <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-fecha')"></i>
-                </div>
-            </div>
-
-            <div class="campo-editable">
-                <label class="label-texto">Descripción libre</label>
-                <div class="input-group" style="align-items: flex-start;">
-                    <textarea id="perfil-desc" placeholder="Escribe algo sobre ti..." readonly></textarea>
-                    <i class="fas fa-pencil-alt edit-btn" style="margin-top: 15px;" onclick="editarCampo('perfil-desc')"></i>
-                </div>
-            </div>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-
-        <!-- SECCIÓN 2: TRABAJOS -->
-        <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Mis Lugares de Trabajo</h3>
-        <div id="lista-trabajos" class="lista-items"></div>
-        <button class="sidebar-btn" style="justify-content: center; color: #ec407a; margin-top: 10px !important;" onclick="abrirModalTrabajo()">
-            <i class="fas fa-plus-circle"></i> Añadir lugar de trabajo
-        </button>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-
-        <!-- SECCIÓN 3: SEGURIDAD -->
-        <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Seguridad</h3>
+    <!-- CONTENIDO PRINCIPAL UNIFICADO -->
+    <main class="main-content" style="padding-top: 80px;">
         
-        <div class="campo-editable">
-            <label class="label-texto">Identificador único</label>
-            <div class="input-group">
-                <input type="text" id="perfil-id" disabled>
-                <i class="fas fa-lock" style="color: #ccc; margin-left: 10px;"></i>
+        <div class="auth-container" style="max-width: 500px; margin: 20px auto;">
+            <h2>Mi Perfil</h2>
+            
+            <!-- FOTO DE PERFIL -->
+            <div class="profile-pic-container">
+                <div class="profile-pic" id="profile-display">
+                    <i class="fas fa-user"></i>
+                </div>
+                <label for="input-foto" class="edit-icon-photo">
+                    <i class="fas fa-pencil-alt"></i>
+                </label>
+                <input type="file" id="input-foto" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- DATOS PERSONALES -->
+            <div class="perfil-info">
+                <div class="campo-editable">
+                    <label class="label-texto">Nombre</label>
+                    <div class="input-group">
+                        <input type="text" id="perfil-nombre" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-nombre')"></i>
+                    </div>
+                </div>
+
+                <div class="campo-editable">
+                    <label class="label-texto">Apellidos</label>
+                    <div class="input-group">
+                        <input type="text" id="perfil-apellidos" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-apellidos')"></i>
+                    </div>
+                </div>
+
+                <div class="campo-editable">
+                    <label class="label-texto">Fecha de nacimiento</label>
+                    <div class="input-group">
+                        <input type="date" id="perfil-fecha" readonly>
+                        <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-fecha')"></i>
+                    </div>
+                </div>
+
+                <div class="campo-editable">
+                    <label class="label-texto">Descripción libre</label>
+                    <div class="input-group" style="align-items: flex-start;">
+                        <textarea id="perfil-desc" placeholder="Escribe algo sobre ti..." readonly></textarea>
+                        <i class="fas fa-pencil-alt edit-btn" style="margin-top: 15px;" onclick="editarCampo('perfil-desc')"></i>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+            <!-- TRABAJOS -->
+            <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Mis Lugares de Trabajo</h3>
+            <div id="lista-trabajos" class="lista-items"></div>
+            <button class="sidebar-btn" style="justify-content: center; color: #ec407a; margin-top: 10px !important;" onclick="abrirModalTrabajo()">
+                <i class="fas fa-plus-circle"></i> Añadir lugar de trabajo
+            </button>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+            <!-- SEGURIDAD -->
+            <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Seguridad</h3>
+            <div class="campo-editable">
+                <label class="label-texto">Identificador único</label>
+                <div class="input-group">
+                    <input type="text" id="perfil-id" disabled>
+                    <i class="fas fa-lock" style="color: #ccc; margin-left: 10px;"></i>
+                </div>
+            </div>
+
+            <!-- BOTONES FINALES -->
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 25px;">
+                <button class="btn-principal" onclick="guardarPerfil()">Guardar Cambios</button>
+                <button class="btn-principal" style="background-color: #e53935;" onclick="abrirModalEliminar()">Eliminar mi cuenta</button>
             </div>
         </div>
+    </main>
 
-        <!-- BOTONES DE ACCIÓN FINAL -->
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            <button class="btn-principal" onclick="guardarPerfil()">Guardar Cambios</button>
-            <button class="btn-principal" style="background-color: #e53935;" onclick="abrirModalEliminar()">Eliminar mi cuenta</button>
+    <!-- MODALES -->
+    <div class="modal-overlay" id="modal-trabajo">
+        <div class="modal-box">
+            <h3 id="titulo-modal-trabajo">Nuevo Trabajo</h3>
+            <input type="text" id="nuevo-trabajo" placeholder="Nombre del centro...">
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-principal" style="background-color: #888; margin-top: 0;" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-principal" style="margin-top: 0;" onclick="guardarTrabajo()">Guardar</button>
+            </div>
         </div>
     </div>
-</main>
+
+    <div class="modal-overlay" id="modal-eliminar">
+        <div class="modal-box">
+            <i class="fas fa-exclamation-triangle" style="color: #e53935; font-size: 40px; margin-bottom: 15px;"></i>
+            <h3>¿Eliminar cuenta?</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Esta acción borrará tus datos de Firebase permanentemente.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-principal" style="background-color: #888; margin-top: 0;" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn-principal" style="background-color: #e53935; margin-top: 0;" onclick="confirmarEliminacionFinal()">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-mensaje">
+        <div class="modal-box">
+            <i class="fas fa-check-circle" style="color: #ec407a; font-size: 40px; margin-bottom: 15px;"></i>
+            <h3 id="mensaje-titulo">Guardado</h3>
+            <p id="mensaje-texto">Operación realizada.</p>
+            <button class="btn-principal" onclick="cerrarModales()">Aceptar</button>
+        </div>
+    </div>
+
+    <script type="module" src="perfil.js"></script>
+</body>
+</html>
