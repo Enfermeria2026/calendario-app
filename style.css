@@ -1,24 +1,28 @@
+/* RESET GENERAL */
 body {
     font-family: 'Segoe UI', sans-serif;
     background-color: #fce4ec;
     margin: 0;
-    display: flex; /* Recuperamos el centrado */
+    padding: 0;
+    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-/* EL CUADRO BLANCO ELEGANTE */
+/* CONTENEDOR LOGIN Y REGISTRO (CUADRO BLANCO) */
 .auth-container {
     background: white;
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    width: 350px;
+    width: 380px; /* Un poco más ancho para que respire el registro */
     text-align: center;
     box-sizing: border-box;
+    z-index: 10;
 }
 
+/* INPUTS Y BOTONES GENERALES */
 input {
     width: 100%;
     padding: 12px;
@@ -68,35 +72,27 @@ button:hover { background-color: #d81b60; }
     gap: 8px;
     align-items: center;
 }
-
 .input-group input { margin: 0; }
 
-/* --- ESTILOS DASHBOARD (ARREGLADOS) --- */
+/* --- ESTILOS EXCLUSIVOS DASHBOARD --- */
 .header {
     background-color: #ec407a;
     color: white;
-    padding: 10px 20px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: fixed;
     top: 0; left: 0;
     width: 100%;
+    height: 60px;
     z-index: 100;
     box-sizing: border-box;
-    height: 60px;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-shrink: 0;
 }
 
 #header-usuario {
     font-weight: bold;
-    white-space: nowrap; /* Nombre en una sola línea */
+    white-space: nowrap;
 }
 
 .btn-unirse {
@@ -107,7 +103,7 @@ button:hover { background-color: #d81b60; }
     border-radius: 20px;
     font-weight: bold;
     cursor: pointer;
-    width: auto; /* Ajustado al texto */
+    width: auto;
     flex-shrink: 0;
 }
 
@@ -120,17 +116,18 @@ button:hover { background-color: #d81b60; }
     background-color: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     transition: 0.3s;
-    padding-top: 80px;
+    padding-top: 70px; /* Ajustado para que empiece tras el header */
     z-index: 90;
 }
 
 .sidebar.active { left: 0; }
 
+/* BOTONES DEL MENÚ (ESPACIO UNIFORME) */
 .sidebar-btn {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px 25px;
+    padding: 15px 25px; /* Espacio uniforme entre todos */
     text-decoration: none;
     color: #333;
     font-weight: 500;
@@ -140,16 +137,17 @@ button:hover { background-color: #d81b60; }
     cursor: pointer;
     font-size: 16px;
     text-align: left;
+    box-sizing: border-box;
 }
 
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 
 .main-content {
-    margin-top: 80px;
+    position: absolute;
+    top: 80px;
     width: 100%;
     text-align: center;
-    align-self: flex-start; /* Para que no se centre verticalmente como el login */
 }
 
 .btn-flotante {
@@ -178,7 +176,6 @@ button:hover { background-color: #d81b60; }
     align-items: center;
     z-index: 9999;
 }
-
 .modal-box {
     background: white;
     padding: 25px;
@@ -186,4 +183,3 @@ button:hover { background-color: #d81b60; }
     text-align: center;
     width: 300px;
 }
-.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
