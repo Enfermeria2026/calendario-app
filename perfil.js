@@ -1,20 +1,24 @@
+// 1. Importamos la base de datos y las herramientas de Firestore (incluyendo deleteDoc)
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+// 2. MAGIA MULTIUSUARIO: Obtenemos el ID de la persona logueada
 const miID = localStorage.getItem('usuario_activo');
 
 if (!miID) {
     console.error("Error: No hay usuario logueado en esta sesión.");
+    // window.location.href = "index.html"; // Opcional para redirigir si alguien entra sin login
 }
 
 let trabajosLocal = [];
 let indiceEditando = -1;
-let fotoBase64 = ""; // Variable para guardar la foto en formato texto
+let fotoBase64 = ""; // Variable para guardar la foto en texto
 
+// 3. Al abrir la página, preparamos la foto y cargamos los datos
 document.addEventListener('DOMContentLoaded', () => {
     cargarDatosFirebase();
     
-    // --- NUEVO: ESCUCHAR CUANDO SE ELIGE UNA FOTO ---
+    // Escuchar cuando el usuario elige una foto nueva
     const inputFoto = document.getElementById('input-foto');
     if (inputFoto) {
         inputFoto.addEventListener('change', function(event) {
@@ -22,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (archivo) {
                 const lector = new FileReader();
                 lector.onload = function(e) {
-                    fotoBase64 = e.target.result; // Convertimos la imagen a código Base64
-                    // Mostramos la imagen al instante en el círculo
+                    fotoBase64 = e.target.result; // Convertimos imagen a código
+                    // Mostramos la imagen al instante
                     document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
                 };
                 lector.readAsDataURL(archivo);
@@ -32,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// 4. Descargar los datos desde Firebase
 async function cargarDatosFirebase() {
     if (!miID) return; 
     
@@ -44,12 +49,13 @@ async function cargarDatosFirebase() {
         if (docSnap.exists()) {
             const datos = docSnap.data();
             
+            // Rellenar campos de texto
             document.getElementById('perfil-nombre').value = datos.nombre || "";
             document.getElementById('perfil-apellidos').value = datos.apellidos || "";
             document.getElementById('perfil-fecha').value = datos.fecha || "";
             document.getElementById('perfil-desc').value = datos.descripcion || "";
             
-            // --- NUEVO: CARGAR LA FOTO SI EXISTE ---
+            // Cargar la foto si ya tenía una guardada
             if (datos.foto) {
                 fotoBase64 = datos.foto;
                 document.getElementById('profile-display').innerHTML = `<img src="${fotoBase64}" alt="Mi Foto">`;
@@ -57,6 +63,7 @@ async function cargarDatosFirebase() {
                 document.getElementById('profile-display').innerHTML = `<i class="fas fa-user"></i>`;
             }
             
+            // Cargar lista de trabajos
             trabajosLocal = datos.trabajos || [];
             cargarListaTrabajos();
             actualizarNombreHeader();
@@ -66,6 +73,7 @@ async function cargarDatosFirebase() {
     }
 }
 
+// Actualizar nombre arriba a la izquierda
 function actualizarNombreHeader() {
     const nombre = document.getElementById('perfil-nombre').value;
     const apellidos = document.getElementById('perfil-apellidos').value;
@@ -74,11 +82,13 @@ function actualizarNombreHeader() {
     }
 }
 
+// 5. Guardar los cambios en Firebase
 async function guardarPerfil() {
     if (!miID) return;
 
     const campos = ['perfil-nombre', 'perfil-apellidos', 'perfil-fecha', 'perfil-desc'];
     
+    // Bloquear campos visualmente
     campos.forEach(id => {
         const input = document.getElementById(id);
         input.readOnly = true;
@@ -94,7 +104,7 @@ async function guardarPerfil() {
         fecha: document.getElementById('perfil-fecha').value,
         descripcion: document.getElementById('perfil-desc').value,
         trabajos: trabajosLocal,
-        foto: fotoBase64 // --- NUEVO: GUARDAMOS LA FOTO EN FIREBASE ---
+        foto: fotoBase64 // Guardar la foto
     };
 
     try {
@@ -135,14 +145,14 @@ function guardarTrabajo() {
         }
         cargarListaTrabajos();
         cerrarModales();
-        guardarPerfil(); 
+        guardarPerfil(); // Guardar en Firebase automáticamente
     }
 }
 
 function borrarTrabajo(index) {
     trabajosLocal.splice(index, 1); 
     cargarListaTrabajos();
-    guardarPerfil(); 
+    guardarPerfil(); // Guardar en Firebase automáticamente
 }
 
 // --- FUNCIONES DE LA INTERFAZ ---
@@ -173,11 +183,29 @@ function abrirModalEliminar() {
     document.getElementById('modal-eliminar').style.display = 'flex';
 }
 
-function confirmarEliminacionFinal() {
-    cerrarModales();
-    mostrarMensaje("En desarrollo", "Eliminar cuenta se conectará pronto a la base de datos.");
+// 6. ELIMINAR CUENTA DEFINITIVAMENTE
+async function confirmarEliminacionFinal() {
+    if (!miID) return;
+    
+    try {
+        cerrarModales(); 
+        
+        // Borramos el usuario de Firebase
+        await deleteDoc(doc(db, "usuarios", miID));
+        
+        // Borramos la memoria local (cierre de sesión)
+        localStorage.clear();
+        
+        // Redirigimos al inicio
+        window.location.href = "index.html"; 
+        
+    } catch (error) {
+        console.error("Error al eliminar la cuenta en Firebase:", error);
+        mostrarMensaje("Error", "Hubo un problema y no se pudo eliminar la cuenta.");
+    }
 }
 
+// Utilidades para los modales y el menú
 function mostrarMensaje(titulo, texto) {
     document.getElementById('mensaje-titulo').innerText = titulo;
     document.getElementById('mensaje-texto').innerText = texto;
@@ -194,6 +222,7 @@ function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('active');
 }
 
+// 7. EXPORTAR FUNCIONES AL HTML (Obligatorio al usar type="module")
 window.editarCampo = editarCampo;
 window.guardarPerfil = guardarPerfil;
 window.abrirModalTrabajo = abrirModalTrabajo;
