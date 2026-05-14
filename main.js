@@ -1,6 +1,6 @@
-// 1. Importamos la base de datos centralizada y las herramientas (Actualizado a v12.13.0)
+// 1. Importamos la base de datos centralizada y las herramientas (Añadido addDoc)
 import { db } from "./firebase-config.js";
-import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 // --- MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
@@ -42,6 +42,48 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
         return;
     }
 
+    // NUEVO: Formulario de recuperación
+    if (tipo === "recuperar") {
+        const inpNombre = document.createElement('input');
+        inpNombre.placeholder = "Nombre"; inpNombre.className = "modal-input"; inpNombre.style.marginBottom = "10px";
+        const inpApellidos = document.createElement('input');
+        inpApellidos.placeholder = "Apellidos"; inpApellidos.className = "modal-input"; inpApellidos.style.marginBottom = "10px";
+        const inpCorreo = document.createElement('input');
+        inpCorreo.type = "email"; inpCorreo.placeholder = "Correo electrónico"; inpCorreo.className = "modal-input"; inpCorreo.style.marginBottom = "15px";
+
+        extra.appendChild(inpNombre);
+        extra.appendChild(inpApellidos);
+        extra.appendChild(inpCorreo);
+
+        const btnCan = document.createElement('button');
+        btnCan.innerText = "Cancelar"; btnCan.style.background = "#aaa";
+        btnCan.onclick = () => overlay.style.display = "none";
+
+        const btnEnv = document.createElement('button');
+        btnEnv.innerText = "Enviar Solicitud";
+        btnEnv.onclick = async () => {
+            if (!inpNombre.value || !inpApellidos.value || !inpCorreo.value) {
+                alert("Por favor, rellena todos los campos.");
+                return;
+            }
+            btnEnv.innerText = "Enviando...";
+            btnEnv.disabled = true;
+            // Guardamos en Firebase en la colección 'solicitudes'
+            await addDoc(collection(db, "solicitudes"), {
+                nombre: inpNombre.value,
+                apellidos: inpApellidos.value,
+                correo: inpCorreo.value,
+                fecha: new Date().toLocaleDateString()
+            });
+            overlay.style.display = "none";
+            setTimeout(() => lanzarAviso("Solicitud enviada. El administrador se pondrá en contacto contigo."), 300);
+        };
+
+        container.appendChild(btnCan);
+        container.appendChild(btnEnv);
+        return;
+    }
+
     const btnOk = document.createElement('button');
     btnOk.innerText = tipo === "ok" ? "Aceptar" : "Eliminar";
     if(tipo !== "ok") btnOk.style.background = "#ff4d4d";
@@ -72,7 +114,7 @@ if(headerUser) {
 const btnCerrar = document.getElementById('btn-cerrar-sesion');
 if(btnCerrar) {
     btnCerrar.onclick = () => {
-        localStorage.clear(); // Esto borra todo al salir, incluido el usuario_activo
+        localStorage.clear();
         window.location.href = 'index.html';
     };
 }
@@ -97,7 +139,7 @@ if (formReg) {
                 apellidos: document.getElementById('reg-apellidos').value,
                 fecha: document.getElementById('reg-fecha').value,
                 userId: id,
-                trabajos: [] // Dejamos la lista de trabajos vacía por defecto
+                trabajos: [] 
             });
             lanzarAviso("¡Cuenta creada!", "ok", () => { window.location.href = "index.html"; });
         }
@@ -119,12 +161,9 @@ if (formLog) {
         const userSnap = await getDoc(doc(db, "usuarios", id.toLowerCase()));
         if (userSnap.exists()) {
             const data = userSnap.data();
-            
-            // ¡ESTAS SON LAS LÍNEAS MÁGICAS!
             localStorage.setItem('userName', data.nombre);
             localStorage.setItem('userLastName', data.apellidos);
-            localStorage.setItem('usuario_activo', id.toLowerCase()); // Guardamos quién es para el perfil
-            
+            localStorage.setItem('usuario_activo', id.toLowerCase());
             window.location.href = "dashboard.html";
         } else {
             lanzarAviso("ID no encontrado.");
@@ -132,9 +171,22 @@ if (formLog) {
     };
 }
 
+// NUEVO: Enlace de recuperar contraseña en el Login
+const linkOlvido = document.getElementById('link-olvido');
+if (linkOlvido) {
+    linkOlvido.onclick = (e) => {
+        e.preventDefault();
+        lanzarAviso("Recuperar Identificador", "recuperar");
+    };
+}
+
 // --- ADMIN PANEL ---
 const listaAdmin = document.getElementById('lista-usuarios');
+const buzonBtn = document.getElementById('btn-buzon');
+const notifDot = document.getElementById('notif-dot');
+
 if (listaAdmin) {
+    // Función para cargar usuarios
     const cargar = async () => {
         const snap = await getDocs(collection(db, "usuarios"));
         listaAdmin.innerHTML = "";
@@ -151,4 +203,65 @@ if (listaAdmin) {
         });
     };
     cargar();
+
+    // NUEVO: Función para comprobar el buzón
+    const comprobarBuzon = async () => {
+        const snap = await getDocs(collection(db, "solicitudes"));
+        if (!snap.empty) {
+            notifDot.style.display = "block";
+        } else {
+            notifDot.style.display = "none";
+        }
+        return snap;
+    };
+    comprobarBuzon();
+
+    // NUEVO: Al hacer clic en el buzón
+    if (buzonBtn) {
+        buzonBtn.onclick = async () => {
+            const snap = await comprobarBuzon();
+            const overlay = document.getElementById('miModal');
+            const msgP = document.getElementById('modalMsg');
+            const extra = document.getElementById('modalExtra');
+            const container = document.getElementById('modalBtnsContainer');
+
+            msgP.innerText = "Buzón de Solicitudes";
+            extra.innerHTML = "";
+            container.innerHTML = "";
+
+            if (snap.empty) {
+                extra.innerHTML = "<p style='color: #666; font-size: 14px;'>No hay solicitudes de recuperación pendientes.</p>";
+            } else {
+                snap.forEach(d => {
+                    const s = d.data();
+                    const item = document.createElement('div');
+                    item.style.cssText = "padding: 12px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; text-align: left; background: #fff5f8;";
+                    item.innerHTML = `
+                        <strong style="color: #333;">${s.nombre} ${s.apellidos}</strong><br>
+                        <a href="mailto:${s.correo}" style="color: #ec407a; font-size: 14px;">${s.correo}</a><br>
+                        <small style="color: #999;">${s.fecha}</small>
+                    `;
+
+                    const btnOk = document.createElement('button');
+                    btnOk.innerText = "Marcar Resuelta";
+                    btnOk.style.cssText = "background: #4CAF50; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 8px;";
+                    btnOk.onclick = async () => {
+                        await deleteDoc(doc(db, "solicitudes", d.id));
+                        overlay.style.display = "none";
+                        comprobarBuzon();
+                    };
+                    item.appendChild(btnOk);
+                    extra.appendChild(item);
+                });
+            }
+
+            const btnCerrar = document.createElement('button');
+            btnCerrar.innerText = "Cerrar Buzón";
+            btnCerrar.style.background = "#aaa";
+            btnCerrar.onclick = () => overlay.style.display = "none";
+            container.appendChild(btnCerrar);
+
+            overlay.style.display = "flex";
+        };
+    }
 }
