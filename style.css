@@ -8,7 +8,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    min-height: 100dvh; /* Truco para evitar el salto de la barra de direcciones en móviles */
+    min-height: 100dvh;
 }
 
 /* --- CUADROS ELEGANTES PRINCIPALES --- */
@@ -60,7 +60,7 @@ button, .btn-principal {
 
 button:hover {
     background-color: #d81b60;
-    transform: translateY(-1px);
+    /* Eliminado el transform: translateY(-1px); para que no salten */
 }
 
 /* BOTÓN AZAR ESPECÍFICO */
@@ -161,7 +161,7 @@ button:hover {
 }
 .menu-icon:hover { transform: scale(1.2); }
 
-/* --- EL BOTÓN ARREGLADO (Centrado y sin negrita) --- */
+/* --- EL BOTÓN UNIRSE --- */
 .btn-unirse {
     background: white;
     color: black;
@@ -251,14 +251,14 @@ button:hover {
 }
 .btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
 
-/* --- AJUSTES MÓVIL (BLOQUEO DE SCROLL) --- */
+/* --- AJUSTES MÓVIL --- */
 @media (max-width: 600px) {
     .auth-container, .admin-container, .modal-box { 
-        margin: 0 !important; /* Cero márgenes para bloquear el cuadro en el centro absoluto */
+        margin: 0 !important; 
         padding: 30px 20px; 
         width: 90%; 
-        max-height: 95vh; /* Evita que el cuadro sea más alto que la pantalla en móviles muy pequeños */
-        overflow-y: auto; /* Por si el teclado tapa algo, que te deje ver el botón de abajo */
+        max-height: 95vh; 
+        overflow-y: auto; 
     }
     .header-left span { display: none; }
 }
