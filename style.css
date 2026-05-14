@@ -114,7 +114,7 @@ button:hover {
     line-height: 1.4;
 }
 
-/* --- EL ERROR ARREGLADO: MODALES Y CUADROS FLOTANTES --- */
+/* --- MODALES Y CUADROS FLOTANTES --- */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -136,7 +136,7 @@ button:hover {
     max-width: 350px;
 }
 
-/* --- DASHBOARD (TAL CUAL LO TENÍAMOS, PERFECTO) --- */
+/* --- DASHBOARD --- */
 .header {
     background-color: #ec407a;
     color: white;
@@ -160,21 +160,28 @@ button:hover {
 }
 .menu-icon:hover { transform: scale(1.2); }
 
-/* --- EL BOTÓN ARREGLADO --- */
+/* --- EL BOTÓN ARREGLADO (Centrado y sin negrita) --- */
 .btn-unirse {
     background: white;
     color: black;
     border: none;
-    padding: 8px 18px;
+    padding: 0 18px !important;
+    height: 34px !important; /* Altura fija para centrar perfecto */
     border-radius: 20px;
     font-size: 14px;
+    font-weight: normal !important; /* FUERA NEGRITA */
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     
-    /* MAGIA PARA QUE NO SE ESTIRE */
     width: fit-content !important; 
     white-space: nowrap; 
     flex-shrink: 0; 
+    
+    /* Reglas para centrado vertical absoluto en la barra */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: auto 0; 
 }
 
 .btn-unirse:hover {
@@ -206,6 +213,7 @@ button:hover {
     z-index: 900;
 }
 .sidebar.active { left: 0; }
+
 .sidebar-btn {
     display: flex;
     align-items: center;
@@ -218,6 +226,7 @@ button:hover {
     cursor: pointer;
     text-align: left;
     font-size: 16px;
+    font-weight: normal !important; /* FUERA NEGRITA */
 }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 .sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
