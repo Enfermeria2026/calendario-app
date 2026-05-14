@@ -6,7 +6,7 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Centrado vertical para Login/Registro */
     min-height: 100vh;
 }
 
@@ -20,34 +20,68 @@ body {
     text-align: center;
     box-sizing: border-box;
     z-index: 10;
+    margin: 20px; /* Evita que pegue a los bordes del móvil */
 }
 
-input {
+input, select {
     width: 100%;
     padding: 12px;
     margin: 10px 0;
     border: 1px solid #ddd;
     border-radius: 8px;
     box-sizing: border-box;
+    font-size: 16px; /* Evita zoom automático en iOS */
 }
 
-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #ec407a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+/* ETIQUETAS ALINEADAS A LA DERECHA */
+.label-texto {
+    display: block;
+    text-align: right; /* Cambiado a la derecha como pediste */
+    font-size: 14px;
     font-weight: bold;
+    color: #555;
+    margin-bottom: 2px;
+    margin-top: 12px;
+}
+
+/* GRUPO INPUT + BOTÓN AZAR EN FILA */
+.input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.input-group input {
+    margin: 0;
+    flex: 1; /* El input ocupa el espacio restante */
+}
+
+#btn-random {
+    width: auto !important;
+    padding: 10px 15px;
+    background-color: #666;
+    margin: 0 !important;
+    font-size: 12px;
+}
+
+/* TEXTO DE SEGURIDAD ROJO Y PEQUEÑO */
+.aviso-seguridad {
+    color: #d32f2f !important; /* Rojo */
+    font-size: 11px;
+    text-align: left;
     margin-top: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    line-height: 1.3;
 }
 
 /* --- ESTILOS DASHBOARD --- */
 .header {
     background-color: #ec407a;
     color: white;
-    padding: 0 20px;
+    padding: 0 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -59,51 +93,6 @@ button {
     box-sizing: border-box;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
-.menu-icon {
-    font-size: 22px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-.menu-icon:hover { transform: scale(1.2); }
-
-#header-usuario {
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-/* BOTÓN UNIRSE */
-.btn-unirse {
-    background-color: white !important;
-    color: black !important;
-    border: none;
-    padding: 0 18px !important;
-    height: 35px !important;
-    border-radius: 20px;
-    font-weight: normal !important;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: auto !important;
-    flex-shrink: 0 !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-}
-
-.btn-unirse:hover {
-    background-color: #fce4ec !important;
-    color: #ec407a !important;
-}
-
-/* MENÚ LATERAL (SIDEBAR) */
 .sidebar {
     position: fixed;
     left: -250px;
@@ -113,110 +102,40 @@ button {
     background-color: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     transition: 0.3s;
-    padding-top: 70px;
+    padding-top: 60px; /* Ajustado para que no sobresalga */
     z-index: 90;
+    box-sizing: border-box;
 }
 
 .sidebar.active { left: 0; }
 
-.sidebar-btn {
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-    padding: 20px 25px !important; /* Espaciado uniforme */
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    border: none;
-    background: none;
-    width: 100%;
-    cursor: pointer;
-    font-size: 16px;
-    text-align: left;
-    box-sizing: border-box;
-    margin: 0 !important;
-}
-
-.sidebar-btn i { color: #ec407a; width: 25px; text-align: center; }
-.sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
-
-/* BOTÓN CERRAR SESIÓN (ID específico para asegurar misma regla) */
-#btn-cerrar-sesion {
-    margin: 0 !important;
-    padding: 20px 25px !important;
-}
-
 .main-content {
-    position: absolute;
-    top: 80px;
+    /* Quitamos position absolute para evitar desplazamientos raros en móvil */
+    padding-top: 80px; 
     width: 100%;
     text-align: center;
+    align-self: flex-start; /* Evita centrado vertical en dashboard */
 }
 
-/* BOTÓN FLOTANTE (+) RECUPERADO */
-.btn-flotante {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: #ec407a;
-    color: white;
-    width: 60px; 
-    height: 60px;
-    border-radius: 50%;
-    font-size: 30px;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 80;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animación suave */
-}
-
-.btn-flotante:hover {
-    transform: rotate(90deg) scale(1.1); /* Gira y crece un poquito */
-}
-
-/* MODALES */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-.modal-box {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    text-align: center;
-    width: 300px;
-}
-/* --- AJUSTES PARA MÓVILES --- */
+/* --- AJUSTES ESPECÍFICOS MÓVIL --- */
 @media (max-width: 600px) {
+    body {
+        align-items: center; /* Asegura centrado del cuadro blanco */
+    }
+
     .auth-container {
-        width: 90%; /* El cuadro ocupará casi todo el ancho en móviles */
+        width: 95%;
         padding: 20px;
+        margin-top: -50px; /* Sube un poco el cuadro para centrarlo visualmente */
     }
 
     #header-usuario {
-        display: none; /* En móviles ocultamos el nombre si no cabe, o lo hacemos más corto */
-    }
-
-    .header-left {
-        gap: 10px;
+        display: none; /* Oculta nombre en móvil para dejar espacio al botón */
     }
 
     .btn-unirse {
-        font-size: 12px; /* Letra un pelín más pequeña para que quepa en la barra */
-        padding: 6px 12px !important;
-    }
-
-    .sidebar {
-        width: 80%; /* El menú lateral ocupa más espacio en el móvil para que se vea bien */
+        font-size: 11px !important;
+        padding: 0 10px !important;
+        height: 32px !important;
     }
 }
