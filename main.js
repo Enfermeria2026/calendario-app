@@ -66,7 +66,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     container.appendChild(btnOk);
 }
 
-// --- LOGICA INTERFAZ DASHBOARD ---
+// --- LOGICA DASHBOARD ---
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
 if(menuToggle && sidebar) {
@@ -77,7 +77,7 @@ const headerUser = document.getElementById('header-usuario');
 if(headerUser) {
     const nombre = localStorage.getItem('userName') || "Usuario";
     const apellidos = localStorage.getItem('userLastName') || "";
-    headerUser.innerText = `${nombre} ${apellidos}`;
+    headerUser.innerText = nombre + " " + apellidos;
 }
 
 const btnCerrar = document.getElementById('btn-cerrar-sesion');
