@@ -31,6 +31,7 @@ async function cargarPerfil() {
     }
 }
 
+// --- CALENDARIO DEL MODAL ---
 window.cambiarMesCal = (dir) => {
     const nuevaFecha = new Date(fechaCalModal);
     nuevaFecha.setMonth(nuevaFecha.getMonth() + dir);
@@ -46,23 +47,29 @@ function renderizarCalendarioModal() {
     const btnPrev = document.getElementById('btn-cal-prev');
     if(!cont || !labelMes) return;
     cont.innerHTML = "";
+    
     const mes = fechaCalModal.getMonth();
     const anio = fechaCalModal.getFullYear();
     const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
     btnPrev.disabled = esMesActual;
+    
     labelMes.innerText = fechaCalModal.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     const primerDia = new Date(anio, mes, 1).getDay();
     const ultimoDia = new Date(anio, mes + 1, 0).getDate();
     let startDay = (primerDia === 0) ? 6 : primerDia - 1;
+    
     for (let i = 0; i < startDay; i++) cont.appendChild(document.createElement('div'));
+    
     for (let d = 1; d <= ultimoDia; d++) {
         const fechaLoop = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const item = document.createElement('div');
         item.className = "date-item";
         item.innerText = d;
         const esPasado = esMesActual && d < HOY_REAL.getDate();
-        if (esPasado) item.classList.add('past');
-        else {
+        
+        if (esPasado) {
+            item.classList.add('past');
+        } else {
             if (diasVariosSelec.includes(fechaLoop)) item.classList.add('date-selected');
             item.onclick = () => {
                 if (diasVariosSelec.includes(fechaLoop)) {
@@ -78,11 +85,12 @@ function renderizarCalendarioModal() {
     }
 }
 
+// --- SELECCIÓN MÚLTIPLE ---
 window.toggleModoSeleccion = () => {
     modoSeleccion = !modoSeleccion;
     const btn = document.getElementById('btn-toggle-sel');
     const btnBorrar = document.getElementById('btn-borrar-masivo');
-    btn.innerText = modoSeleccion ? "Cancelar" : "Seleccionar varios";
+    btn.innerText = modoSeleccion ? "Cancelar Selección" : "Seleccionar varios";
     btn.classList.toggle('activo', modoSeleccion);
     btnBorrar.style.display = modoSeleccion ? "block" : "none";
     if (!modoSeleccion) idsSeleccionados = [];
@@ -98,12 +106,13 @@ window.marcarParaBorrar = (id) => {
 
 window.borrarSeleccionados = () => {
     if (idsSeleccionados.length === 0) return;
-    lanzarAviso(`¿Eliminar los ${idsSeleccionados.length} acontecimientos?`, "confirmar", async () => {
+    lanzarAviso(`¿Eliminar definitivamente los ${idsSeleccionados.length} acontecimientos?`, "confirmar", async () => {
         for (let id of idsSeleccionados) await deleteDoc(doc(db, "acontecimientos", id));
         location.reload();
     });
 };
 
+// --- LOGICA MODAL INTERFAZ ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
@@ -111,18 +120,27 @@ window.actualizarInterfazTipo = () => {
     const selT = document.getElementById('ev-trabajo-id');
     const err = document.getElementById('error-no-jobs');
     const btn = document.getElementById('btn-save-event');
-    divT.classList.add('hidden'); divO.classList.add('hidden');
-    btn.disabled = false; btn.style.opacity = "1";
+    
+    divT.classList.add('hidden'); 
+    divO.classList.add('hidden');
+    btn.disabled = false; 
+    btn.style.opacity = "1";
+    
     if (tipo === "Trabajo") {
         divT.classList.remove('hidden');
         if (misTrabajos.length === 0) {
-            err.classList.remove('hidden'); selT.classList.add('hidden');
-            btn.disabled = true; btn.style.opacity = "0.5";
+            err.classList.remove('hidden'); 
+            selT.classList.add('hidden');
+            btn.disabled = true; 
+            btn.style.opacity = "0.5";
         } else {
-            err.classList.add('hidden'); selT.classList.remove('hidden');
+            err.classList.add('hidden'); 
+            selT.classList.remove('hidden');
             selT.innerHTML = misTrabajos.map(t => `<option value="${t}">${t}</option>`).join('');
         }
-    } else if (tipo === "Otro") divO.classList.remove('hidden');
+    } else if (tipo === "Otro") {
+        divO.classList.remove('hidden');
+    }
 };
 
 window.actualizarInterfazFecha = () => {
@@ -146,35 +164,46 @@ function configurarSelectorSemanal() {
     });
 }
 
+// --- GUARDADO ---
 window.validarYGuardar = async () => {
     const titulo = document.getElementById('ev-titulo').value.trim();
     const tipo = document.getElementById('ev-tipo').value;
     const hIni = document.getElementById('ev-hora-ini').value;
     const hFin = document.getElementById('ev-hora-fin').value;
+    
     if (!titulo || !tipo || !hIni || !hFin) {
-        lanzarAviso("Rellena todos los campos.");
+        lanzarAviso("Por favor, rellena todos los campos obligatorios.");
         return;
     }
-    if (hFin < hIni) lanzarAviso("¿Finaliza al día siguiente?", "confirmar", procesarGuardado);
-    else procesarGuardado();
+    if (hFin < hIni) {
+        lanzarAviso("¿Estás seguro de que el evento finaliza al día siguiente?", "confirmar", procesarGuardado);
+    } else {
+        procesarGuardado();
+    }
 };
 
 async function procesarGuardado() {
     const fTipo = document.getElementById('ev-fecha-tipo').value;
     let fechas = [];
-    if (fTipo === "especifico") fechas.push(document.getElementById('ev-date-single').value);
-    else if (fTipo === "semanal") {
+    
+    if (fTipo === "especifico") {
+        fechas.push(document.getElementById('ev-date-single').value);
+    } else if (fTipo === "semanal") {
         const fFin = new Date(document.getElementById('ev-date-end').value);
         let actual = new Date();
         while (actual <= fFin) {
             if (diasSemanaSelec.includes(actual.getDay().toString())) fechas.push(actual.toISOString().split('T')[0]);
             actual.setDate(actual.getDate() + 1);
         }
-    } else fechas = diasVariosSelec;
+    } else {
+        fechas = diasVariosSelec;
+    }
+    
     if (fechas.length === 0 || fechas.some(f => !f)) {
-        lanzarAviso("Selecciona fechas válidas.");
+        lanzarAviso("Selecciona al menos una fecha válida.");
         return;
     }
+    
     try {
         if (idEditando) {
             await updateDoc(doc(db, "acontecimientos", idEditando), {
@@ -182,7 +211,7 @@ async function procesarGuardado() {
                 tipo: document.getElementById('ev-tipo').value,
                 detalle: document.getElementById('ev-tipo').value === "Trabajo" ? document.getElementById('ev-trabajo-id').value : document.getElementById('ev-otro-nombre').value,
                 lugar: document.getElementById('ev-lugar').value,
-                fecha: fechas[0],
+                fecha: fechas[0], // Editando solo edita 1 fecha
                 horaInicio: document.getElementById('ev-hora-ini').value,
                 horaFin: document.getElementById('ev-hora-fin').value
             });
@@ -204,12 +233,14 @@ async function procesarGuardado() {
     } catch (e) { console.error(e); }
 }
 
+// --- CARGA DE LISTA ---
 async function cargarLista() {
     const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
     const snap = await getDocs(q);
     todosLosEventos = [];
     snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
     todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + a.horaInicio) - new Date(b.fecha + "T" + b.horaInicio));
+    
     if (todosLosEventos.length === 0) document.getElementById('subtitulo-vacio').classList.remove('hidden');
     renderizar();
 }
@@ -218,10 +249,12 @@ function renderizar() {
     const totalPags = Math.ceil(todosLosEventos.length / limite) || 1;
     const inicio = (pagActual - 1) * limite;
     const lista = todosLosEventos.slice(inicio, inicio + limite);
+    
     document.getElementById('barra-seleccion').style.display = todosLosEventos.length > 1 ? "flex" : "none";
     const cont = document.getElementById('contenedor-eventos');
     if(!cont) return;
     cont.innerHTML = "";
+    
     lista.forEach(ev => {
         const fFormat = new Date(ev.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const div = document.createElement('div');
@@ -231,7 +264,7 @@ function renderizar() {
             <div style="display:flex; align-items:center;">
                 ${check}
                 <div>
-                    <strong style="color:#333;">${ev.titulo}</strong> <small style="color:#ec407a; margin-left:10px;">${fFormat}</small><br>
+                    <strong style="color:#333; font-size:16px;">${ev.titulo}</strong> <small style="color:#ec407a; margin-left:10px; font-weight:bold;">${fFormat}</small><br>
                     <small style="color:#666;">${ev.horaInicio} - ${ev.horaFin} (${ev.detalle || ev.tipo})</small>
                 </div>
             </div>
@@ -242,6 +275,7 @@ function renderizar() {
         `;
         cont.appendChild(div);
     });
+    
     document.getElementById('page-info').innerText = `Página ${pagActual} de ${totalPags}`;
     document.getElementById('btn-prev').disabled = pagActual === 1;
     document.getElementById('btn-next').disabled = pagActual === totalPags;
@@ -267,26 +301,56 @@ window.prepararEdicion = async (id) => {
     }
 };
 
-window.pedirBorrado = (id) => lanzarAviso("¿Borrar este acontecimiento?", "confirmar", async () => { await deleteDoc(doc(db, "acontecimientos", id)); location.reload(); });
+window.pedirBorrado = (id) => lanzarAviso("¿Borrar definitivamente este acontecimiento?", "confirmar", async () => { await deleteDoc(doc(db, "acontecimientos", id)); location.reload(); });
 
+// Función lanzarAviso recuperando la estetica de los botones
 function lanzarAviso(msg, tipo = "ok", cb = null) {
     const m = document.getElementById('miModal');
     document.getElementById('modalMsg').innerText = msg;
     const c = document.getElementById('modalBtnsContainer');
     c.innerHTML = "";
     m.style.display = "flex";
+    
     const bOk = document.createElement('button');
-    bOk.innerText = "Aceptar"; bOk.onclick = () => { m.style.display="none"; if(cb) cb(); };
+    bOk.innerText = "Aceptar";
+    bOk.style.cssText = "background: #ec407a; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: auto;";
+    bOk.onclick = () => { m.style.display="none"; if(cb) cb(); };
+    
     if(tipo === "confirmar") {
         const bCan = document.createElement('button');
-        bCan.innerText = "Cancelar"; bCan.style.background = "#aaa";
+        bCan.innerText = "Cancelar"; 
+        bCan.style.cssText = "background: #f5f5f5; color: #666; border: 1px solid #ddd; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: auto;";
         bCan.onclick = () => m.style.display="none";
         c.appendChild(bCan);
     }
     c.appendChild(bOk);
 }
 
-window.abrirModalEvento = () => { idEditando = null; document.getElementById('modal-titulo-accion').innerText = "Nuevo Acontecimiento"; document.getElementById('modal-evento').style.display = "flex"; };
+// RESTAURADO EL RESETEO DE CAMPOS AL ABRIR EL MODAL
+window.abrirModalEvento = () => { 
+    idEditando = null; 
+    diasVariosSelec = []; 
+    diasSemanaSelec = [];
+    
+    // Limpiamos los campos
+    document.getElementById('ev-titulo').value = "";
+    document.getElementById('ev-tipo').value = "";
+    document.getElementById('ev-lugar').value = "";
+    document.getElementById('ev-hora-ini').value = "";
+    document.getElementById('ev-hora-fin').value = "";
+    document.getElementById('ev-fecha-tipo').value = "especifico";
+    
+    // Limpiamos las UI de los selectores de días
+    document.querySelectorAll('.day-selected').forEach(el => el.classList.remove('day-selected'));
+    document.querySelectorAll('.date-selected').forEach(el => el.classList.remove('date-selected'));
+    
+    actualizarInterfazTipo();
+    actualizarInterfazFecha();
+    
+    document.getElementById('modal-titulo-accion').innerText = "Nuevo Acontecimiento"; 
+    document.getElementById('modal-evento').style.display = "flex"; 
+};
+
 window.cerrarModales = () => document.getElementById('modal-evento').style.display = "none";
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
 window.cerrarSesion = () => { localStorage.clear(); window.location.href="index.html"; };
