@@ -1,87 +1,129 @@
-/* RESET GENERAL */
+/* RESET Y ELEGANCIA BASE */
 body {
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: #fce4ec;
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center; /* Centrado vertical para Login/Registro */
+    align-items: center; /* Centrado vertical absoluto */
     min-height: 100vh;
 }
 
-/* CONTENEDOR LOGIN Y REGISTRO */
+/* EL CUADRO BLANCO ELEGANTE */
 .auth-container {
     background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    width: 380px;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Sombra suave */
+    width: 100%;
+    max-width: 400px; /* Ancho elegante en PC */
     text-align: center;
     box-sizing: border-box;
-    z-index: 10;
-    margin: 20px; /* Evita que pegue a los bordes del móvil */
+    margin: 20px;
 }
 
-input, select {
+h2 {
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 700;
+}
+
+/* INPUTS ELEGANTES */
+input {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #fafafa;
     box-sizing: border-box;
-    font-size: 16px; /* Evita zoom automático en iOS */
+    font-size: 15px;
+    transition: all 0.3s;
 }
 
-/* ETIQUETAS ALINEADAS A LA DERECHA */
+input:focus {
+    border-color: #ec407a;
+    background-color: white;
+    outline: none;
+    box-shadow: 0 0 8px rgba(236, 64, 122, 0.2);
+}
+
+/* ETIQUETAS A LA DERECHA */
 .label-texto {
     display: block;
-    text-align: right; /* Cambiado a la derecha como pediste */
-    font-size: 14px;
-    font-weight: bold;
-    color: #555;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    margin-top: 15px;
     margin-bottom: 2px;
-    margin-top: 12px;
 }
 
-/* GRUPO INPUT + BOTÓN AZAR EN FILA */
+/* GRUPO AZAR EN LÍNEA */
 .input-group {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-top: 5px;
 }
 
 .input-group input {
     margin: 0;
-    flex: 1; /* El input ocupa el espacio restante */
+    flex: 1;
 }
 
 #btn-random {
     width: auto !important;
-    padding: 10px 15px;
-    background-color: #666;
+    padding: 12px 15px;
+    background-color: #444; /* Gris oscuro elegante */
+    color: white;
+    border-radius: 10px;
+    font-size: 11px;
     margin: 0 !important;
-    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* TEXTO DE SEGURIDAD ROJO Y PEQUEÑO */
+/* BOTÓN PRINCIPAL ROSA */
+button[type="submit"], .btn-principal {
+    width: 100%;
+    padding: 14px;
+    background-color: #ec407a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+button[type="submit"]:hover {
+    background-color: #d81b60;
+    transform: translateY(-1px);
+}
+
+/* AVISO SEGURIDAD ROJO PEQUEÑO */
 .aviso-seguridad {
-    color: #d32f2f !important; /* Rojo */
+    color: #e53935 !important; /* Rojo elegante */
     font-size: 11px;
     text-align: left;
-    margin-top: 10px;
+    margin-top: 12px;
+    line-height: 1.4;
     display: flex;
-    align-items: flex-start;
-    gap: 5px;
-    line-height: 1.3;
+    gap: 6px;
 }
 
-/* --- ESTILOS DASHBOARD --- */
+/* ENLACES */
+p { color: #666; font-size: 14px; margin-top: 20px; }
+a { color: #ec407a; text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; }
+
+/* --- DASHBOARD --- */
 .header {
     background-color: #ec407a;
     color: white;
-    padding: 0 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -89,53 +131,92 @@ input, select {
     top: 0; left: 0;
     width: 100%;
     height: 60px;
-    z-index: 100;
+    padding: 0 20px;
+    z-index: 1000;
     box-sizing: border-box;
+}
+
+.header-left { display: flex; align-items: center; gap: 20px; }
+
+.btn-unirse {
+    background: white;
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 400; /* No negrita */
+}
+
+.btn-unirse:hover {
+    background-color: #fce4ec !important;
+    color: #ec407a !important;
 }
 
 .sidebar {
     position: fixed;
-    left: -250px;
-    top: 0;
-    width: 250px;
-    height: 100%;
-    background-color: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    left: -260px;
+    top: 60px; /* Debajo de la barra */
+    width: 260px;
+    height: calc(100% - 60px);
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
     transition: 0.3s;
-    padding-top: 60px; /* Ajustado para que no sobresalga */
-    z-index: 90;
-    box-sizing: border-box;
+    z-index: 900;
 }
 
 .sidebar.active { left: 0; }
 
-.main-content {
-    /* Quitamos position absolute para evitar desplazamientos raros en móvil */
-    padding-top: 80px; 
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 25px;
+    color: #444;
+    font-size: 16px;
+    border: none;
+    background: none;
     width: 100%;
-    text-align: center;
-    align-self: flex-start; /* Evita centrado vertical en dashboard */
+    cursor: pointer;
+    text-align: left;
 }
 
-/* --- AJUSTES ESPECÍFICOS MÓVIL --- */
+.sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
+.sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
+
+.main-content {
+    margin-top: 60px;
+    width: 100%;
+    padding: 40px 20px;
+    align-self: flex-start;
+}
+
+.btn-flotante {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #ec407a;
+    color: white;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    font-size: 30px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(236, 64, 122, 0.4);
+    transition: 0.3s;
+}
+.btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
+
+/* --- AJUSTES MÓVIL (CORRECCIÓN FINAL) --- */
 @media (max-width: 600px) {
-    body {
-        align-items: center; /* Asegura centrado del cuadro blanco */
-    }
-
     .auth-container {
-        width: 95%;
-        padding: 20px;
-        margin-top: -50px; /* Sube un poco el cuadro para centrarlo visualmente */
+        padding: 30px 20px;
+        margin: 15px;
+        /* Quitamos el posible desplazamiento abajo */
     }
-
-    #header-usuario {
-        display: none; /* Oculta nombre en móvil para dejar espacio al botón */
-    }
-
-    .btn-unirse {
-        font-size: 11px !important;
-        padding: 0 10px !important;
-        height: 32px !important;
-    }
+    
+    .header-left span { display: none; } /* Oculta nombre usuario en móvil */
+    
+    .sidebar { width: 85%; }
 }
