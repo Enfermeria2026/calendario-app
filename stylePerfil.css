@@ -1,5 +1,19 @@
 /* --- ESTILOS EXCLUSIVOS DE MI PERFIL --- */
 
+/* 1. Ajustes del Contenedor Principal para evitar scrolls dobles */
+.auth-container {
+    height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 40px;
+    margin-bottom: 40px !important;
+}
+
+.main-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+}
+
+/* 2. Foto de Perfil */
 .profile-pic-container {
     position: relative;
     width: 130px;
@@ -47,14 +61,16 @@
 }
 .edit-icon-photo:hover { background: #000; }
 
+/* 3. Campos Editables e Inputs */
 .campo-editable {
     margin-bottom: 20px;
 }
 
-/* --- BLOQUEO TOTAL DE INPUTS HASTA PULSAR EL LÁPIZ --- */
+/* Bloqueo de inputs hasta pulsar lápiz */
 .perfil-info input[readonly], 
 .perfil-info textarea[readonly] {
-    pointer-events: none; /* Evita que se pueda hacer clic o seleccionar */
+    pointer-events: none; 
+    background: #f9f9f9;
 }
 
 /* El ID que no se puede tocar nunca */
@@ -93,6 +109,7 @@ textarea:focus {
     border-color: #ec407a;
 }
 
+/* 4. Lista de Trabajos */
 .lista-items {
     text-align: left;
 }
@@ -109,6 +126,17 @@ textarea:focus {
     border: 1px solid rgba(236, 64, 122, 0.1);
 }
 
+/* 5. Ajustes para Móvil */
 @media (max-width: 600px) {
-    .auth-container { margin: 10px auto !important; }
+    .auth-container { 
+        width: 95% !important;
+        margin: 10px auto !important; 
+        box-shadow: none;
+        padding: 20px;
+    }
+    
+    .profile-pic-container {
+        width: 110px;
+        height: 110px;
+    }
 }
