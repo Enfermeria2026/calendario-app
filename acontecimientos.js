@@ -11,6 +11,7 @@ const limite = 10;
 let modoSeleccion = false;
 let idsSeleccionados = [];
 let fechaCalModal = new Date();
+const HOY_REAL = new Date(); // Para bloquear pasado
 let idEditando = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -30,18 +31,35 @@ async function cargarPerfil() {
     }
 }
 
+// --- CALENDARIO DEL MODAL (CON BLOQUEO DE PASADO) ---
 window.cambiarMesCal = (dir) => {
-    fechaCalModal.setMonth(fechaCalModal.getMonth() + dir);
+    const nuevaFecha = new Date(fechaCalModal);
+    nuevaFecha.setMonth(nuevaFecha.getMonth() + dir);
+    
+    // No permitir ir antes del mes actual
+    if (nuevaFecha.getFullYear() < HOY_REAL.getFullYear() || 
+       (nuevaFecha.getFullYear() === HOY_REAL.getFullYear() && nuevaFecha.getMonth() < HOY_REAL.getMonth())) {
+        return;
+    }
+    
+    fechaCalModal = nuevaFecha;
     renderizarCalendarioModal();
 };
 
 function renderizarCalendarioModal() {
     const cont = document.getElementById('calendar-multi');
     const labelMes = document.getElementById('cal-mes-nombre');
+    const btnPrev = document.getElementById('btn-cal-prev');
     if(!cont || !labelMes) return;
     cont.innerHTML = "";
+
     const mes = fechaCalModal.getMonth();
     const anio = fechaCalModal.getFullYear();
+    
+    // Bloquear botón atrás si es el mes actual
+    const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
+    btnPrev.disabled = esMesActual;
+
     labelMes.innerText = fechaCalModal.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
     const primerDia = new Date(anio, mes, 1).getDay();
@@ -52,23 +70,32 @@ function renderizarCalendarioModal() {
 
     for (let d = 1; d <= ultimoDia; d++) {
         const fechaLoop = `${anio}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const fechaObj = new Date(anio, mes, d);
         const item = document.createElement('div');
         item.className = "date-item";
         item.innerText = d;
-        if (diasVariosSelec.includes(fechaLoop)) item.classList.add('date-selected');
-        item.onclick = () => {
-            if (diasVariosSelec.includes(fechaLoop)) {
-                diasVariosSelec = diasVariosSelec.filter(x => x !== fechaLoop);
-                item.classList.remove('date-selected');
-            } else {
-                diasVariosSelec.push(fechaLoop);
-                item.classList.add('date-selected');
-            }
-        };
+
+        // Comprobar si el día ya pasó (solo en el mes actual)
+        const esPasado = esMesActual && d < HOY_REAL.getDate();
+        if (esPasado) {
+            item.classList.add('past');
+        } else {
+            if (diasVariosSelec.includes(fechaLoop)) item.classList.add('date-selected');
+            item.onclick = () => {
+                if (diasVariosSelec.includes(fechaLoop)) {
+                    diasVariosSelec = diasVariosSelec.filter(x => x !== fechaLoop);
+                    item.classList.remove('date-selected');
+                } else {
+                    diasVariosSelec.push(fechaLoop);
+                    item.classList.add('date-selected');
+                }
+            };
+        }
         cont.appendChild(item);
     }
 }
 
+// --- SELECCIÓN MÚLTIPLE ---
 window.toggleModoSeleccion = () => {
     modoSeleccion = !modoSeleccion;
     const btn = document.getElementById('btn-toggle-sel');
@@ -95,6 +122,7 @@ window.borrarSeleccionados = () => {
     });
 };
 
+// --- LOGICA MODAL ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
