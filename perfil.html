@@ -4,19 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil - Calendario</title>
+    <!-- Cargamos ambos estilos -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="stylePerfil.css">
+    <!-- Iconos de FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
+    <!-- BARRA SUPERIOR (IDÉNTICA A DASHBOARD) -->
     <nav class="header">
         <div class="header-left">
             <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
-            <span id="header-usuario">Cargando...</span>
+            <span id="header-usuario">Carolina Artieda Alonso</span>
         </div>
         <button class="btn-unirse">Unirse a un calendario</button>
     </nav>
 
+    <!-- MENÚ LATERAL -->
     <div class="sidebar" id="sidebar">
         <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
         <button class="sidebar-btn" onclick="location.href='acontecimientos.html'"><i class="fas fa-list"></i> Mis acontecimientos</button>
@@ -24,11 +29,14 @@
         <button class="sidebar-btn" id="btn-cerrar-sesion" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
     </div>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content" style="display: block; padding-top: 80px;">
         
+        <!-- TARJETA 1: DATOS PERSONALES -->
         <div class="auth-container" style="max-width: 500px; margin: 20px auto;">
             <h2>Datos Personales</h2>
             
+            <!-- Contenedor Foto de Perfil -->
             <div class="profile-pic-container">
                 <div class="profile-pic" id="profile-display">
                     <i class="fas fa-user"></i>
@@ -43,7 +51,7 @@
                 <div class="campo-editable">
                     <label class="label-texto">Nombre</label>
                     <div class="input-group">
-                        <input type="text" id="perfil-nombre" readonly>
+                        <input type="text" id="perfil-nombre" value="Carolina" readonly>
                         <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-nombre')"></i>
                     </div>
                 </div>
@@ -51,7 +59,7 @@
                 <div class="campo-editable">
                     <label class="label-texto">Apellidos</label>
                     <div class="input-group">
-                        <input type="text" id="perfil-apellidos" readonly>
+                        <input type="text" id="perfil-apellidos" value="Artieda Alonso" readonly>
                         <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-apellidos')"></i>
                     </div>
                 </div>
@@ -59,7 +67,7 @@
                 <div class="campo-editable">
                     <label class="label-texto">Fecha de nacimiento</label>
                     <div class="input-group">
-                        <input type="date" id="perfil-fecha" readonly>
+                        <input type="date" id="perfil-fecha" value="1995-05-14" readonly>
                         <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-fecha')"></i>
                     </div>
                 </div>
@@ -67,7 +75,7 @@
                 <div class="campo-editable">
                     <label class="label-texto">Descripción libre</label>
                     <div class="input-group">
-                        <textarea id="perfil-desc" placeholder="Cuéntanos algo sobre ti..." readonly></textarea>
+                        <textarea id="perfil-desc" placeholder="Escribe algo sobre ti..." readonly></textarea>
                         <i class="fas fa-pencil-alt edit-btn" onclick="editarCampo('perfil-desc')"></i>
                     </div>
                 </div>
@@ -75,52 +83,53 @@
 
             <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
 
-            <h3 style="color: #444; font-size: 16px; text-align: left;">Mis Lugares de Trabajo</h3>
+            <h3 style="color: #444; font-size: 16px; text-align: left; margin-bottom: 15px;">Mis Lugares de Trabajo</h3>
             <div id="lista-trabajos" class="lista-items">
+                <div class="item-trabajo">
+                    <span>Hospital Universitario</span>
+                    <i class="fas fa-trash-alt" style="color: #e53935; cursor: pointer;"></i>
                 </div>
-            <button class="sidebar-btn" style="justify-content: center; color: #ec407a;" onclick="abrirModalTrabajo()">
-                <i class="fas fa-plus-circle"></i> Añadir lugar de trabajo
+            </div>
+            <button class="sidebar-btn" style="justify-content: center; color: #ec407a; margin-top: 10px !important;" onclick="abrirModalTrabajo()">
+                <i class="fas fa-plus-circle"></i> Añadir trabajo
             </button>
         </div>
 
+        <!-- TARJETA 2: SEGURIDAD -->
         <div class="auth-container" style="max-width: 500px; margin: 20px auto;">
             <h2>Ajustes y Seguridad</h2>
             
             <div class="campo-editable">
                 <label class="label-texto">Identificador único</label>
                 <div class="input-group">
-                    <input type="text" id="perfil-id" readonly>
+                    <input type="text" id="perfil-id" value="caroliinaa" readonly>
                     <i class="fas fa-lock" style="color: #ccc; margin-left: 10px;"></i>
                 </div>
             </div>
 
-            <button class="btn-principal" style="background-color: #666;" onclick="abrirModalCambiarID()">
+            <button class="btn-principal" style="background-color: #444;" onclick="alert('Funcionalidad de cambio de ID en desarrollo')">
                 Cambiar Identificador
             </button>
             
-            <button class="btn-principal" style="background-color: #e53935; margin-top: 10px;" onclick="confirmarEliminarCuenta()">
+            <button class="btn-principal" style="background-color: #e53935; margin-top: 10px;" onclick="confirm('¿Estás segura de que quieres eliminar tu cuenta?')">
                 Eliminar mi cuenta
             </button>
         </div>
 
     </main>
 
+    <!-- MODAL TRABAJO -->
     <div class="modal-overlay" id="modal-trabajo">
         <div class="modal-box">
-            <h3>Añadir Trabajo</h3>
-            <input type="text" id="nuevo-trabajo" placeholder="Ej: Hospital Clínico - UCI">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-principal" style="background-color: #888;" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn-principal" onclick="guardarTrabajo()">Guardar</button>
+            <h3>Nuevo Trabajo</h3>
+            <input type="text" id="nuevo-trabajo" placeholder="Nombre del centro...">
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-principal" style="background-color: #888; margin-top: 0;" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-principal" style="margin-top: 0;" onclick="guardarTrabajo()">Guardar</button>
             </div>
         </div>
     </div>
 
     <script src="perfil.js"></script>
-    <script>
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
-    </script>
 </body>
 </html>
