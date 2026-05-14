@@ -10,19 +10,18 @@ body {
     min-height: 100vh;
 }
 
-/* CONTENEDOR LOGIN Y REGISTRO (CUADRO BLANCO) */
+/* CONTENEDOR LOGIN Y REGISTRO */
 .auth-container {
     background: white;
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    width: 380px; /* Un poco más ancho para que respire el registro */
+    width: 380px;
     text-align: center;
     box-sizing: border-box;
     z-index: 10;
 }
 
-/* INPUTS Y BOTONES GENERALES */
 input {
     width: 100%;
     padding: 12px;
@@ -42,6 +41,7 @@ button {
     cursor: pointer;
     font-weight: bold;
     margin-top: 10px;
+    transition: background 0.3s;
 }
 
 button:hover { background-color: #d81b60; }
@@ -56,25 +56,7 @@ button:hover { background-color: #d81b60; }
     margin-top: 12px;
 }
 
-.aviso-seguridad {
-    color: #d32f2f !important;
-    font-size: 11px;
-    text-align: left;
-    margin-top: 8px;
-    display: flex;
-    align-items: flex-start;
-    gap: 5px;
-    line-height: 1.4;
-}
-
-.input-group {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-.input-group input { margin: 0; }
-
-/* --- ESTILOS EXCLUSIVOS DASHBOARD --- */
+/* --- ESTILOS DASHBOARD --- */
 .header {
     background-color: #ec407a;
     color: white;
@@ -90,23 +72,51 @@ button:hover { background-color: #d81b60; }
     box-sizing: border-box;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* Más separación entre icono y nombre */
+    flex-shrink: 0;
+}
+
+/* ANIMACIÓN ICONO MENÚ */
+.menu-icon {
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    display: inline-block;
+}
+
+.menu-icon:hover {
+    transform: scale(1.2); /* Se hace un pelín más grande */
+}
+
 #header-usuario {
     font-weight: bold;
     white-space: nowrap;
 }
 
+/* BOTÓN UNIRSE (CORRECCIÓN DE COLOR) */
 .btn-unirse {
     background: white;
     color: #ec407a;
     border: none;
-    padding: 8px 15px;
+    padding: 8px 18px;
     border-radius: 20px;
     font-weight: bold;
     cursor: pointer;
     width: auto;
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
+.btn-unirse:hover {
+    background-color: #fff0f5; /* Rosa blanquecino muy suave */
+    color: #d81b60;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* MENÚ LATERAL */
 .sidebar {
     position: fixed;
     left: -250px;
@@ -116,18 +126,17 @@ button:hover { background-color: #d81b60; }
     background-color: white;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     transition: 0.3s;
-    padding-top: 70px; /* Ajustado para que empiece tras el header */
+    padding-top: 70px;
     z-index: 90;
 }
 
 .sidebar.active { left: 0; }
 
-/* BOTONES DEL MENÚ (ESPACIO UNIFORME) */
 .sidebar-btn {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px 25px; /* Espacio uniforme entre todos */
+    padding: 15px 25px;
     text-decoration: none;
     color: #333;
     font-weight: 500;
@@ -138,10 +147,16 @@ button:hover { background-color: #d81b60; }
     font-size: 16px;
     text-align: left;
     box-sizing: border-box;
+    margin: 0; /* Asegura que no haya saltos extra */
 }
 
-.sidebar-btn i { color: #ec407a; width: 20px; text-align: center; }
+.sidebar-btn i { color: #ec407a; width: 25px; text-align: center; }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
+
+/* Botón cerrar sesión ahora igual que el resto */
+#btn-cerrar-sesion {
+    margin-top: 0; 
+}
 
 .main-content {
     position: absolute;
@@ -161,8 +176,13 @@ button:hover { background-color: #d81b60; }
     font-size: 30px;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     z-index: 80;
+    transition: transform 0.2s;
+}
+
+.btn-flotante:hover {
+    transform: rotate(90deg) scale(1.1);
 }
 
 /* MODALES */
