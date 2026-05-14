@@ -5,23 +5,23 @@
 /* --- Modal de Crear Calendario --- */
 .input-codigo-acceso {
     flex: 1; 
-    padding: 14px; 
+    padding: 16px; /* Un poco más de espacio para que respire */
     border-radius: 12px; 
     border: 1px solid #eee; 
-    background: #f0f0f0; 
+    background: #f4f4f4; /* Un gris muy clarito y elegante */
     color: #ec407a; 
     font-weight: 800; 
     text-align: center; 
     letter-spacing: 4px; 
-    font-size: 18px; 
-    margin-bottom: 0; 
+    font-size: 22px; /* Número más grande y visible */
+    margin: 0; 
     pointer-events: none; 
     box-sizing: border-box;
 }
 
 .btn-copiar-codigo {
     margin: 0; 
-    width: 55px; 
+    width: 65px; /* Un pelín más ancho para igualar tu captura */
     justify-content: center; 
     background: white; 
     border: 1px solid #ec407a; 
@@ -29,9 +29,14 @@
     border-radius: 12px; 
     padding: 0; 
     display: flex; 
-    align-items: center;
+    align-items: center; /* Centra el icono verticalmente */
     cursor: pointer;
     transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.btn-copiar-codigo i {
+    font-size: 20px; /* Icono un poco más grande */
 }
 
 .btn-copiar-codigo:hover {
@@ -40,13 +45,4 @@
 
 .btn-copiar-codigo:active {
     transform: scale(0.9);
-}
-
-/* Espacio reservado para el futuro interior del calendario (cuadrícula, miembros, etc.) */
-.calendario-grid {
-    /* Lo diseñaremos en el siguiente paso */
-}
-
-.lista-miembros {
-    /* Lo diseñaremos en el siguiente paso */
 }
