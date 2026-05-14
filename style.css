@@ -196,3 +196,27 @@ button {
     text-align: center;
     width: 300px;
 }
+/* --- AJUSTES PARA MÓVILES --- */
+@media (max-width: 600px) {
+    .auth-container {
+        width: 90%; /* El cuadro ocupará casi todo el ancho en móviles */
+        padding: 20px;
+    }
+
+    #header-usuario {
+        display: none; /* En móviles ocultamos el nombre si no cabe, o lo hacemos más corto */
+    }
+
+    .header-left {
+        gap: 10px;
+    }
+
+    .btn-unirse {
+        font-size: 12px; /* Letra un pelín más pequeña para que quepa en la barra */
+        padding: 6px 12px !important;
+    }
+
+    .sidebar {
+        width: 80%; /* El menú lateral ocupa más espacio en el móvil para que se vea bien */
+    }
+}
