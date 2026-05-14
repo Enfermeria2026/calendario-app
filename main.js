@@ -136,6 +136,67 @@ if(btnCerrar) {
     };
 }
 
+// --- NUEVO: LÓGICA DE CALENDARIOS (DASHBOARD) ---
+const btnCrear = document.getElementById('btn-crear');
+
+if (btnCrear) {
+    btnCrear.onclick = () => {
+        // Generar código de 9 cifras aleatorio: de 100000000 a 999999999
+        const codigoAleatorio = Math.floor(100000000 + Math.random() * 900000000);
+        document.getElementById('cal-codigo').value = codigoAleatorio;
+        
+        // Limpiar campos
+        document.getElementById('cal-nombre').value = "";
+        document.getElementById('cal-desc').value = "";
+        
+        document.getElementById('modal-crear-calendario').style.display = 'flex';
+    };
+}
+
+window.cerrarModalCalendario = () => {
+    document.getElementById('modal-crear-calendario').style.display = 'none';
+};
+
+window.copiarCodigo = () => {
+    const codigoInput = document.getElementById('cal-codigo');
+    navigator.clipboard.writeText(codigoInput.value).then(() => {
+        lanzarAviso("¡Código copiado al portapapeles!");
+    });
+};
+
+window.guardarCalendario = async () => {
+    const nombre = document.getElementById('cal-nombre').value.trim();
+    const desc = document.getElementById('cal-desc').value.trim();
+    const codigo = document.getElementById('cal-codigo').value;
+
+    if (!nombre) {
+        lanzarAviso("El nombre del calendario es obligatorio.");
+        return;
+    }
+
+    window.mostrarCarga();
+
+    try {
+        await addDoc(collection(db, "calendarios"), {
+            nombre: nombre,
+            descripcion: desc,
+            codigo_acceso: codigo,
+            creador: idActivo,
+            fecha_creacion: new Date().toISOString(),
+            miembros: [idActivo] // El creador es el primer miembro por defecto
+        });
+        
+        window.cerrarModalCalendario();
+        lanzarAviso("¡Calendario creado con éxito!");
+        // Aquí en el futuro llamaremos a la función para recargar la lista visual de calendarios
+    } catch (error) {
+        console.error("Error al crear calendario:", error);
+        lanzarAviso("Hubo un error al crear el calendario.");
+    } finally {
+        window.ocultarCarga();
+    }
+};
+
 // --- LOGICA REGISTRO ---
 const btnRand = document.getElementById('btn-random');
 if(btnRand) {
