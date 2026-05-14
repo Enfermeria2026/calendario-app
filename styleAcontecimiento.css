@@ -1,4 +1,4 @@
-/* --- ESTILOS GENERALES DE LA PÁGINA --- */
+/* --- ESTILOS GENERALES --- */
 html, body {
     height: auto !important;
     overflow-y: auto !important;
@@ -16,7 +16,7 @@ html, body {
 
 .main-content h2 { text-align: center; color: #333; margin-bottom: 5px; }
 
-/* --- BARRA DE HERRAMIENTAS (SELECCIÓN) --- */
+/* --- BARRA DE HERRAMIENTAS Y BOTONES --- */
 .barra-herramientas {
     display: flex;
     justify-content: space-between;
@@ -34,12 +34,22 @@ html, body {
     font-size: 13px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
+    transition: all 0.2s;
+    outline: none;
+}
+
+/* Efecto al pulsar: más sutil, sin volverse oscuro */
+.btn-accion-secundario:active {
+    transform: scale(0.96);
+    background-color: rgba(236, 64, 122, 0.05);
 }
 
 .btn-accion-secundario.activo { background: #ec407a; color: white; }
+.btn-accion-secundario.activo:active {
+    background-color: #d81b60; /* Un rosa un pelín más oscuro, no negro */
+}
 
-/* --- TARJETAS DE EVENTO --- */
+/* --- TARJETAS --- */
 .event-card {
     background: white;
     padding: 15px;
@@ -65,11 +75,9 @@ html, body {
     margin-left: 15px;
     cursor: pointer;
     font-size: 16px;
-    transition: color 0.3s;
 }
-.event-actions i:hover { color: #ec407a; }
 
-/* --- BOTÓN FLOTANTE --- */
+/* --- BOTÓN FLOTANTE (FAB) CORREGIDO --- */
 .fab {
     position: fixed;
     bottom: 30px;
@@ -79,16 +87,25 @@ html, body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
+    display: flex;           /* Flex para centrar */
+    justify-content: center; /* Centrado horizontal */
+    align-items: center;     /* Centrado vertical */
     box-shadow: 0 5px 15px rgba(236, 64, 122, 0.4);
     cursor: pointer;
     z-index: 100;
+    transition: transform 0.2s;
 }
 
-/* --- CALENDARIO MODAL (NAVEGABLE) --- */
+.fab i {
+    font-size: 24px;
+    line-height: 0;          /* Evita que el texto del icono lo desplace */
+    margin: 0;
+    padding: 0;
+}
+
+.fab:active { transform: scale(0.9); }
+
+/* --- CALENDARIO MODAL --- */
 .cal-header {
     display: flex;
     justify-content: space-between;
