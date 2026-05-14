@@ -14,12 +14,23 @@ let fechaCalModal = new Date();
 const HOY_REAL = new Date();
 let idEditando = null;
 
+// Funciones para manejar la pantalla de carga
+function mostrarCarga() { document.getElementById('pantalla-carga').classList.remove('hidden'); }
+function ocultarCarga() { document.getElementById('pantalla-carga').classList.add('hidden'); }
+
 document.addEventListener('DOMContentLoaded', async () => {
     if (!miID) window.location.href = "index.html";
+    
+    // Mostramos la carga al iniciar
+    mostrarCarga();
+    
     await cargarPerfil();
     await cargarLista();
     renderizarCalendarioModal();
     configurarSelectorSemanal();
+    
+    // Ocultamos cuando todo está listo
+    ocultarCarga();
 });
 
 async function cargarPerfil() {
@@ -107,6 +118,7 @@ window.marcarParaBorrar = (id) => {
 window.borrarSeleccionados = () => {
     if (idsSeleccionados.length === 0) return;
     lanzarAviso(`¿Eliminar definitivamente los ${idsSeleccionados.length} acontecimientos?`, "confirmar", async () => {
+        mostrarCarga(); // <-- Mostramos carga antes de borrar
         for (let id of idsSeleccionados) await deleteDoc(doc(db, "acontecimientos", id));
         location.reload();
     });
@@ -204,6 +216,8 @@ async function procesarGuardado() {
         return;
     }
     
+    mostrarCarga(); // <-- Activamos la rueda mientras Firebase procesa la información
+    
     try {
         if (idEditando) {
             await updateDoc(doc(db, "acontecimientos", idEditando), {
@@ -211,7 +225,7 @@ async function procesarGuardado() {
                 tipo: document.getElementById('ev-tipo').value,
                 detalle: document.getElementById('ev-tipo').value === "Trabajo" ? document.getElementById('ev-trabajo-id').value : document.getElementById('ev-otro-nombre').value,
                 lugar: document.getElementById('ev-lugar').value,
-                fecha: fechas[0], // Editando solo edita 1 fecha
+                fecha: fechas[0], 
                 horaInicio: document.getElementById('ev-hora-ini').value,
                 horaFin: document.getElementById('ev-hora-fin').value
             });
@@ -230,7 +244,10 @@ async function procesarGuardado() {
             }
         }
         location.reload();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e); 
+        ocultarCarga(); // Ocultar si hay error para no dejar la pantalla bloqueada
+    }
 }
 
 // --- CARGA DE LISTA ---
@@ -283,6 +300,7 @@ function renderizar() {
 }
 
 window.prepararEdicion = async (id) => {
+    mostrarCarga(); // <-- Mostramos carga mientras recuperamos datos para editar
     idEditando = id;
     const d = await getDoc(doc(db, "acontecimientos", id));
     if (d.exists()) {
@@ -297,13 +315,17 @@ window.prepararEdicion = async (id) => {
         document.getElementById('ev-date-single').value = ev.fecha;
         document.getElementById('ev-hora-ini').value = ev.horaInicio;
         document.getElementById('ev-hora-fin').value = ev.horaFin;
+        ocultarCarga(); // Ya lo tenemos
         document.getElementById('modal-evento').style.display = "flex";
     }
 };
 
-window.pedirBorrado = (id) => lanzarAviso("¿Borrar definitivamente este acontecimiento?", "confirmar", async () => { await deleteDoc(doc(db, "acontecimientos", id)); location.reload(); });
+window.pedirBorrado = (id) => lanzarAviso("¿Borrar definitivamente este acontecimiento?", "confirmar", async () => { 
+    mostrarCarga(); // <-- Mostramos carga
+    await deleteDoc(doc(db, "acontecimientos", id)); 
+    location.reload(); 
+});
 
-// Función lanzarAviso recuperando la estetica de los botones
 function lanzarAviso(msg, tipo = "ok", cb = null) {
     const m = document.getElementById('miModal');
     document.getElementById('modalMsg').innerText = msg;
@@ -326,13 +348,11 @@ function lanzarAviso(msg, tipo = "ok", cb = null) {
     c.appendChild(bOk);
 }
 
-// RESTAURADO EL RESETEO DE CAMPOS AL ABRIR EL MODAL
 window.abrirModalEvento = () => { 
     idEditando = null; 
     diasVariosSelec = []; 
     diasSemanaSelec = [];
     
-    // Limpiamos los campos
     document.getElementById('ev-titulo').value = "";
     document.getElementById('ev-tipo').value = "";
     document.getElementById('ev-lugar').value = "";
@@ -340,7 +360,6 @@ window.abrirModalEvento = () => {
     document.getElementById('ev-hora-fin').value = "";
     document.getElementById('ev-fecha-tipo').value = "especifico";
     
-    // Limpiamos las UI de los selectores de días
     document.querySelectorAll('.day-selected').forEach(el => el.classList.remove('day-selected'));
     document.querySelectorAll('.date-selected').forEach(el => el.classList.remove('date-selected'));
     
