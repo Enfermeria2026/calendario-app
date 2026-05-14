@@ -6,13 +6,13 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body style="display: block;"> <!-- Quitamos el flex para el dashboard -->
+<body>
     <header class="header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <i class="fas fa-bars" id="menu-toggle" style="cursor: pointer; font-size: 20px;"></i>
-            <span id="header-usuario" style="font-weight: bold;">Nombre Usuario</span>
+        <div class="header-left">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span id="header-usuario">Cargando...</span>
         </div>
-        <button class="btn-unirse" style="background: white; color: #ec407a; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">Unirse a un calendario</button>
+        <button class="btn-unirse">Unirse a un calendario</button>
     </header>
 
     <nav class="sidebar" id="sidebar">
@@ -37,6 +37,7 @@
             <div class="modal-btns" id="modalBtnsContainer"></div>
         </div>
     </div>
+
     <script type="module" src="main.js"></script>
 </body>
 </html>
