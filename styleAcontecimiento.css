@@ -34,12 +34,35 @@ html, body {
     font-size: 13px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.3s ease; /* Transición suave para todos los estados */
     outline: none;
 }
 
-.btn-accion-secundario:active { transform: scale(0.96); background-color: rgba(236, 64, 122, 0.05); }
-.btn-accion-secundario.activo { background: #ec407a; color: white; }
+/* Hover: Rosa pastel muy leve */
+.btn-accion-secundario:hover {
+    background-color: #fef0f5; 
+}
+
+/* Hover específico para el de Borrar (también pastel leve) */
+#btn-borrar-masivo:hover {
+    background-color: #fff5f5;
+}
+
+/* Botón activo (el de "Cancelar") */
+.btn-accion-secundario.activo {
+    background: #ec407a;
+    color: white;
+}
+
+/* Hover de "Cancelar": Rosa más oscurito */
+.btn-accion-secundario.activo:hover {
+    background-color: #d81b60;
+    border-color: #d81b60;
+}
+
+.btn-accion-secundario:active {
+    transform: scale(0.95);
+}
 
 /* --- TARJETAS --- */
 .event-card {
@@ -54,10 +77,24 @@ html, body {
     align-items: center;
 }
 
-.check-seleccion { width: 20px; height: 20px; margin-right: 15px; accent-color: #ec407a; cursor: pointer; }
-.event-actions i { color: #bbb; margin-left: 15px; cursor: pointer; font-size: 16px; }
+.check-seleccion {
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    accent-color: #ec407a;
+    cursor: pointer;
+}
 
-/* --- BOTÓN FLOTANTE (FAB) --- */
+.event-actions i {
+    color: #bbb;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+.event-actions i:hover { color: #ec407a; }
+
+/* --- BOTÓN FLOTANTE (FAB) CON ANIMACIÓN --- */
 .fab {
     position: fixed;
     bottom: 30px;
@@ -67,15 +104,32 @@ html, body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex;           
+    justify-content: center; 
+    align-items: center;     
     box-shadow: 0 5px 15px rgba(236, 64, 122, 0.4);
+    cursor: pointer;
     z-index: 100;
+    /* Animación chula de entrada y hover */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.fab i { font-size: 24px; line-height: 0; }
 
-/* --- CALENDARIO MODAL CORREGIDO --- */
+.fab i {
+    font-size: 24px;
+    display: block;
+    line-height: 1; /* Centrado perfecto */
+}
+
+.fab:hover {
+    transform: scale(1.15) rotate(90deg);
+    background-color: #d81b60;
+}
+
+.fab:active {
+    transform: scale(0.9);
+}
+
+/* --- CALENDARIO MODAL --- */
 .cal-header {
     display: flex;
     justify-content: space-between;
@@ -105,7 +159,7 @@ html, body {
     font-weight: bold;
     font-size: 14px;
     color: #333;
-    white-space: nowrap; /* Evita que el mes se rompa en varias líneas */
+    white-space: nowrap;
     text-transform: capitalize;
 }
 
