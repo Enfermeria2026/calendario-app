@@ -61,9 +61,9 @@ button:hover { background-color: #d81b60; }
     background-color: #ec407a;
     color: white;
     padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* ESTO CENTRA TODO VERTICALMENTE */
+    display: grid; /* Cambiado a Grid para centrado perfecto */
+    grid-template-columns: 1fr auto; 
+    align-items: center;
     position: fixed;
     top: 0; left: 0;
     width: 100%;
@@ -76,48 +76,42 @@ button:hover { background-color: #d81b60; }
     display: flex;
     align-items: center;
     gap: 25px;
-    flex-shrink: 0;
 }
 
 .menu-icon {
     font-size: 22px;
     cursor: pointer;
-    transition: transform 0.2s ease-in-out;
-    display: inline-block;
+    transition: transform 0.2s;
 }
 
-.menu-icon:hover {
-    transform: scale(1.25);
-}
+.menu-icon:hover { transform: scale(1.2); }
 
 #header-usuario {
     font-weight: bold;
     white-space: nowrap;
 }
 
-/* BOTÓN UNIRSE - CENTRADO Y CONTRASTE ALTO AL PASAR EL RATÓN */
+/* BOTÓN UNIRSE - COLORES SEGÚN CAPTURA */
 .btn-unirse {
-    background: white;
-    color: #ec407a;
+    background-color: white !important;
+    color: black !important; /* Texto negro por defecto */
     border: none;
     padding: 8px 18px;
     border-radius: 20px;
     font-weight: bold;
     cursor: pointer;
-    width: auto;
-    flex-shrink: 0;
-    transition: all 0.2s ease-in-out;
-    display: flex;
+    transition: all 0.2s ease;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    align-self: center; /* Fuerza el centrado en el eje vertical */
+    height: fit-content;
+    line-height: 1;
 }
 
 .btn-unirse:hover {
-    background-color: #f8bbd0 !important; /* Rosa fuerte para que se note */
-    color: #880e4f !important; /* Texto granate oscuro para máximo contraste */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: scale(1.05); /* Un pelín más grande al pasar el ratón */
+    /* Colores exactos de la Captura de pantalla 2026-05-14 114753.png */
+    background-color: #fce4ec !important; /* Fondo rosa clarito */
+    color: #ec407a !important;           /* Texto rosa intenso */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 /* MENÚ LATERAL */
@@ -151,15 +145,12 @@ button:hover { background-color: #d81b60; }
     font-size: 16px;
     text-align: left;
     box-sizing: border-box;
-    margin: 0;
 }
 
 .sidebar-btn i { color: #ec407a; width: 25px; text-align: center; }
 .sidebar-btn:hover { background-color: #fce4ec; color: #ec407a; }
 
-#btn-cerrar-sesion {
-    margin-top: 0 !important;
-}
+#btn-cerrar-sesion { margin-top: 0 !important; }
 
 .main-content {
     position: absolute;
@@ -181,11 +172,6 @@ button:hover { background-color: #d81b60; }
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     z-index: 80;
-    transition: transform 0.2s;
-}
-
-.btn-flotante:hover {
-    transform: rotate(90deg) scale(1.1);
 }
 
 /* MODALES */
