@@ -53,10 +53,9 @@
     <div class="modal-overlay" id="modal-evento" style="display: none;">
         <div class="modal-box" style="max-width: 450px; text-align: left; max-height: 90vh; overflow-y: auto;">
             <h3 id="modal-titulo-accion">Nuevo Acontecimiento</h3>
-            
             <label class="label-texto">Título *</label>
             <input type="text" id="ev-titulo" class="modal-input" placeholder="Ej.: Turno de trabajo">
-
+            
             <label class="label-texto">Tipo *</label>
             <select id="ev-tipo" class="modal-input-select" onchange="actualizarInterfazTipo()">
                 <option value="" disabled selected>Selecciona un tipo...</option>
@@ -95,7 +94,7 @@
             </div>
 
             <div id="box-semanal" class="fecha-box hidden">
-                <div class="week-picker">
+                <div class="week-picker" style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                     <div class="day-circle" data-day="1">L</div>
                     <div class="day-circle" data-day="2">M</div>
                     <div class="day-circle" data-day="3">X</div>
