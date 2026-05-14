@@ -8,6 +8,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    min-height: 100dvh; /* Truco para evitar el salto de la barra de direcciones en móviles */
 }
 
 /* --- CUADROS ELEGANTES PRINCIPALES --- */
@@ -250,12 +251,14 @@ button:hover {
 }
 .btn-flotante:hover { transform: rotate(90deg) scale(1.1); }
 
-/* --- AJUSTES MÓVIL (SÓLO CENTRADO PERFECTO) --- */
+/* --- AJUSTES MÓVIL (BLOQUEO DE SCROLL) --- */
 @media (max-width: 600px) {
     .auth-container, .admin-container, .modal-box { 
-        margin: auto !important; /* MAGIA DE CENTRADO ABSOLUTO */
+        margin: 0 !important; /* Cero márgenes para bloquear el cuadro en el centro absoluto */
         padding: 30px 20px; 
         width: 90%; 
+        max-height: 95vh; /* Evita que el cuadro sea más alto que la pantalla en móviles muy pequeños */
+        overflow-y: auto; /* Por si el teclado tapa algo, que te deje ver el botón de abajo */
     }
     .header-left span { display: none; }
 }
