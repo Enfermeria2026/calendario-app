@@ -191,3 +191,9 @@ window.borrarEvento = async (id) => {
 };
 
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
+
+// Función para cerrar sesión desde cualquier pantalla
+window.cerrarSesion = () => {
+    localStorage.clear();
+    window.location.href = 'index.html';
+};
