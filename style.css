@@ -63,7 +63,7 @@ button:hover { background-color: #d81b60; }
     padding: 0 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center; /* ESTO CENTRA TODO VERTICALMENTE */
     position: fixed;
     top: 0; left: 0;
     width: 100%;
@@ -95,7 +95,7 @@ button:hover { background-color: #d81b60; }
     white-space: nowrap;
 }
 
-/* BOTÓN UNIRSE (CORREGIDO CENTRADO Y OSCURECIMIENTO) */
+/* BOTÓN UNIRSE - CENTRADO Y CONTRASTE ALTO AL PASAR EL RATÓN */
 .btn-unirse {
     background: white;
     color: #ec407a;
@@ -107,15 +107,17 @@ button:hover { background-color: #d81b60; }
     width: auto;
     flex-shrink: 0;
     transition: all 0.2s ease-in-out;
-    /* Ajuste para centrarlo verticalmente */
-    margin-top: -2px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center; /* Fuerza el centrado en el eje vertical */
 }
 
 .btn-unirse:hover {
-    background-color: #f8bbd0 !important; /* Rosa más oscuro para que se note */
-    color: #ad1457;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* Efecto de profundidad */
-    transform: translateY(-1px); /* Pequeño movimiento hacia arriba */
+    background-color: #f8bbd0 !important; /* Rosa fuerte para que se note */
+    color: #880e4f !important; /* Texto granate oscuro para máximo contraste */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: scale(1.05); /* Un pelín más grande al pasar el ratón */
 }
 
 /* MENÚ LATERAL */
