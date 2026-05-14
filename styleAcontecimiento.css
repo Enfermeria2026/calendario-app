@@ -38,16 +38,8 @@ html, body {
     outline: none;
 }
 
-/* Efecto al pulsar: más sutil, sin volverse oscuro */
-.btn-accion-secundario:active {
-    transform: scale(0.96);
-    background-color: rgba(236, 64, 122, 0.05);
-}
-
+.btn-accion-secundario:active { transform: scale(0.96); background-color: rgba(236, 64, 122, 0.05); }
 .btn-accion-secundario.activo { background: #ec407a; color: white; }
-.btn-accion-secundario.activo:active {
-    background-color: #d81b60; /* Un rosa un pelín más oscuro, no negro */
-}
 
 /* --- TARJETAS --- */
 .event-card {
@@ -62,22 +54,10 @@ html, body {
     align-items: center;
 }
 
-.check-seleccion {
-    width: 20px;
-    height: 20px;
-    margin-right: 15px;
-    accent-color: #ec407a;
-    cursor: pointer;
-}
+.check-seleccion { width: 20px; height: 20px; margin-right: 15px; accent-color: #ec407a; cursor: pointer; }
+.event-actions i { color: #bbb; margin-left: 15px; cursor: pointer; font-size: 16px; }
 
-.event-actions i {
-    color: #bbb;
-    margin-left: 15px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-/* --- BOTÓN FLOTANTE (FAB) CORREGIDO --- */
+/* --- BOTÓN FLOTANTE (FAB) --- */
 .fab {
     position: fixed;
     bottom: 30px;
@@ -87,36 +67,47 @@ html, body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    display: flex;           /* Flex para centrar */
-    justify-content: center; /* Centrado horizontal */
-    align-items: center;     /* Centrado vertical */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     box-shadow: 0 5px 15px rgba(236, 64, 122, 0.4);
-    cursor: pointer;
     z-index: 100;
-    transition: transform 0.2s;
 }
+.fab i { font-size: 24px; line-height: 0; }
 
-.fab i {
-    font-size: 24px;
-    line-height: 0;          /* Evita que el texto del icono lo desplace */
-    margin: 0;
-    padding: 0;
-}
-
-.fab:active { transform: scale(0.9); }
-
-/* --- CALENDARIO MODAL --- */
+/* --- CALENDARIO MODAL CORREGIDO --- */
 .cal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 10px 15px;
     background: #fff;
     border: 1px solid #eee;
     border-radius: 12px 12px 0 0;
 }
 
-.cal-btn { background: none; border: none; color: #ec407a; cursor: pointer; padding: 5px; }
+.cal-btn { 
+    background: #fff0f5; 
+    border: 1px solid #fce4ec; 
+    color: #ec407a; 
+    cursor: pointer; 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+.cal-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+#cal-mes-nombre {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap; /* Evita que el mes se rompa en varias líneas */
+    text-transform: capitalize;
+}
 
 .multi-date-container {
     display: grid;
@@ -141,7 +132,8 @@ html, body {
     border: 1px solid #f0f0f0;
 }
 
-.date-selected { background: #4CAF50 !important; color: white !important; }
+.date-item.past { color: #ccc; background: #fafafa; cursor: not-allowed; pointer-events: none; }
+.date-selected { background: #4CAF50 !important; color: white !important; border-color: #4CAF50 !important; }
 
 /* --- SELECTORES Y PAGINACIÓN --- */
 .modal-input-select {
