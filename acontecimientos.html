@@ -4,30 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Acontecimientos - Calendario</title>
-    
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="stylePerfil.css">
     <link rel="stylesheet" href="styleAcontecimiento.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .event-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid #ec407a; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
-        .event-card:hover { transform: translateY(-2px); }
-        .pagination { display: flex; justify-content: center; gap: 15px; margin: 30px 0; align-items: center; font-size: 14px; color: #666; }
-        .fab { position: fixed; bottom: 30px; right: 30px; background: #ec407a; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; box-shadow: 0 5px 15px rgba(236, 64, 122, 0.4); cursor: pointer; z-index: 100; }
-        
-        /* Selectores elegantes */
-        .modal-input-select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: #f9f9f9; font-family: inherit; margin-bottom: 15px; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; }
-        
-        .week-picker { display: flex; justify-content: space-between; margin: 10px 0 20px; gap: 5px; }
-        .day-circle { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #eee; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 13px; font-weight: bold; color: #888; background: white; transition: all 0.3s; }
-        .day-selected { background: #4CAF50 !important; color: white !important; border-color: #4CAF50 !important; box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3); }
-        .hidden { display: none; }
-        
-        /* Calendario mensual de selección múltiple simple */
-        .multi-date-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; padding: 10px; background: #fdfdfd; border-radius: 12px; border: 1px solid #eee; }
-        .date-item { padding: 8px; font-size: 12px; text-align: center; border-radius: 8px; cursor: pointer; border: 1px solid #f0f0f0; }
-        .date-selected { background: #4CAF50; color: white; border-color: #4CAF50; }
-    </style>
 </head>
 <body>
 
@@ -46,20 +26,23 @@
         <button class="sidebar-btn" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
     </div>
 
-    <main class="main-content" style="padding-top: 100px;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 0 15px; text-align: center;">
-            <h2 style="margin-bottom: 5px; color: #333;">Mis Acontecimientos</h2>
-            <p id="subtitulo-vacio" style="color: #999; font-size: 14px; margin-bottom: 30px;" class="hidden">No hay acontecimientos registrados.</p>
-            
-            <div id="contenedor-eventos" style="text-align: left; margin-top: 20px;">
-                <!-- Lista de eventos -->
-            </div>
+    <main class="main-content">
+        <h2>Mis Acontecimientos</h2>
+        <p id="subtitulo-vacio" style="color: #999; font-size: 14px; text-align: center;" class="hidden">No hay acontecimientos registrados.</p>
+        
+        <div class="barra-herramientas" id="barra-seleccion" style="display: none;">
+            <button class="btn-accion-secundario" id="btn-toggle-sel" onclick="toggleModoSeleccion()">Seleccionar varios</button>
+            <button class="btn-accion-secundario" id="btn-borrar-masivo" style="display: none; border-color: #e53935; color: #e53935;" onclick="borrarSeleccionados()">
+                <i class="fas fa-trash"></i> Borrar seleccionados (<span id="count-sel">0</span>)
+            </button>
+        </div>
 
-            <div class="pagination" id="paginacion-box">
-                <button id="btn-prev" class="sidebar-btn" style="width: auto; padding: 10px 20px; margin:0; background:#eee; color:#666;">Anterior</button>
-                <span id="page-info">Página 1 de 1</span>
-                <button id="btn-next" class="sidebar-btn" style="width: auto; padding: 10px 20px; margin:0;">Siguiente</button>
-            </div>
+        <div id="contenedor-eventos"></div>
+
+        <div class="pagination" id="paginacion-box">
+            <button id="btn-prev">Anterior</button>
+            <span id="page-info">Página 1 de 1</span>
+            <button id="btn-next">Siguiente</button>
         </div>
     </main>
 
@@ -70,7 +53,7 @@
     <!-- MODAL DE EVENTO -->
     <div class="modal-overlay" id="modal-evento" style="display: none;">
         <div class="modal-box" style="max-width: 450px; text-align: left; max-height: 90vh; overflow-y: auto;">
-            <h3 id="modal-titulo-accion" style="margin-bottom: 20px;">Nuevo Acontecimiento</h3>
+            <h3 id="modal-titulo-accion">Nuevo Acontecimiento</h3>
             
             <label class="label-texto">Título *</label>
             <input type="text" id="ev-titulo" class="modal-input" placeholder="Ej.: Turno de trabajo">
@@ -88,7 +71,7 @@
             <div id="div-trabajo-select" class="hidden">
                 <label class="label-texto">¿Qué trabajo es? *</label>
                 <select id="ev-trabajo-id" class="modal-input-select"></select>
-                <p id="error-no-jobs" class="hidden" style="color: #e53935; font-size: 12px; margin-top: -10px; background: #ffebee; padding: 10px; border-radius: 8px;">
+                <p id="error-no-jobs" class="hidden" style="color: #e53935; font-size: 12px; padding: 10px; background: #ffebee; border-radius: 8px;">
                     Para esta selección se requiere añadir un trabajo en tu perfil.
                 </p>
             </div>
@@ -127,7 +110,11 @@
             </div>
 
             <div id="box-varios" class="fecha-box hidden">
-                <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Pulsa sobre los días para seleccionarlos:</p>
+                <div class="cal-header">
+                    <button class="cal-btn" onclick="cambiarMesCal(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <span id="cal-mes-nombre" style="font-weight: bold;"></span>
+                    <button class="cal-btn" onclick="cambiarMesCal(1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
                 <div id="calendar-multi" class="multi-date-container"></div>
             </div>
 
@@ -149,7 +136,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE AVISOS Y CONFIRMACIÓN (REUTILIZADO) -->
+    <!-- MODAL DE AVISOS -->
     <div id="miModal" class="modal-overlay" style="display: none;">
         <div class="modal-box">
             <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
