@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Perfil - Calendario</title>
-    <!-- Los enlaces que faltaban en tu captura: -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="stylePerfil.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -30,8 +29,8 @@
 
     <!-- CONTENIDO PRINCIPAL UNIFICADO -->
     <main class="main-content">
-    <div class="auth-container">
-        <h2 style="margin-bottom: 20px;">Mi Perfil</h2>
+        <div class="auth-container">
+            <h2 style="margin-bottom: 20px;">Mi Perfil</h2>
             
             <!-- FOTO DE PERFIL -->
             <div class="profile-pic-container">
@@ -71,7 +70,7 @@
                 </div>
 
                 <div class="campo-editable">
-                    <label class="label-texto">Descripción libre</label>
+                    <label class="label-texto">Descripción</label> <!-- Corregido: Solo Descripción -->
                     <div class="input-group" style="align-items: flex-start;">
                         <textarea id="perfil-desc" placeholder="Escribe algo sobre ti..." readonly></textarea>
                         <i class="fas fa-pencil-alt edit-btn" style="margin-top: 15px;" onclick="editarCampo('perfil-desc')"></i>
@@ -108,7 +107,7 @@
         </div>
     </main>
 
-    <!-- MODALES -->
+    <!-- MODALES (Omitidos los detalles internos para brevedad, manten tus originales) -->
     <div class="modal-overlay" id="modal-trabajo">
         <div class="modal-box">
             <h3 id="titulo-modal-trabajo">Nuevo Trabajo</h3>
