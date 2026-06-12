@@ -189,26 +189,29 @@ button:hover {
     color: #ec407a !important;
 }
 
+/* --- CORRECCIÓN DE ESPACIOS, SCROLL Y CENTRADO --- */
 .main-content {
-    margin-top: 85px; /* Reducido para quitar el hueco gigante */
+    padding-top: 70px !important; /* Distancia exacta para quedar justo bajo la barra rosa */
+    margin-top: 0 !important;
+    padding-bottom: 110px !important; /* Colchón grande abajo para no tocar el botón + */
     width: 100%;
-    min-height: calc(100vh - 85px); /* min-height permite que crezca si hay muchos elementos */
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* ¡LA CLAVE! Hace que el contenido empiece desde arriba, no desde el centro */
+    justify-content: flex-start;
     align-items: center;
-    color: #888;
-    padding-bottom: 40px; /* Un poco de aire al final para poder hacer scroll cómodo */
+    box-sizing: border-box;
 }
 
-/* Aseguramos que la lista de calendarios tenga un ancho adecuado */
 #lista-calendarios, #lista-calendarios-admin {
     width: 100%;
     max-width: 600px;
     padding: 0 15px;
+    margin: 0 auto; /* Centra la lista en la pantalla */
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
-
 /* --- MENÚ LATERAL --- */
 .sidebar {
     position: fixed;
