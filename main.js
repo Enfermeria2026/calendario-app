@@ -1,6 +1,6 @@
-// 1. Importamos la base de datos centralizada y las herramientas
+// 1. Importamos la base de datos centralizada y las herramientas (NUEVO: arrayUnion)
 import { db } from "./firebase-config.js";
-import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc, query, where, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc, query, where, updateDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 // Funciones globales de carga
 window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
@@ -18,6 +18,36 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     if(extra) extra.innerHTML = "";
     container.innerHTML = "";
     overlay.style.display = "flex";
+
+    // NUEVO: Modal para unirse a un calendario por código
+    if (tipo === "unirse") {
+        const inputCodigo = document.createElement('input');
+        inputCodigo.type = "text";
+        inputCodigo.placeholder = "Código de acceso (Ej: 123456789)";
+        inputCodigo.className = "modal-input";
+        inputCodigo.style.marginBottom = "15px";
+        inputCodigo.style.textAlign = "center";
+        inputCodigo.style.letterSpacing = "2px";
+        inputCodigo.style.fontWeight = "bold";
+        extra.appendChild(inputCodigo);
+
+        const btnCan = document.createElement('button');
+        btnCan.innerText = "Cancelar"; btnCan.style.background = "#aaa";
+        btnCan.onclick = () => overlay.style.display = "none";
+
+        const btnEntrar = document.createElement('button');
+        btnEntrar.innerText = "Unirse";
+        btnEntrar.onclick = () => {
+            const cod = inputCodigo.value.trim();
+            if(!cod) return;
+            overlay.style.display = "none";
+            if(callback) callback(cod); // Enviamos el código escrito al callback
+        };
+
+        container.appendChild(btnCan);
+        container.appendChild(btnEntrar);
+        return;
+    }
 
     if (tipo === "admin_pass") {
         const inputPass = document.createElement('input');
@@ -130,7 +160,6 @@ async function cargarCalendarios() {
             
             div.className = "event-card"; 
             
-            // LÓGICA DE ROLES: Comprobamos si el perfil activo es el creador
             const esCreador = cal.creador === idActivo;
             
             div.innerHTML = `
@@ -161,10 +190,9 @@ async function cargarCalendarios() {
                 lanzarAviso(`Entrando al calendario: ${cal.nombre}... (Próximamente)`);
             };
 
-            // Acción Dinámica (Eliminar / Salir) con sus respectivas alertas
+            // Acción Dinámica (Eliminar / Salir)
             document.getElementById(`btn-accion-${docSnap.id}`).onclick = () => {
                 if (esCreador) {
-                    // Alerta específica para Eliminar
                     lanzarAviso(`¡Atención! Esta acción eliminará definitivamente el calendario "${cal.nombre}" tanto para ti como para todos los miembros que forman parte de él. ¿Deseas continuar?`, "confirmar", async () => {
                         window.mostrarCarga();
                         try {
@@ -177,11 +205,9 @@ async function cargarCalendarios() {
                         }
                     });
                 } else {
-                    // Alerta específica para Salir
                     lanzarAviso(`¿Deseas salir del calendario "${cal.nombre}"? Esta acción no es revertible. Si deseas volver a incorporarte en el futuro, necesitarás el código de invitación.`, "confirmar_salir", async () => {
                         window.mostrarCarga();
                         try {
-                            // Eliminamos el ID del usuario de la lista de miembros de Firebase
                             const calRef = doc(db, "calendarios", docSnap.id);
                             await updateDoc(calRef, {
                                 miembros: arrayRemove(idActivo)
@@ -229,7 +255,7 @@ if(btnCerrar) {
     };
 }
 
-// --- LOGICA DE CALENDARIOS (DASHBOARD) ---
+// --- LOGICA DE CALENDARIOS (CREAR Y UNIRSE) ---
 const btnCrear = document.getElementById('btn-crear');
 
 if (btnCrear) {
@@ -239,6 +265,50 @@ if (btnCrear) {
         document.getElementById('cal-nombre').value = "";
         document.getElementById('cal-desc').value = "";
         document.getElementById('modal-crear-calendario').style.display = 'flex';
+    };
+}
+
+// NUEVO: Lógica del botón "Unirse a un calendario" de la cabecera
+const btnUnirse = document.querySelector('.btn-unirse');
+if (btnUnirse) {
+    btnUnirse.onclick = () => {
+        lanzarAviso("Introduce el código de acceso del calendario:", "unirse", async (codigo) => {
+            window.mostrarCarga();
+            try {
+                // Buscamos si existe un calendario con ese código
+                const q = query(collection(db, "calendarios"), where("codigo_acceso", "==", codigo.toString()));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    window.ocultarCarga();
+                    setTimeout(() => lanzarAviso("El código introducido no existe. Revisa que sea correcto."), 300);
+                } else {
+                    const calDoc = snap.docs[0];
+                    const calData = calDoc.data();
+                    
+                    // Comprobamos si el usuario ya está dentro
+                    if (calData.miembros && calData.miembros.includes(idActivo)) {
+                        window.ocultarCarga();
+                        setTimeout(() => lanzarAviso("Ya formas parte de este calendario."), 300);
+                        return;
+                    }
+                    
+                    // Añadimos al usuario a la lista de miembros usando arrayUnion
+                    await updateDoc(doc(db, "calendarios", calDoc.id), {
+                        miembros: arrayUnion(idActivo)
+                    });
+                    
+                    // Recargamos la lista visual de calendarios
+                    cargarCalendarios();
+                    window.ocultarCarga();
+                    setTimeout(() => lanzarAviso(`¡Te has unido con éxito al calendario "${calData.nombre}"!`), 300);
+                }
+            } catch (error) {
+                console.error("Error al unirse:", error);
+                window.ocultarCarga();
+                setTimeout(() => lanzarAviso("Hubo un error al intentar unirse al calendario."), 300);
+            }
+        });
     };
 }
 
