@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="styleCalendario.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styleCalendario.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <div class="auth-container" style="width: 90%; max-width: 600px;">
+<body style="display: flex; flex-direction: column; align-items: center; padding-top: 30px; background-color: #fff5f8;">
+    
+    <div class="auth-container" style="width: 90%; max-width: 600px; padding: 25px; box-sizing: border-box;">
         
-        <!-- Contenedor flex para alinear el título y el buzón -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0;">Gestión de Usuarios</h2>
+            <h2 style="margin: 0; color: #333;">Gestión de Usuarios</h2>
             <div id="btn-buzon" style="position: relative; cursor: pointer; font-size: 24px; color: #444;">
                 <i class="fas fa-envelope"></i>
                 <span id="notif-dot" style="display: none; position: absolute; top: -2px; right: -4px; background: #ff4d4d; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></span>
@@ -20,11 +21,13 @@
         </div>
 
         <div id="lista-usuarios">Cargando...</div>
-        <h2 style="color: #333; margin-top: 30px; padding: 0 15px; font-size: 20px;">Calendarios Creados</h2>
-        <div id="lista-calendarios-admin" style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin: 15px;">
-            </div>
-        <button id="btn-cerrar-sesion" style="background: #666; margin-top: 20px;">Cerrar Sesión</button>
-            </div>
+        
+        <h2 style="color: #333; margin-top: 40px; margin-bottom: 15px; text-align: center; font-size: 20px;">Calendarios Creados</h2>
+        
+        <div id="lista-calendarios-admin"></div>
+        
+        <button id="btn-cerrar-sesion" style="background: #666; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: 30px; cursor: pointer; font-weight: bold; font-size: 14px;">Cerrar Sesión</button>
+    </div>
 
     <div id="miModal" class="modal-overlay">
         <div class="modal-box">
