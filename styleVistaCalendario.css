@@ -1,5 +1,5 @@
 /* =========================================================
-   ESTILOS INTERIORES DEL CALENDARIO 
+   ESTILOS INTERIORES DEL CALENDARIO
    ========================================================= */
 
 html, body {
@@ -37,6 +37,17 @@ html, body {
     gap: 8px;
     padding: 0;
     margin: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Círculo indicador de color para el perfil activo */
+.color-dot-indicator {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 6px rgba(255,255,255,0.6);
+    background-color: #ccc; /* Gris por defecto */
 }
 
 .icon-btn {
@@ -49,12 +60,11 @@ html, body {
     cursor: pointer;
     font-size: 15px;
     margin-left: 10px;
-    margin-top: 0;
-    margin-bottom: 0;
     display: flex;
     align-items: center; 
     justify-content: center;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .hidden { display: none !important; }
@@ -64,7 +74,6 @@ html, body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: none; /* Devolvemos el ancho completo */
     gap: 15px;
     margin-bottom: 15px;
     padding: 0 15px;
@@ -72,14 +81,13 @@ html, body {
     align-items: center; 
 }
 
-/* Selector Mes/Semana (Efecto gris arreglado) */
 .view-toggles {
     display: flex;
     background: #e9e9e9; 
     border-radius: 8px;
     padding: 3px; 
     width: fit-content;
-    align-items: center; /* Centra internamente y evita huecos arriba/abajo */
+    align-items: center; 
     box-sizing: border-box;
 }
 
@@ -96,7 +104,7 @@ html, body {
     line-height: 1;
     outline: none !important;
     box-shadow: none !important;
-    -webkit-tap-highlight-color: transparent; /* Protegido para móvil */
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btn-vista.active {
@@ -104,6 +112,7 @@ html, body {
     color: #ec407a;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+
 .date-navigation {
     display: flex;
     justify-content: space-between;
@@ -125,7 +134,6 @@ html, body {
     line-height: 1; 
 }
 
-/* --- BOTONES DE NAVEGACIÓN DE MES CORREGIDOS PARA MÓVIL --- */
 .nav-btn {
     background: #fff0f5;
     color: #ec407a;
@@ -142,36 +150,31 @@ html, body {
     margin: 0;
     outline: none !important;
     box-shadow: none !important;
-    /* Esto elimina por completo el recuadro gris/azul flotante que mete Android e iOS al tocar */
     -webkit-tap-highlight-color: transparent; 
+    transition: background 0.1s, transform 0.1s;
 }
 
-/* El cambio de color ocurre LITERALMENTE sólo mientras el dedo está haciendo presión */
 .nav-btn:active {
     background: #ec407a !important;
     color: white !important;
     transform: scale(0.92);
 }
 
-/* SEGURO PARA PC: El efecto de pasar el ratón por encima SOLO se activará en ordenadores */
 @media (hover: hover) {
-    .nav-btn:hover {
-        background: #f8bbd0; /* Un rosa intermedio sutil sólo para ordenadores */
-        color: #ec407a;
-    }
+    .nav-btn:hover { background: #f8bbd0; color: #ec407a; }
 }
-/* --- CUADRÍCULA DEL CALENDARIO DE LADO A LADO --- */
+
+/* --- CUADRÍCULA FLEXIBLE --- */
 .dias-semana-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     width: 100%;
-    max-width: none; /* Ancho completo */
     text-align: center;
     font-weight: bold;
     font-size: 12px;
     color: #999;
     margin-bottom: 8px;
-    padding: 0 8px; /* Menos margen lateral para aprovechar pantalla */
+    padding: 0 8px; 
     box-sizing: border-box;
     flex-shrink: 0; 
 }
@@ -180,13 +183,21 @@ html, body {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: repeat(6, 1fr); 
-    gap: 4px; /* Huecos un pelín más pequeños para casillas más grandes */
+    gap: 4px; 
     width: 100%;
-    max-width: none; /* Ancho completo */
     flex: 1; 
-    padding: 0 8px; /* Menos margen lateral */
+    padding: 0 8px; 
     box-sizing: border-box;
     overflow: hidden; 
+}
+
+/* MODIFICADORES PARA LA VISTA SEMANAL (5 COLUMNAS Y 1 FILA SOLA) */
+.vista-semanal-grid-header {
+    grid-template-columns: repeat(5, 1fr) !important;
+}
+.vista-semanal-grid-body {
+    grid-template-columns: repeat(5, 1fr) !important;
+    grid-template-rows: 1fr !important; /* Una sola fila gigante */
 }
 
 /* --- CASILLAS DE LOS DÍAS --- */
@@ -244,6 +255,18 @@ html, body {
 
 .star-icon { font-size: 8px; }
 
+/* FONDOS PARA LOS BOTONES DE ESTADO DE COLOR */
+.bg-c-azul { background-color: #2196F3 !important; }
+.bg-c-naranja { background-color: #FF9800 !important; }
+.bg-c-rojo { background-color: #F44336 !important; }
+.bg-c-verde { background-color: #4CAF50 !important; }
+.bg-c-morado { background-color: #9C27B0 !important; }
+.bg-c-rosa { background-color: #E91E63 !important; }
+.bg-c-marron { background-color: #795548 !important; }
+.bg-c-amarillo { background-color: #FFEB3B !important; }
+.bg-c-negro { background-color: #212121 !important; }
+
+/* TEXTOS PARA LAS ESTRELLAS */
 .c-azul { color: #2196F3; }
 .c-naranja { color: #FF9800; }
 .c-rojo { color: #F44336; }
