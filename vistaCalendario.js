@@ -123,13 +123,18 @@ function configurarControles() {
     };
 }
 
+// Función matemática corregida e infalible para calcular el lunes de la semana actual
 function obtenerLunes(d) {
-    const date = new Date(d);
+    const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(date.setDate(diff));
+    
+    // En JS: Dom=0, Lun=1, Mar=2, Mié=3, Jue=4, Vie=5, Sáb=6
+    // Queremos saber cuántos días restar para volver al Lunes (donde Lunes = 0 días de resta)
+    const diasPorRestar = (day === 0) ? 6 : day - 1;
+    
+    date.setDate(date.getDate() - diasPorRestar);
+    return date;
 }
-
 function renderizarCalendario() {
     if (vistaActual === "mes") {
         renderizarMes();
