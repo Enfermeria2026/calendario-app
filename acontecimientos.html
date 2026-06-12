@@ -21,14 +21,14 @@
             <i class="fas fa-bars menu-icon" onclick="toggleMenu()"></i>
             <span id="header-usuario">Cargando...</span>
         </div>
-        <button class="btn-unirse">Unirse a un calendario</button>
+        <button class="btn-unirse" onclick="location.href='dashboard.html'">Ir a mis calendarios</button>
     </nav>
 
     <div class="sidebar" id="sidebar">
         <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
         <button class="sidebar-btn" onclick="location.href='acontecimientos.html'"><i class="fas fa-list"></i> Mis acontecimientos</button>
         <button class="sidebar-btn" onclick="location.href='perfil.html'"><i class="fas fa-user"></i> Mi perfil</button>
-        <button class="sidebar-btn" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
+        <button class="sidebar-btn" onclick="localStorage.removeItem('usuario_activo'); window.location.href='index.html';"><i class="fas fa-power-off"></i> Cerrar sesión</button>
     </div>
 
     <main class="main-content">
@@ -69,7 +69,7 @@
                 <option value="Escuela">Escuela</option>
                 <option value="Tarea">Tarea</option>
                 <option value="Evento">Evento</option>
-                <option value="Otro">Otro</option>
+                <option value="Viaje">Viaje</option> <option value="Otro">Otro</option>
             </select>
 
             <div id="div-trabajo-select" class="hidden">
@@ -88,54 +88,79 @@
             <label class="label-texto">Lugar (Opcional)</label>
             <input type="text" id="ev-lugar" class="modal-input" style="margin-bottom: 20px;">
 
-            <label class="label-texto">Configuración de Fecha *</label>
-            <select id="ev-fecha-tipo" class="modal-input-select" onchange="actualizarInterfazFecha()">
-                <option value="especifico">Día específico</option>
-                <option value="semanal">Repetir semanalmente</option>
-                <option value="varios">Seleccionar varios días</option>
-            </select>
+            <div id="bloque-fechas-normales">
+                <label class="label-texto">Configuración de Fecha *</label>
+                <select id="ev-fecha-tipo" class="modal-input-select" onchange="actualizarInterfazFecha()">
+                    <option value="especifico">Día específico</option>
+                    <option value="semanal">Repetir semanalmente</option>
+                    <option value="varios">Seleccionar varios días</option>
+                </select>
 
-            <div id="box-especifico" class="fecha-box">
-                <input type="date" id="ev-date-single" class="modal-input" style="margin-bottom: 20px;">
+                <div id="box-especifico" class="fecha-box">
+                    <input type="date" id="ev-date-single" class="modal-input" style="margin-bottom: 20px;">
+                </div>
+
+                <div id="box-semanal" class="fecha-box hidden">
+                    <div class="week-picker" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                        <div class="day-circle" data-day="1">L</div>
+                        <div class="day-circle" data-day="2">M</div>
+                        <div class="day-circle" data-day="3">X</div>
+                        <div class="day-circle" data-day="4">J</div>
+                        <div class="day-circle" data-day="5">V</div>
+                        <div class="day-circle" data-day="6">S</div>
+                        <div class="day-circle" data-day="0">D</div>
+                    </div>
+                    <label class="label-texto">Fecha de fin de repetición *</label>
+                    <input type="date" id="ev-date-end" class="modal-input" style="margin-bottom: 20px;">
+                </div>
+
+                <div id="box-varios" class="fecha-box hidden" style="margin-bottom: 20px;">
+                    <div class="cal-header">
+                        <button class="cal-btn" id="btn-cal-prev" onclick="cambiarMesCal(-1)"><i class="fas fa-chevron-left"></i></button>
+                        <span id="cal-mes-nombre"></span>
+                        <button class="cal-btn" id="btn-cal-next" onclick="cambiarMesCal(1)"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div id="calendar-multi" class="multi-date-container"></div>
+                </div>
+
+                <div style="display: flex; gap: 20px; margin-top: 20px;">
+                    <div style="flex: 1;">
+                        <label class="label-texto">Hora Inicio *</label>
+                        <input type="time" id="ev-hora-ini" class="modal-input">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="label-texto">Hora Fin *</label>
+                        <input type="time" id="ev-hora-fin" class="modal-input">
+                    </div>
+                </div>
             </div>
 
-            <div id="box-semanal" class="fecha-box hidden">
-                <div class="week-picker" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                    <div class="day-circle" data-day="1">L</div>
-                    <div class="day-circle" data-day="2">M</div>
-                    <div class="day-circle" data-day="3">X</div>
-                    <div class="day-circle" data-day="4">J</div>
-                    <div class="day-circle" data-day="5">V</div>
-                    <div class="day-circle" data-day="6">S</div>
-                    <div class="day-circle" data-day="0">D</div>
+            <div id="bloque-fechas-viaje" class="hidden">
+                <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label class="label-texto">Fecha Ida *</label>
+                        <input type="date" id="ev-viaje-fecha-ida" class="modal-input">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="label-texto">Hora Salida *</label>
+                        <input type="time" id="ev-viaje-hora-ida" class="modal-input">
+                    </div>
                 </div>
-                <label class="label-texto">Fecha de fin de repetición *</label>
-                <input type="date" id="ev-date-end" class="modal-input" style="margin-bottom: 20px;">
-            </div>
-
-            <div id="box-varios" class="fecha-box hidden" style="margin-bottom: 20px;">
-                <div class="cal-header">
-                    <button class="cal-btn" id="btn-cal-prev" onclick="cambiarMesCal(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <span id="cal-mes-nombre"></span>
-                    <button class="cal-btn" id="btn-cal-next" onclick="cambiarMesCal(1)"><i class="fas fa-chevron-right"></i></button>
-                </div>
-                <div id="calendar-multi" class="multi-date-container"></div>
-            </div>
-
-            <div style="display: flex; gap: 20px; margin-top: 20px;">
-                <div style="flex: 1;">
-                    <label class="label-texto">Hora Inicio *</label>
-                    <input type="time" id="ev-hora-ini" class="modal-input">
-                </div>
-                <div style="flex: 1;">
-                    <label class="label-texto">Hora Fin *</label>
-                    <input type="time" id="ev-hora-fin" class="modal-input">
+                <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                    <div style="flex: 1;">
+                        <label class="label-texto">Fecha Vuelta *</label>
+                        <input type="date" id="ev-viaje-fecha-vuelta" class="modal-input">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="label-texto">Hora Llegada *</label>
+                        <input type="time" id="ev-viaje-hora-vuelta" class="modal-input">
+                    </div>
                 </div>
             </div>
 
             <div class="modal-btns" style="margin-top: 35px; display: flex; gap: 10px; justify-content: flex-end;">
                 <button onclick="cerrarModales()" style="background: #f5f5f5; color: #666; border: 1px solid #ddd; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; width: auto;">Cancelar</button>
-                <button onclick="validarYGuardar()" id="btn-save-event" style="background: #ec407a; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; width: auto;">Guardar Acontecimiento</button>
+                <button onclick="validarYGuardar()" id="btn-save-event" style="background: #ec407a; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; width: auto;">Guardar</button>
             </div>
         </div>
     </div>
