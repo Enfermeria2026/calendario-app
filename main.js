@@ -109,11 +109,13 @@ if(menuToggle && sidebar) {
 const headerUser = document.getElementById('header-usuario');
 const idActivo = localStorage.getItem('usuario_activo');
 
+// --- NUEVO: FUNCIÓN PARA CARGAR CALENDARIOS EN PANTALLA CON DISEÑO PROFESIONAL ---
 async function cargarCalendarios() {
     const contenedor = document.getElementById('lista-calendarios');
     if (!contenedor) return;
 
     try {
+        // Buscamos los calendarios donde el usuario activo sea miembro
         const q = query(collection(db, "calendarios"), where("miembros", "array-contains", idActivo));
         const snap = await getDocs(q);
 
@@ -122,34 +124,64 @@ async function cargarCalendarios() {
             return;
         }
 
-        contenedor.innerHTML = "";
+        contenedor.innerHTML = ""; // Limpiamos el texto de "no tienes calendarios"
         
         snap.forEach(docSnap => {
             const cal = docSnap.data();
             const div = document.createElement('div');
             
+            // Reutilizamos la clase event-card para que tenga el borde rosa y la sombra
             div.className = "event-card"; 
-            div.style.cursor = "pointer";
-            div.style.display = "flex";
-            div.style.flexDirection = "column";
-            div.style.alignItems = "flex-start";
             
+            // Determinamos si somos el creador del calendario
+            const esCreador = cal.creador === idActivo;
+            
+            // Construimos la nueva estructura de tarjeta detallada y visual
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                    <strong style="font-size: 18px; color: #333;">${cal.nombre}</strong>
-                    <span style="background: #fff0f5; color: #ec407a; padding: 5px 10px; border-radius: 8px; font-size: 13px; font-weight: bold;">
-                        <i class="fas fa-users"></i> ${cal.miembros.length}
-                    </span>
+                <div class="card-header">
+                    <strong style="color: #333; font-size: 16px;">${cal.nombre}</strong> 
+                    <small class="tag-pink">Código: ${cal.codigo_acceso || '---'}</small>
                 </div>
-                <p style="color: #666; font-size: 14px; margin-top: 8px; margin-bottom: 0;">${cal.descripcion || "Sin descripción"}</p>
+                
+                <p class="cal-desc">${cal.descripcion || "Sin descripción"}</p>
+                
+                <small class="cal-members">
+                    <i class="fas fa-users"></i> ${cal.miembros ? cal.miembros.length : 0} miembros
+                </small>
+                
+                <div class="card-actions">
+                    <button class="btn-action-primary" id="btn-entrar-${docSnap.id}">Entrar</button>
+                    ${esCreador ? `<button class="btn-action-danger" id="btn-eliminar-${docSnap.id}">Eliminar</button>` : ''}
+                </div>
             `;
             
-            div.onclick = () => {
+            contenedor.appendChild(div);
+
+            // Adjuntamos el event listener para Entrar
+            document.getElementById(`btn-entrar-${docSnap.id}`).onclick = () => {
                 localStorage.setItem('calendario_activo', docSnap.id);
                 lanzarAviso(`Entrando al calendario: ${cal.nombre}... (Próximamente)`);
+                // window.location.href = "vistaCalendario.html"; // Comentar hasta que tengamos el archivo
             };
-            
-            contenedor.appendChild(div);
+
+            // Adjuntamos el event listener para Eliminar (solo si eres la creadora)
+            if (esCreador) {
+                document.getElementById(`btn-eliminar-${docSnap.id}`).onclick = () => {
+                    lanzarAviso(`¿Eliminar el calendario "${cal.nombre}" para siempre?`, "confirmar", async () => {
+                        window.mostrarCarga();
+                        try {
+                            // Borramos el calendario de Firebase
+                            await deleteDoc(doc(db, "calendarios", docSnap.id));
+                            // Recargamos la lista visual de calendarios
+                            cargarCalendarios();
+                        } catch (error) {
+                            console.error("Error al eliminar calendario:", error);
+                        } finally {
+                            window.ocultarCarga();
+                        }
+                    });
+                };
+            }
         });
 
     } catch (error) {
@@ -162,13 +194,14 @@ if(headerUser) {
     const apellidos = localStorage.getItem('userLastName') || "";
     headerUser.innerText = nombre + " " + apellidos;
 
+    // Carga de Firebase real para el Dashboard
     if (idActivo) {
         window.mostrarCarga();
         getDoc(doc(db, "usuarios", idActivo)).then(docSnap => {
             if (docSnap.exists()) {
                 const d = docSnap.data();
                 headerUser.innerText = `${d.nombre} ${d.apellidos}`.trim();
-                cargarCalendarios();
+                cargarCalendarios(); // <--- LLAMAMOS A LA FUNCIÓN AQUÍ
             }
         }).finally(() => {
             window.ocultarCarga();
@@ -189,9 +222,11 @@ const btnCrear = document.getElementById('btn-crear');
 
 if (btnCrear) {
     btnCrear.onclick = () => {
+        // Generar código de 9 cifras aleatorio: de 100000000 a 999999999
         const codigoAleatorio = Math.floor(100000000 + Math.random() * 900000000);
         document.getElementById('cal-codigo').value = codigoAleatorio;
         
+        // Limpiar campos
         document.getElementById('cal-nombre').value = "";
         document.getElementById('cal-desc').value = "";
         
@@ -235,7 +270,7 @@ window.guardarCalendario = async () => {
         
         window.cerrarModalCalendario();
         lanzarAviso("¡Calendario creado con éxito!");
-        cargarCalendarios();
+        cargarCalendarios(); // <--- RECARGAMOS LA LISTA AL CREAR UNO NUEVO
     } catch (error) {
         console.error("Error al crear calendario:", error);
         lanzarAviso("Hubo un error al crear el calendario.");
@@ -296,6 +331,7 @@ if (formLog) {
     };
 }
 
+// NUEVO: Enlace de recuperar contraseña en el Login
 const linkOlvido = document.getElementById('link-olvido');
 if (linkOlvido) {
     linkOlvido.onclick = (e) => {
@@ -304,15 +340,13 @@ if (linkOlvido) {
     };
 }
 
-// --- ADMIN PANEL (ACTUALIZADO CON CALENDARIOS) ---
+// --- ADMIN PANEL ---
 const listaAdmin = document.getElementById('lista-usuarios');
-const listaCalendariosAdmin = document.getElementById('lista-calendarios-admin'); // <--- NUEVA REFERENCIA
 const buzonBtn = document.getElementById('btn-buzon');
 const notifDot = document.getElementById('notif-dot');
 
-if (listaAdmin || listaCalendariosAdmin) {
+if (listaAdmin) {
     const cargar = async () => {
-        if (!listaAdmin) return;
         const snap = await getDocs(collection(db, "usuarios"));
         listaAdmin.innerHTML = "";
         snap.forEach(d => {
@@ -328,51 +362,6 @@ if (listaAdmin || listaCalendariosAdmin) {
         });
     };
     cargar();
-
-    // NUEVA FUNCIÓN: Cargar todos los calendarios en el panel de Admin
-    const cargarCalendariosAdmin = async () => {
-        if (!listaCalendariosAdmin) return;
-        const snap = await getDocs(collection(db, "calendarios"));
-        listaCalendariosAdmin.innerHTML = "";
-
-        if (snap.empty) {
-            listaCalendariosAdmin.innerHTML = "<p style='color: #888; padding: 15px; text-align: center;'>No hay calendarios creados en el sistema.</p>";
-            return;
-        }
-
-        snap.forEach(d => {
-            const cal = d.data();
-            const item = document.createElement('div');
-            item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; text-align: left;";
-            
-            item.innerHTML = `
-                <div>
-                    <strong style="color: #333; font-size: 16px;">${cal.nombre}</strong> 
-                    <small style="color: #ec407a; margin-left: 10px; font-weight: bold; background: #fff0f5; padding: 3px 8px; border-radius: 6px;">Código: ${cal.codigo_acceso || '---'}</small><br>
-                    <small style="color: #666; display: block; margin-top: 5px;">${cal.descripcion || 'Sin descripción'} • <i class="fas fa-users"></i> ${cal.miembros ? cal.miembros.length : 0} miembros</small>
-                </div>
-            `;
-            
-            const btn = document.createElement('button');
-            btn.innerText = "Eliminar"; btn.style.width = "auto"; btn.style.background = "red";
-            btn.onclick = () => { 
-                lanzarAviso(`¿Eliminar el calendario "${cal.nombre}" permanentemente?`, "confirmar", async () => { 
-                    window.mostrarCarga();
-                    try {
-                        await deleteDoc(doc(db, "calendarios", d.id)); 
-                        cargarCalendariosAdmin(); 
-                    } catch (e) {
-                        console.error(e);
-                    } finally {
-                        window.ocultarCarga();
-                    }
-                }); 
-            };
-            item.appendChild(btn);
-            listaCalendariosAdmin.appendChild(item);
-        });
-    };
-    cargarCalendariosAdmin();
 
     const comprobarBuzon = async () => {
         const snap = await getDocs(collection(db, "solicitudes"));
