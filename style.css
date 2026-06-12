@@ -190,14 +190,23 @@ button:hover {
 }
 
 .main-content {
-    margin-top: 85px;
+    margin-top: 85px; /* Reducido para quitar el hueco gigante */
     width: 100%;
-    height: calc(100vh - 60px);
+    min-height: calc(100vh - 85px); /* min-height permite que crezca si hay muchos elementos */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* ¡LA CLAVE! Hace que el contenido empiece desde arriba, no desde el centro */
     align-items: center;
     color: #888;
+    padding-bottom: 40px; /* Un poco de aire al final para poder hacer scroll cómodo */
+}
+
+/* Aseguramos que la lista de calendarios tenga un ancho adecuado */
+#lista-calendarios, #lista-calendarios-admin {
+    width: 100%;
+    max-width: 600px;
+    padding: 0 15px;
+    box-sizing: border-box;
 }
 
 /* --- MENÚ LATERAL --- */
