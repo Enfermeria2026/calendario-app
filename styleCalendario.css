@@ -5,15 +5,15 @@
 /* --- Modal de Crear Calendario --- */
 .input-codigo-acceso {
     flex: 1; 
-    padding: 16px; /* Un poco más de espacio para que respire */
+    padding: 16px; 
     border-radius: 12px; 
     border: 1px solid #eee; 
-    background: #f4f4f4; /* Un gris muy clarito y elegante */
+    background: #f4f4f4; 
     color: #ec407a; 
     font-weight: 800; 
     text-align: center; 
     letter-spacing: 4px; 
-    font-size: 22px; /* Número más grande y visible */
+    font-size: 22px; 
     margin: 0; 
     pointer-events: none; 
     box-sizing: border-box;
@@ -21,7 +21,7 @@
 
 .btn-copiar-codigo {
     margin: 0; 
-    width: 65px; /* Un pelín más ancho para igualar tu captura */
+    width: 65px; 
     justify-content: center; 
     background: white; 
     border: 1px solid #ec407a; 
@@ -29,36 +29,28 @@
     border-radius: 12px; 
     padding: 0; 
     display: flex; 
-    align-items: center; /* Centra el icono verticalmente */
+    align-items: center; 
     cursor: pointer;
     transition: all 0.2s;
     box-sizing: border-box;
 }
 
-.btn-copiar-codigo i {
-    font-size: 20px; /* Icono un poco más grande */
-}
+.btn-copiar-codigo i { font-size: 20px; }
+.btn-copiar-codigo:hover { background: #fff0f5; }
+.btn-copiar-codigo:active { transform: scale(0.9); }
 
-.btn-copiar-codigo:hover {
-    background: #fff0f5;
-}
-
-.btn-copiar-codigo:active {
-    transform: scale(0.9);
-}
-
-/* --- ESTILOS DE TARJETAS DE CALENDARIO EN DASHBOARD --- */
+/* --- NUEVAS TARJETAS DELGADAS Y COMPACTAS (DASHBOARD) --- */
 .event-card {
-    padding: 20px;
+    padding: 12px 16px !important; /* Reducido drásticamente para hacerlas más delgadas */
     box-sizing: border-box;
     border-radius: 12px;
     background: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-bottom: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+    margin-bottom: 12px;
     border: 1px solid #eee;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espacio entre el nombre, tag, desc y miembros */
+    gap: 4px; /* Espacio mínimo entre líneas de texto */
 }
 
 .card-header {
@@ -69,22 +61,22 @@
 }
 
 .card-header strong {
-    font-size: 18px;
+    font-size: 16px;
     color: #333;
 }
 
 .tag-pink {
     background: #fff0f5;
     color: #ec407a;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 13px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: bold;
 }
 
 .cal-desc {
     color: #666;
-    font-size: 14px;
+    font-size: 13px;
     margin: 0;
 }
 
@@ -92,65 +84,39 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 14px;
-    color: #ec407a; /* Mismo rosa para que contraste */
+    font-size: 12px;
+    color: #ec407a;
+    margin-bottom: 2px; /* Espacio controlado antes de las acciones */
 }
 
+/* Contenedor de acciones: ahora van juntos en una línea limpia */
 .card-actions {
-    display: flex;
-    flex-direction: column; /* Apilados en el móvil por defecto */
-    gap: 10px;
-    margin-top: 15px;
+    display: flex !important;
+    flex-direction: row !important; /* Siempre en horizontal para ahorrar espacio hacia abajo */
+    gap: 8px !important; /* Espacio mínimo y compacto entre ENTRAR y ELIMINAR */
+    margin-top: 5px !important; /* Reducido espacio entre miembros y el botón de ENTRAR */
     width: 100%;
 }
 
-/* Botones para acciones dentro de la tarjeta de calendario */
 .card-actions button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 14px;
+    flex: 1; /* Se reparten el ancho simétricamente */
+    padding: 8px 12px !important; /* Botones más delgados y estilizados */
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
     border: none;
     box-sizing: border-box;
 }
 
-.btn-action-primary { /* Entrar - Azul para acción principal */
+.btn-action-primary {
     background: #ec407a;
     color: white;
 }
-.btn-action-primary:hover {
-    background: #d13768;
-}
+.btn-action-primary:hover { background: #d13768; }
 
-.btn-action-secondary { /* Salir - No lo usaremos en el dashboard, pero está preparado */
-    background: #f5f5f5;
-    color: #666;
-    border: 1px solid #ddd !important;
-}
-.btn-action-secondary:hover {
-    background: #e0e0e0;
-}
-
-.btn-action-danger { /* Eliminar - Rojo para acción de riesgo (creador) */
+.btn-action-danger {
     background: #e53935;
     color: white;
 }
-.btn-action-danger:hover {
-    background: #c62828;
-}
-
-/* Ajuste responsive para móviles grandes/tablets (más de 600px de ancho) */
-@media (min-width: 600px) {
-    .card-actions {
-        flex-direction: row; /* En horizontal para pantallas más anchas */
-        justify-content: flex-end;
-        margin-top: 10px;
-    }
-    .card-actions button {
-        width: auto;
-        min-width: 100px;
-    }
-}
+.btn-action-danger:hover { background: #c62828; }
