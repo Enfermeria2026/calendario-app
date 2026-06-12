@@ -199,49 +199,56 @@ html, body {
     overflow: hidden; 
 }
 
-/* --- NUEVO GRID ESTRUCTURAL PARA VISTA SEMANAL --- */
+/* --- VISTA SEMANAL EN 2 FILAS (FIXED GRID) --- */
 .vista-semanal-container {
-    display: grid !important;
-    /* Definimos 10 columnas virtuales para que las proporciones sean perfectas */
-    grid-template-columns: repeat(10, 1fr);
-    /* 2 filas principales */
-    grid-template-rows: 2fr 1fr; /* Fila L-V el doble de alta que S-D */
-    gap: 10px;
+    display: grid !important; 
+    grid-template-rows: 2fr 1fr; /* Fila L-V (arriba) el doble de alta que fila S-D (abajo) */
+    gap: 8px;
     width: 100%;
-    height: 100%;
-    padding: 10px;
+    height: 100%; /* Ocupa el 100% del contenedor padre */
+    flex: 1; 
+    min-height: 0; 
+    padding-bottom: 5px;
     box-sizing: border-box;
-    align-items: center;
 }
 
-/* Fila 1 (L-V): Cada día ocupa 2 columnas virtuales (total 10) */
 .semana-fila-1 {
-    grid-column: span 10;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    height: 100%;
-    width: 100%;
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 4px;
+    height: 100%; /* Forzar altura */
+    min-height: 0;
 }
 
-/* Fila 2 (S-D): Cada día ocupa 5 columnas virtuales (total 10) -> Doble de ancho */
 .semana-fila-2 {
-    grid-column: span 10;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    height: 100%;
-    width: 100%;
-    padding: 0 20%; /* Centra los dos cuadros del finde */
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 4px;
+    height: 100%; /* Forzar altura */
+    min-height: 0;
 }
 
 .dia-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100%; /* Forzamos a que el wrapper ocupe todo el espacio de su celda */
     min-height: 0;
+    overflow: hidden;
 }
 
+.day-cell {
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    border: 2px solid transparent;
+    justify-content: space-between;
+    overflow: hidden;
+    height: 100%; /* CLAVE: Ocupa todo el alto del dia-wrapper */
+    min-height: 0;
+}
 .dia-header-semana {
     text-align: center;
     font-weight: bold;
