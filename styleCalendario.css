@@ -46,3 +46,111 @@
 .btn-copiar-codigo:active {
     transform: scale(0.9);
 }
+
+/* --- ESTILOS DE TARJETAS DE CALENDARIO EN DASHBOARD --- */
+.event-card {
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre el nombre, tag, desc y miembros */
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.card-header strong {
+    font-size: 18px;
+    color: #333;
+}
+
+.tag-pink {
+    background: #fff0f5;
+    color: #ec407a;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.cal-desc {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+.cal-members {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #ec407a; /* Mismo rosa para que contraste */
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column; /* Apilados en el móvil por defecto */
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Botones para acciones dentro de la tarjeta de calendario */
+.card-actions button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    border: none;
+    box-sizing: border-box;
+}
+
+.btn-action-primary { /* Entrar - Azul para acción principal */
+    background: #ec407a;
+    color: white;
+}
+.btn-action-primary:hover {
+    background: #d13768;
+}
+
+.btn-action-secondary { /* Salir - No lo usaremos en el dashboard, pero está preparado */
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd !important;
+}
+.btn-action-secondary:hover {
+    background: #e0e0e0;
+}
+
+.btn-action-danger { /* Eliminar - Rojo para acción de riesgo (creador) */
+    background: #e53935;
+    color: white;
+}
+.btn-action-danger:hover {
+    background: #c62828;
+}
+
+/* Ajuste responsive para móviles grandes/tablets (más de 600px de ancho) */
+@media (min-width: 600px) {
+    .card-actions {
+        flex-direction: row; /* En horizontal para pantallas más anchas */
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+    .card-actions button {
+        width: auto;
+        min-width: 100px;
+    }
+}
