@@ -1,47 +1,42 @@
 /* =========================================================
-   ESTILOS INTERIORES DEL CALENDARIO PULIDOS
+   ESTILOS INTERIORES DEL CALENDARIO 
    ========================================================= */
 
-/* --- CONFIGURACIÓN DE VISTA DE APLICACIÓN (SIN SCROLL) --- */
 html, body {
-    height: 100vh; /* Ocupa el alto de la pantalla */
+    height: 100vh;
     margin: 0;
-    overflow: hidden; /* Prohíbe el scroll vertical de la página */
+    overflow: hidden; 
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
 }
 
 .main-content {
-    padding-top: 70px !important; /* Margen justo debajo de la cabecera rosa */
+    padding-top: 70px !important; 
     padding-bottom: 10px !important;
-    display: flex; /* Convierte el main en flexbox para que la cuadrícula se expanda */
+    display: flex; 
     flex-direction: column;
-    flex: 1; /* Ocupa el resto de la pantalla */
+    flex: 1; 
     width: 100%;
     align-items: center;
     color: #888;
-    overflow: hidden; /* Seguridad para que no salga scroll dentro de main */
+    overflow: hidden; 
     box-sizing: border-box;
 }
 
-/* --- CABECERA ROSA (ALINEACIÓN CENTRAL FORZADA) --- */
+/* --- CABECERA ROSA --- */
 .btn-volver {
     background: transparent;
     border: none;
-    color: white; /* Letra blanca para contrastar con la barra rosa */
-    font-size: 15px;
+    color: white; 
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
-    align-items: center; /* Centra el icono verticalmente con el texto */
+    align-items: center; 
     gap: 8px;
     padding: 0;
-    line-height: 1;
-}
-
-.header-right {
-    display: flex;
-    align-items: center; /* Centra los iconos verticalmente */
+    margin: 0;
 }
 
 .icon-btn {
@@ -54,15 +49,12 @@ html, body {
     cursor: pointer;
     font-size: 15px;
     margin-left: 10px;
-    transition: 0.3s;
+    margin-top: 0;
+    margin-bottom: 0;
     display: flex;
-    align-items: center; /* Centra el icono dentro del circulo */
+    align-items: center; 
     justify-content: center;
-}
-
-.icon-btn:hover {
-    background: #ec407a;
-    color: white;
+    padding: 0;
 }
 
 .hidden { display: none !important; }
@@ -72,34 +64,35 @@ html, body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 600px;
+    max-width: none; /* Devolvemos el ancho completo */
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     padding: 0 15px;
     box-sizing: border-box;
-    align-items: center; /* Centra todo el bloque */
+    align-items: center; 
 }
 
-/* Selector Mes/Semana (Efecto sandwich arreglado) */
+/* Selector Mes/Semana (Efecto gris arreglado) */
 .view-toggles {
     display: flex;
-    background: #e9e9e9; /* Gris sutilmente más fuerte */
-    border-radius: 10px;
-    padding: 3px; /* Espacio mínimo para el efecto sandwich */
+    background: #e9e9e9; 
+    border-radius: 8px;
+    padding: 3px; 
     width: fit-content;
+    align-items: center; /* Centra internamente y evita huecos arriba/abajo */
     box-sizing: border-box;
 }
 
 .btn-vista {
     background: transparent;
     border: none;
-    padding: 7px 15px; /* Botones más compactos */
-    border-radius: 7px;
+    padding: 8px 18px; 
+    border-radius: 6px;
     font-weight: bold;
     color: #777;
     cursor: pointer;
-    transition: 0.2s;
-    font-size: 13px;
+    font-size: 14px;
+    margin: 0; /* Sin margen para evitar deformaciones */
     line-height: 1;
 }
 
@@ -109,11 +102,10 @@ html, body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Navegación de Mes (Centrado perfecto arreglado) */
 .date-navigation {
     display: flex;
     justify-content: space-between;
-    align-items: center; /* Centra botones y texto verticalmente */
+    align-items: center; 
     background: white;
     padding: 8px 15px;
     border-radius: 10px;
@@ -123,12 +115,12 @@ html, body {
 }
 
 .date-navigation h2 {
-    margin: 0; /* IMPRESCINDIBLE: Quita márgenes por defecto para no descuadrar */
+    margin: 0; 
     font-size: 17px;
     color: #333;
     text-transform: capitalize;
     font-weight: bold;
-    line-height: 1; /* Forzamos alineación central */
+    line-height: 1; 
 }
 
 .nav-btn {
@@ -143,82 +135,69 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: 0.2s;
+    padding: 0;
+    margin: 0;
 }
 
-/* IMPRESCINDIBLE: Elimina el aro azul feo al clicar */
-.nav-btn:focus, .nav-btn:active {
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-.nav-btn:active {
-    transform: scale(0.92);
-}
-
-/* --- CUADRÍCULA DEL CALENDARIO FLEXIBLE (SIN SCROLL VERTICAL) --- */
+/* --- CUADRÍCULA DEL CALENDARIO DE LADO A LADO --- */
 .dias-semana-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     width: 100%;
-    max-width: 600px;
+    max-width: none; /* Ancho completo */
     text-align: center;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 12px;
     color: #999;
     margin-bottom: 8px;
-    padding: 0 10px;
+    padding: 0 8px; /* Menos margen lateral para aprovechar pantalla */
     box-sizing: border-box;
-    flex-shrink: 0; /* Evita que este header se encoja */
+    flex-shrink: 0; 
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    /* Forzamos 6 filas fijas para que compartan el espacio por igual */
     grid-template-rows: repeat(6, 1fr); 
-    gap: 5px; /* Espacio mínimo entre casillas */
+    gap: 4px; /* Huecos un pelín más pequeños para casillas más grandes */
     width: 100%;
-    max-width: 600px;
-    flex: 1; /* ¡CLAVE! Ocupa todo el resto de la pantalla vertical */
-    padding: 0 10px;
+    max-width: none; /* Ancho completo */
+    flex: 1; 
+    padding: 0 8px; /* Menos margen lateral */
     box-sizing: border-box;
-    overflow: hidden; /* Aseguramos que nada se salga y fuerce scroll */
+    overflow: hidden; 
 }
 
-/* --- CASILLAS DE LOS DÍAS (FLEXIBLES) --- */
+/* --- CASILLAS DE LOS DÍAS --- */
 .day-cell {
     background: white;
     border-radius: 8px;
-    /* QUITADO min-height: 80px; para permitir que la casilla se adapte al ancho de pantalla */
     display: flex;
     flex-direction: column;
-    padding: 4px; /* Espacio interno mínimo */
+    padding: 4px; 
     box-sizing: border-box;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    border: 2px solid transparent; /* Para evitar saltos cuando sea "hoy" */
-    transition: 0.1s;
-    justify-content: space-between; /* El número arriba y las estrellas abajo */
-    overflow: hidden; /* Evita que el contenido salga de la casilla */
+    border: 2px solid transparent; 
+    justify-content: space-between; 
+    overflow: hidden; 
 }
 
 .day-number {
     font-weight: bold;
-    font-size: 13px;
+    font-size: 14px;
     color: #444;
     line-height: 1.1;
 }
 
-/* Estados de los días */
 .day-past {
-    background: #f8f8f8; /* Gris muy sutil */
+    background: #f8f8f8; 
     color: #aaa;
 }
 .day-past .day-number { color: #bbb; }
 
 .day-today {
-    border-color: #ff9800; /* Borde naranja para hoy */
+    border-color: #ff9800; 
     background: #fffdf9;
 }
 .day-today .day-number {
@@ -229,24 +208,21 @@ html, body {
     opacity: 0.3;
 }
 
-/* --- MINICUADRÍCULA 3x3 PARA LAS ESTRELLAS (Compacta) --- */
+/* --- ESTRELLAS --- */
 .stars-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: 1px; /* Espacio mínimo entre estrellas */
+    gap: 1px; 
     flex-grow: 1;
     align-items: center;
     justify-items: center;
     margin-top: 3px;
-    min-height: 0; /* Crucial para flex */
+    min-height: 0; 
 }
 
-.star-icon {
-    font-size: 8px; /* Estrellas más pequeñas para que quepan bien */
-}
+.star-icon { font-size: 8px; }
 
-/* Definición de los 9 colores posibles */
 .c-azul { color: #2196F3; }
 .c-naranja { color: #FF9800; }
 .c-rojo { color: #F44336; }
