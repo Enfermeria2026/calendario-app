@@ -40,14 +40,20 @@ html, body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Círculo indicador de color para el perfil activo */
 .color-dot-indicator {
     width: 14px;
     height: 14px;
     border-radius: 50%;
     border: 2px solid white;
     box-shadow: 0 0 6px rgba(255,255,255,0.6);
-    background-color: #ccc; /* Gris por defecto */
+    background-color: #ccc; 
+}
+
+/* AQUÍ ESTÁ EL ARREGLO DEL CENTRADO DE LOS BOTONES */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espacio limpio entre botones */
 }
 
 .icon-btn {
@@ -59,7 +65,7 @@ html, body {
     height: 38px;
     cursor: pointer;
     font-size: 15px;
-    margin-left: 10px;
+    margin: 0 !important; /* Fuerza la eliminación de márgenes invisibles */
     display: flex;
     align-items: center; 
     justify-content: center;
@@ -164,7 +170,7 @@ html, body {
     .nav-btn:hover { background: #f8bbd0; color: #ec407a; }
 }
 
-/* --- CUADRÍCULA FLEXIBLE --- */
+/* --- CUADRÍCULA FLEXIBLE MES --- */
 .dias-semana-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -191,13 +197,41 @@ html, body {
     overflow: hidden; 
 }
 
-/* MODIFICADORES PARA LA VISTA SEMANAL (5 COLUMNAS Y 1 FILA SOLA) */
-.vista-semanal-grid-header {
-    grid-template-columns: repeat(5, 1fr) !important;
+/* --- LA MAGIA DE LA VISTA SEMANAL EN 2 FILAS --- */
+.vista-semanal-container {
+    display: flex !important; /* Sobrescribe el grid global */
+    flex-direction: column;
+    gap: 8px;
 }
-.vista-semanal-grid-body {
-    grid-template-columns: repeat(5, 1fr) !important;
-    grid-template-rows: 1fr !important; /* Una sola fila gigante */
+
+.semana-fila-1 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 columnas L-V */
+    gap: 4px;
+    flex: 1; 
+}
+
+.semana-fila-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas S-D gigantes */
+    gap: 4px;
+    flex: 1; 
+}
+
+.dia-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dia-header-semana {
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+    flex-shrink: 0;
 }
 
 /* --- CASILLAS DE LOS DÍAS --- */
@@ -222,23 +256,13 @@ html, body {
     line-height: 1.1;
 }
 
-.day-past {
-    background: #f8f8f8; 
-    color: #aaa;
-}
+.day-past { background: #f8f8f8; color: #aaa; }
 .day-past .day-number { color: #bbb; }
 
-.day-today {
-    border-color: #ff9800; 
-    background: #fffdf9;
-}
-.day-today .day-number {
-    color: #ff9800;
-}
+.day-today { border-color: #ff9800; background: #fffdf9; }
+.day-today .day-number { color: #ff9800; }
 
-.day-other-month {
-    opacity: 0.3;
-}
+.day-other-month { opacity: 0.3; }
 
 /* --- ESTRELLAS --- */
 .stars-grid {
@@ -266,7 +290,6 @@ html, body {
 .bg-c-amarillo { background-color: #FFEB3B !important; }
 .bg-c-negro { background-color: #212121 !important; }
 
-/* TEXTOS PARA LAS ESTRELLAS */
 .c-azul { color: #2196F3; }
 .c-naranja { color: #FF9800; }
 .c-rojo { color: #F44336; }
