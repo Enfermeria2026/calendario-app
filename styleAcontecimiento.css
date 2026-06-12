@@ -23,7 +23,8 @@ html, body {
 .barra-herramientas {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch; /* ¡CLAVE! Obliga a que todos los botones tengan la misma altura */
+    gap: 15px; /* Añade la separación entre ellos para que nunca se toquen */
     margin: 20px 0 25px 0;
     padding: 0 10px;
 }
@@ -32,13 +33,20 @@ html, body {
     background: white;
     border: 1px solid #ec407a;
     color: #ec407a;
-    padding: 10px 18px;
+    padding: 10px 15px;
     border-radius: 12px;
     font-size: 13px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
     outline: none;
+    
+    /* NUEVO: Centrado perfecto del texto y anchura equitativa */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex: 1; /* Hace que ambos botones se repartan el ancho de la pantalla por igual */
 }
 
 .btn-accion-secundario:hover { background-color: #fff0f5 !important; border-color: #ec407a; }
