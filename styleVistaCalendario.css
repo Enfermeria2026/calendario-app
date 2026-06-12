@@ -215,7 +215,7 @@ html, body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 4px;
-    flex: 2; /* Fila superior (L-V) más grande */
+    flex: 1; /* Fila superior (L-V) más grande */
     min-height: 0;
 }
 
@@ -223,9 +223,8 @@ html, body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 4px;
-    width: 40%; /* Anchura reducida */
     margin: 0 auto; /* Centrado */
-    flex: 1; /* Fila inferior más pequeña */
+    flex: 1; 
     min-height: 0;
 }
 
