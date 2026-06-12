@@ -216,7 +216,7 @@ function renderizarSemana() {
 
     // Ocultamos la cabecera estándar de días porque los inyectaremos nosotros
     header.style.display = "none";
-    grid.className = "calendar-grid vista-semanal-container";
+    grid.className = "vista-semanal-container";
     grid.innerHTML = "";
 
     let lunes = obtenerLunes(fechaVisualizada);
