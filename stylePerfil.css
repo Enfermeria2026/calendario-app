@@ -138,3 +138,36 @@ html, body {
         padding: 20px !important;
     }
 }
+
+/* --- FIX PARA LA CAJA BLANCA EN MÓVILES (Evitar que el contenido se salga) --- */
+.auth-container {
+    height: auto !important; /* Obliga a la caja a crecer según su contenido */
+    min-height: fit-content !important;
+    overflow: visible !important; /* Evita recortes */
+    padding-bottom: 40px !important; /* Un poco de aire al final para los botones */
+}
+
+/* --- ESTILO MEJORADO PARA LOS LUGARES DE TRABAJO --- */
+.lista-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-trabajo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 12px 15px;
+    border-radius: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nombre-trabajo {
+    font-weight: 600;
+    color: #333;
+    word-break: break-word; /* Si pones un nombre muy largo, pasará a la siguiente línea sin romper la caja */
+}
