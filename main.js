@@ -382,21 +382,30 @@ if (listaCalendariosAdmin) {
                 return;
             }
 
-            snap.forEach(d => {
+           snap.forEach(d => {
                 const cal = d.data();
                 const item = document.createElement('div');
-                item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; text-align: left;";
+                // Añadimos gap y aseguramos que se alinee bien
+                item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; gap: 15px;";
                 
+                // Estructura apilada limpia para el móvil
                 item.innerHTML = `
-                    <div>
-                        <strong style="color: #333; font-size: 16px;">${cal.nombre}</strong> 
-                        <small style="color: #ec407a; margin-left: 10px; font-weight: bold; background: #fff0f5; padding: 3px 8px; border-radius: 6px;">Código: ${cal.codigo_acceso || '---'}</small><br>
-                        <small style="color: #666; display: block; margin-top: 5px;">${cal.descripcion || 'Sin descripción'} • <i class="fas fa-users"></i> ${cal.miembros ? cal.miembros.length : 0} miembros</small>
+                    <div style="flex: 1; text-align: left;">
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
+                            <strong style="color: #333; font-size: 16px; line-height: 1.2;">${cal.nombre}</strong> 
+                            <span style="color: #ec407a; background: #fff0f5; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; line-height: 1;">Código: ${cal.codigo_acceso || '---'}</span>
+                        </div>
+                        <small style="color: #666; display: block; margin-top: 8px; line-height: 1.3;">
+                            ${cal.descripcion || 'Sin descripción'}<br>
+                            <i class="fas fa-users" style="margin-top: 6px;"></i> ${cal.miembros ? cal.miembros.length : 0} miembros
+                        </small>
                     </div>
                 `;
                 
                 const btn = document.createElement('button');
-                btn.innerText = "Eliminar"; btn.style.width = "auto"; btn.style.background = "red";
+                btn.innerText = "Eliminar"; 
+                // Botón más estilizado, pequeño y con tamaño fijo
+                btn.style.cssText = "background: red; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0;";
                 btn.onclick = () => { 
                     lanzarAviso(`¿Eliminar el calendario "${cal.nombre}" permanentemente?`, "confirmar", async () => { 
                         window.mostrarCarga();
