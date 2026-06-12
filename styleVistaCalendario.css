@@ -92,8 +92,11 @@ html, body {
     color: #777;
     cursor: pointer;
     font-size: 14px;
-    margin: 0; /* Sin margen para evitar deformaciones */
+    margin: 0; 
     line-height: 1;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent; /* Protegido para móvil */
 }
 
 .btn-vista.active {
@@ -101,7 +104,6 @@ html, body {
     color: #ec407a;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
 .date-navigation {
     display: flex;
     justify-content: space-between;
