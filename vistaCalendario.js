@@ -5,56 +5,60 @@ const idActivo = localStorage.getItem('usuario_activo');
 const calId = localStorage.getItem('calendario_activo');
 
 // Variables de estado
-let fechaVisualizada = new Date(); // El mes que estamos viendo
-const HOY_REAL = new Date(); // La fecha de hoy inmutable
+let fechaVisualizada = new Date(); // Fecha de referencia para pintar
+const HOY_REAL = new Date(); // Hoy inmutable
 let datosCalendario = null;
-let mapaColores = {}; // Guardará qué color tiene cada miembro { 'id': 'c-rojo' }
+let mapaColores = {};
+let vistaActual = "mes"; // Puede ser "mes" o "semana"
 
-// Colores disponibles (máx 9)
 const COLORES_DISPONIBLES = ['c-azul', 'c-naranja', 'c-rojo', 'c-verde', 'c-morado', 'c-rosa', 'c-marron', 'c-amarillo', 'c-negro'];
 
-// Funciones globales de carga
-window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
-window.ocultarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); };
-
 document.addEventListener('DOMContentLoaded', async () => {
-    if (!idActivo || !calId) {
-        window.location.href = "dashboard.html";
-        return;
-    }
+    if (!idActivo || !calId) { window.location.href = "dashboard.html"; return; }
     
-    window.mostrarCarga();
+    // Forzamos que al arrancar, el estado inicial de fechaVisualizada sea Hoy
+    fechaVisualizada = new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate());
+    
     try {
+        await cargarDatosUsuario();
         await inicializarCalendario();
         configurarControles();
     } catch (error) {
-        console.error("Error al cargar la página:", error);
-    } finally {
-        window.ocultarCarga();
+        console.error("Error al iniciar:", error);
     }
 });
 
+async function cargarDatosUsuario() {
+    const uSnap = await getDoc(doc(db, "usuarios", idActivo));
+    if (uSnap.exists()) {
+        const uData = uSnap.data();
+        document.getElementById('header-user-name').innerText = uData.nombre;
+    }
+}
+
 async function inicializarCalendario() {
-    try {
-        const docSnap = await getDoc(doc(db, "calendarios", calId));
-        if (docSnap.exists()) {
-            datosCalendario = docSnap.data();
-            
-            // EL TÍTULO SE PINTA EN SU NUEVA UBICACIÓN
-            document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
-            
-            await asegurarColoresMiembros();
-            renderizarMes();
-            
-            if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
-                document.getElementById('btn-config').classList.remove('hidden');
-            }
-        } else {
-            alert("El calendario no existe.");
-            window.location.href = "dashboard.html";
+    const docSnap = await getDoc(doc(db, "calendarios", calId));
+    if (docSnap.exists()) {
+        datosCalendario = docSnap.data();
+        document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
+        
+        await asegurarColoresMiembros();
+        
+        // Pintamos el indicador de color del perfil activo en la barra superior
+        const miColor = mapaColores[idActivo] || 'c-negro';
+        const ind = document.getElementById('user-color-indicator');
+        if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
+        
+        renderizarCalendario();
+        
+        if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
+            document.getElementById('btn-config').classList.remove('hidden');
+            // Quitar el foco a los botones de config y miembros en móviles
+            document.getElementById('btn-miembros').onclick = function() { this.blur(); };
+            document.getElementById('btn-config').onclick = function() { this.blur(); };
         }
-    } catch (error) {
-        console.error("Error al cargar el calendario:", error);
+    } else {
+        window.location.href = "dashboard.html";
     }
 }
 
@@ -79,108 +83,180 @@ async function asegurarColoresMiembros() {
 }
 
 function configurarControles() {
-    // Botón Anterior Mes
+    // Control de flecha Anterior
     document.getElementById('btn-prev').onclick = function() {
-        this.blur(); // Quita el foco
-        
-        const anio = fechaVisualizada.getFullYear();
-        const mes = fechaVisualizada.getMonth();
-        
-        // Bloqueo estricto: Si ya estamos en el mes/año real actual, no hacemos nada
-        if (anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth()) {
-            return;
+        this.blur();
+        if (vistaActual === "mes") {
+            if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
+            fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
+        } else {
+            // En vista semanal restamos 7 días, pero protegemos que no baje de la semana actual
+            const copia = new Date(fechaVisualizada);
+            copia.setDate(copia.getDate() - 7);
+            if (obtenerLunes(copia) < obtenerLunes(HOY_REAL)) return;
+            fechaVisualizada.setDate(fechaVisualizada.getDate() - 7);
         }
-        
-        fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
-        renderizarMes();
+        renderizarCalendario();
     };
     
-    // Botón Siguiente Mes
+    // Control de flecha Siguiente
     document.getElementById('btn-next').onclick = function() {
-        this.blur(); // Quita el foco
-        fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
-        renderizarMes();
+        this.blur();
+        if (vistaActual === "mes") {
+            fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
+        } else {
+            fechaVisualizada.setDate(fechaVisualizada.getDate() + 7);
+        }
+        renderizarCalendario();
+    };
+
+    // Pestaña Vista Mensual
+    document.getElementById('btn-vista-mes').onclick = function() {
+        this.blur();
+        if (vistaActual === "mes") return;
+        vistaActual = "mes";
+        document.getElementById('btn-vista-semana').classList.remove('active');
+        this.classList.add('active');
+        // Reajustamos la fecha al mes corriente si nos hemos movido de forma rara
+        fechaVisualizada = new Date(fechaVisualizada.getFullYear(), fechaVisualizada.getMonth(), 1);
+        renderizarCalendario();
+    };
+
+    // Pestaña Vista Semanal
+    document.getElementById('btn-vista-semana').onclick = function() {
+        this.blur();
+        if (vistaActual === "semana") return;
+        vistaActual = "semana";
+        document.getElementById('btn-vista-mes').classList.remove('active');
+        this.classList.add('active');
+        renderizarCalendario();
     };
 }
 
+// Herramienta matemática para buscar el lunes de cualquier semana
+function obtenerLunes(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+}
+
+function renderizarCalendario() {
+    if (vistaActual === "mes") {
+        renderizarMes();
+    } else {
+        renderizarSemana();
+    }
+}
+
 function renderizarMes() {
-    const contenedorDias = document.getElementById('calendar-grid');
-    const displayMes = document.getElementById('mes-actual-display');
-    if(!contenedorDias || !displayMes) return;
-    contenedorDias.innerHTML = "";
+    const grid = document.getElementById('calendar-grid');
+    const header = document.getElementById('dias-header');
+    const display = document.getElementById('mes-actual-display');
+    if(!grid || !header || !display) return;
+
+    // Reset de clases de cuadrícula completa de mes
+    header.classList.remove('vista-semanal-activa', 'vista-semanal-grid-header');
+    grid.classList.remove('vista-semanal-grid-body');
     
+    header.innerHTML = "<div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>";
+    grid.innerHTML = "";
+
     const anio = fechaVisualizada.getFullYear();
     const mes = fechaVisualizada.getMonth();
     
-    displayMes.innerText = fechaVisualizada.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-
-    // NUEVO: Capar el botón de ir atrás si estamos en el mes real actual
+    display.innerText = fechaVisualizada.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    
+    // Comprobación de bloqueo de botón atrás
     const btnPrev = document.getElementById('btn-prev');
-    if (btnPrev) {
-        const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
-        btnPrev.disabled = esMesActual;
-        // Le damos una opacidad bajita para que el usuario vea que está bloqueado
-        btnPrev.style.opacity = esMesActual ? "0.4" : "1";
-        btnPrev.style.cursor = esMesActual ? "default" : "pointer";
-    }
-    const primerDiaDelMes = new Date(anio, mes, 1);
-    const ultimoDiaDelMes = new Date(anio, mes + 1, 0);
-    const ultimoDiaDeMesPasado = new Date(anio, mes, 0);
+    const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
+    btnPrev.disabled = esMesActual;
+    btnPrev.style.opacity = esMesActual ? "0.3" : "1";
+    btnPrev.style.cursor = esMesActual ? "default" : "pointer";
+
+    const primerDia = new Date(anio, mes, 1);
+    const ultimoDia = new Date(anio, mes + 1, 0);
+    const ultimoDiaPasado = new Date(anio, mes, 0);
     
-    let diaSemanaInicio = primerDiaDelMes.getDay() - 1;
-    if (diaSemanaInicio === -1) diaSemanaInicio = 6;
+    let diaSemInicio = primerDia.getDay() - 1;
+    if (diaSemInicio === -1) diaSemInicio = 6;
     
-    // 1. Rellenar huecos vacíos antes del primer día del mes (Días de mes pasado)
-    for (let i = 0; i < diaSemanaInicio; i++) {
+    for (let i = 0; i < diaSemInicio; i++) {
         const celda = document.createElement('div');
         celda.className = "day-cell day-other-month day-past";
-        const diaPasado = (ultimoDiaDeMesPasado.getDate() - diaSemanaInicio + 1) + i;
+        const diaPasado = (ultimoDiaPasado.getDate() - diaSemInicio + 1) + i;
         celda.innerHTML = `<div class="day-number">${diaPasado}</div><div class="stars-grid"></div>`;
-        contenedorDias.appendChild(celda);
+        grid.appendChild(celda);
     }
     
-    // 2. Rellenar los días reales del mes
-    for (let dia = 1; dia <= ultimoDiaDelMes.getDate(); dia++) {
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
         const celda = document.createElement('div');
         celda.className = "day-cell";
         
-        const fechaCelda = new Date(anio, mes, dia);
-        const fechaCeldaStr = fechaCelda.toDateString();
-        const hoyStr = HOY_REAL.toDateString();
+        const fCelda = new Date(anio, mes, dia);
+        if (fCelda < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
+        if (fCelda.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
         
-        if (fechaCelda < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) {
-            celda.classList.add('day-past');
-        }
-        if (fechaCeldaStr === hoyStr) {
-            celda.classList.add('day-today');
-        }
-        
-        celda.innerHTML = `
-            <div class="day-number">${dia}</div>
-            <div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}">
-                </div>
-        `;
-        
-        celda.onclick = () => {
-            abrirDetalleDia(fechaCelda);
-        };
-        
-        contenedorDias.appendChild(celda);
+        celda.innerHTML = `<div class="day-number">${dia}</div><div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}"></div>`;
+        celda.onclick = () => abrirDetalleDia(fCelda);
+        grid.appendChild(celda);
     }
     
-    // NUEVO: 3. Rellenar hasta completar las 6 filas fijas del CSS (42 celdas)
-    // Esto es vital para que la vista full-height no se rompa visualmente.
-    const celdasGeneradas = diaSemanaInicio + ultimoDiaDelMes.getDate();
-    const celdasTotales = 42; // 6 semanas * 7 dias
-    
-    if (celdasGeneradas < celdasTotales) {
-        for (let j = 1; j <= (celdasTotales - celdasGeneradas); j++) {
+    const generadas = diaSemInicio + ultimoDia.getDate();
+    if (generadas < 42) {
+        for (let j = 1; j <= (42 - generadas); j++) {
             const celdaVacia = document.createElement('div');
-            // Como el CSS tiene 6 rows fijas, si no rellenamos, la cuadrícula se verá rota
-            celdaVacia.className = "day-cell day-other-month"; 
+            celdaVacia.className = "day-cell day-other-month";
             celdaVacia.innerHTML = `<div class="day-number">${j}</div><div class="stars-grid"></div>`;
-            contenedorDias.appendChild(celdaVacia);
+            grid.appendChild(celdaVacia);
         }
+    }
+}
+
+function renderizarSemana() {
+    const grid = document.getElementById('calendar-grid');
+    const header = document.getElementById('dias-header');
+    const display = document.getElementById('mes-actual-display');
+    if(!grid || !header || !display) return;
+
+    // Inyectamos las clases CSS para encoger la cuadrícula a 5 columnas fijas de lunes a viernes
+    header.className = "dias-semana-header vista-semanal-grid-header";
+    grid.className = "calendar-grid vista-semanal-grid-body";
+    
+    header.innerHTML = "<div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div>";
+    grid.innerHTML = "";
+
+    // Buscamos el lunes de la semana que se está visualizando
+    let lunes = obtenerLunes(fechaVisualizada);
+    
+    // Ponemos como título el rango de fechas o el mes principal de la semana
+    display.innerText = "Semana del " + lunes.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+
+    // Capamos el botón atrás si el lunes visualizado es igual o menor al lunes de la semana actual real
+    const btnPrev = document.getElementById('btn-prev');
+    const esSemanaActual = lunes.toDateString() === obtenerLunes(HOY_REAL).toDateString();
+    btnPrev.disabled = esSemanaActual;
+    btnPrev.style.opacity = esSemanaActual ? "0.3" : "1";
+    btnPrev.style.cursor = esSemanaActual ? "default" : "pointer";
+
+    // Pintamos únicamente las 5 casillas: Lunes, Martes, Miércoles, Jueves y Viernes
+    for (let i = 0; i < 5; i++) {
+        const diaSemana = new Date(lunes);
+        diaSemana.setDate(lunes.getDate() + i);
+        
+        const celda = document.createElement('div');
+        celda.className = "day-cell";
+        
+        if (diaSemana < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
+        if (diaSemana.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
+        
+        celda.innerHTML = `
+            <div class="day-number">${diaSemana.getDate()} <span style="font-size:10px; color:#aaa; font-weight:normal;">${diaSemana.toLocaleDateString('es-ES', {month:'short'})}</span></div>
+            <div class="stars-grid" id="estrellas-${diaSemana.getFullYear()}-${diaSemana.getMonth()+1}-${diaSemana.getDate()}"></div>
+        `;
+        
+        celda.onclick = () => abrirDetalleDia(diaSemana);
+        grid.appendChild(celda);
     }
 }
 
