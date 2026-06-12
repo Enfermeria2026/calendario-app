@@ -13,7 +13,7 @@ html, body {
 }
 
 .main-content {
-    padding-top: 100px !important; /* Aumentado de 70px a 100px para que no tape el título */
+    padding-top: 90px !important; /* Aumentado de 70px a 100px para que no tape el título */
     padding-bottom: 10px !important;
     display: flex; 
     flex-direction: column;
