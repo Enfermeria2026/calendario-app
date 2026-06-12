@@ -123,6 +123,7 @@ html, body {
     line-height: 1; 
 }
 
+/* --- BOTONES DE NAVEGACIÓN DE MES CORREGIDOS PARA MÓVIL --- */
 .nav-btn {
     background: #fff0f5;
     color: #ec407a;
@@ -137,21 +138,25 @@ html, body {
     justify-content: center;
     padding: 0;
     margin: 0;
-    transition: background 0.1s, transform 0.1s;
-    -webkit-tap-highlight-color: transparent; /* Elimina el destello azul por defecto de Android/iOS */
+    outline: none !important;
+    box-shadow: none !important;
+    /* Esto elimina por completo el recuadro gris/azul flotante que mete Android e iOS al tocar */
+    -webkit-tap-highlight-color: transparent; 
 }
 
-/* El cambio de color solo ocurre MIENTRAS mantienes el dedo pulsado */
+/* El cambio de color ocurre LITERALMENTE sólo mientras el dedo está haciendo presión */
 .nav-btn:active {
     background: #ec407a !important;
     color: white !important;
     transform: scale(0.92);
 }
 
-/* Evita que se quede clavado con estilos de selección en móviles */
-.nav-btn:focus, .nav-btn:hover {
-    outline: none !important;
-    box-shadow: none !important;
+/* SEGURO PARA PC: El efecto de pasar el ratón por encima SOLO se activará en ordenadores */
+@media (hover: hover) {
+    .nav-btn:hover {
+        background: #f8bbd0; /* Un rosa intermedio sutil sólo para ordenadores */
+        color: #ec407a;
+    }
 }
 /* --- CUADRÍCULA DEL CALENDARIO DE LADO A LADO --- */
 .dias-semana-header {
