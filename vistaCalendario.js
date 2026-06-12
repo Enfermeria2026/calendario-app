@@ -85,9 +85,12 @@ function configurarControles() {
             if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
             fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
         } else {
-            const copia = new Date(fechaVisualizada);
-            copia.setDate(copia.getDate() - 7);
-            if (obtenerLunes(copia) < obtenerLunes(HOY_REAL)) return;
+            // Comprobación de seguridad para no retroceder de la semana actual
+            const lunesActualSemana = obtenerLunes(fechaVisualizada);
+            const lunesSemanaHoy = obtenerLunes(HOY_REAL);
+            
+            if (lunesActualSemana.getTime() <= lunesSemanaHoy.getTime()) return;
+            
             fechaVisualizada.setDate(fechaVisualizada.getDate() - 7);
         }
         renderizarCalendario();
