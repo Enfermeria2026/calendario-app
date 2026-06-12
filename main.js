@@ -187,7 +187,7 @@ async function cargarCalendarios() {
             // Acción Entrar
             document.getElementById(`btn-entrar-${docSnap.id}`).onclick = () => {
                 localStorage.setItem('calendario_activo', docSnap.id);
-                lanzarAviso(`Entrando al calendario: ${cal.nombre}... (Próximamente)`);
+                window.location.href = "vistaCalendario.html"; // ¡Ahora sí viaja a la nueva pantalla!
             };
 
             // Acción Dinámica (Eliminar / Salir)
