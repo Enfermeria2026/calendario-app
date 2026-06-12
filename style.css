@@ -342,5 +342,9 @@ button:hover {
     word-break: break-word; /* Si pones un nombre muy largo, pasará a la siguiente línea sin romper la caja */
 }
 
-
-
+/* --- CORRECCIÓN DE ESPACIADO Y SCROLL EN INICIO --- */
+.main-content {
+    padding-top: 110px !important; /* Empuja el contenido hacia abajo para que no lo tape la barra superior */
+    overflow-y: auto !important;   /* Permite scroll hacia abajo si hay muchas tarjetas */
+    max-height: calc(100vh - 120px); /* Evita que se salga de la pantalla del móvil */
+}
