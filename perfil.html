@@ -27,7 +27,7 @@
         <button class="sidebar-btn" onclick="location.href='dashboard.html'"><i class="fas fa-home"></i> Inicio</button>
         <button class="sidebar-btn" onclick="location.href='acontecimientos.html'"><i class="fas fa-list"></i> Mis acontecimientos</button>
         <button class="sidebar-btn" onclick="location.href='perfil.html'"><i class="fas fa-user"></i> Mi perfil</button>
-        <button class="sidebar-btn" id="btn-cerrar-sesion" onclick="cerrarSesion()"><i class="fas fa-power-off"></i> Cerrar sesión</button>
+       <button class="sidebar-btn" onclick="localStorage.removeItem('usuario_activo'); window.location.href='index.html';"><i class="fas fa-power-off"></i> Cerrar sesión</button>
     </div>
 
     <main class="main-content">
