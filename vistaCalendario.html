@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interior del Calendario</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styleVistaCalendario.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body style="background-color: #fff5f8;">
+
+    <header class="header" style="justify-content: space-between;">
+        <div class="header-left">
+            <button onclick="location.href='dashboard.html'" class="btn-volver">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <span id="titulo-calendario" style="margin-left: 15px; font-weight: bold; font-size: 18px;">Cargando...</span>
+        </div>
+        <div class="header-right">
+            <button id="btn-miembros" class="icon-btn" title="Miembros"><i class="fas fa-users"></i></button>
+            <button id="btn-config" class="icon-btn hidden" title="Configuración"><i class="fas fa-cog"></i></button>
+        </div>
+    </header>
+
+    <main class="main-content" style="padding-top: 80px; padding-bottom: 20px; align-items: stretch;">
+        
+        <div class="calendar-controls">
+            <div class="view-toggles">
+                <button id="btn-vista-mes" class="btn-vista active">Mes</button>
+                <button id="btn-vista-semana" class="btn-vista">Semana</button>
+            </div>
+            
+            <div class="date-navigation">
+                <button id="btn-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+                <h2 id="mes-actual-display">Mes Año</h2>
+                <button id="btn-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div class="dias-semana-header" id="dias-header">
+            <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div class="fin-semana">SÁB</div><div class="fin-semana">DOM</div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid">
+            </div>
+
+    </main>
+
+    <div id="modal-detalle-dia" class="modal-overlay hidden">
+        </div>
+
+    <div id="modal-miembros" class="modal-overlay hidden">
+        </div>
+
+    <script type="module" src="vistaCalendario.js"></script>
+</body>
+</html>
