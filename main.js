@@ -340,37 +340,98 @@ if (linkOlvido) {
     };
 }
 
-// --- ADMIN PANEL ---
+// --- ADMIN PANEL (LOGICA INDEPENDIENTE Y PROTEGIDA) ---
 const listaAdmin = document.getElementById('lista-usuarios');
+const listaCalendariosAdmin = document.getElementById('lista-calendarios-admin');
 const buzonBtn = document.getElementById('btn-buzon');
 const notifDot = document.getElementById('notif-dot');
 
+// 1. CARGA DE USUARIOS
 if (listaAdmin) {
-    const cargar = async () => {
-        const snap = await getDocs(collection(db, "usuarios"));
-        listaAdmin.innerHTML = "";
-        snap.forEach(d => {
-            const u = d.data();
-            const item = document.createElement('div');
-            item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
-            item.innerHTML = `<div><strong>${u.nombre} ${u.apellidos}</strong><br><small>${u.userId}</small></div>`;
-            const btn = document.createElement('button');
-            btn.innerText = "Borrar"; btn.style.width = "auto"; btn.style.background = "red";
-            btn.onclick = () => { lanzarAviso(`¿Borrar a ${u.nombre}?`, "confirmar", async () => { await deleteDoc(doc(db, "usuarios", d.id)); cargar(); }); };
-            item.appendChild(btn);
-            listaAdmin.appendChild(item);
-        });
-    };
-    cargar();
-
-    const comprobarBuzon = async () => {
-        const snap = await getDocs(collection(db, "solicitudes"));
-        if (!snap.empty) {
-            notifDot.style.display = "block";
-        } else {
-            notifDot.style.display = "none";
+    const cargarUsuarios = async () => {
+        try {
+            const snap = await getDocs(collection(db, "usuarios"));
+            listaAdmin.innerHTML = "";
+            snap.forEach(d => {
+                const u = d.data();
+                const item = document.createElement('div');
+                item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;";
+                item.innerHTML = `<div><strong>${u.nombre} ${u.apellidos}</strong><br><small>${u.userId}</small></div>`;
+                const btn = document.createElement('button');
+                btn.innerText = "Borrar"; btn.style.width = "auto"; btn.style.background = "red";
+                btn.onclick = () => { lanzarAviso(`¿Borrar a ${u.nombre}?`, "confirmar", async () => { await deleteDoc(doc(db, "usuarios", d.id)); cargarUsuarios(); }); };
+                item.appendChild(btn);
+                listaAdmin.appendChild(item);
+            });
+        } catch (e) {
+            console.error("Error al cargar usuarios:", e);
         }
-        return snap;
+    };
+    cargarUsuarios();
+}
+
+// 2. CARGA DE CALENDARIOS (Separado del bloque de usuarios para que no dependan entre sí)
+if (listaCalendariosAdmin) {
+    const cargarCalendariosAdmin = async () => {
+        try {
+            const snap = await getDocs(collection(db, "calendarios"));
+            listaCalendariosAdmin.innerHTML = "";
+
+            if (snap.empty) {
+                listaCalendariosAdmin.innerHTML = "<p style='color: #888; padding: 15px; text-align: center;'>No hay calendarios creados en el sistema.</p>";
+                return;
+            }
+
+            snap.forEach(d => {
+                const cal = d.data();
+                const item = document.createElement('div');
+                item.style.cssText = "padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; text-align: left;";
+                
+                item.innerHTML = `
+                    <div>
+                        <strong style="color: #333; font-size: 16px;">${cal.nombre}</strong> 
+                        <small style="color: #ec407a; margin-left: 10px; font-weight: bold; background: #fff0f5; padding: 3px 8px; border-radius: 6px;">Código: ${cal.codigo_acceso || '---'}</small><br>
+                        <small style="color: #666; display: block; margin-top: 5px;">${cal.descripcion || 'Sin descripción'} • <i class="fas fa-users"></i> ${cal.miembros ? cal.miembros.length : 0} miembros</small>
+                    </div>
+                `;
+                
+                const btn = document.createElement('button');
+                btn.innerText = "Eliminar"; btn.style.width = "auto"; btn.style.background = "red";
+                btn.onclick = () => { 
+                    lanzarAviso(`¿Eliminar el calendario "${cal.nombre}" permanentemente?`, "confirmar", async () => { 
+                        window.mostrarCarga();
+                        try {
+                            await deleteDoc(doc(db, "calendarios", d.id)); 
+                            cargarCalendariosAdmin(); 
+                        } catch (e) {
+                            console.error(e);
+                        } finally {
+                            window.ocultarCarga();
+                        }
+                    }); 
+                };
+                item.appendChild(btn);
+                listaCalendariosAdmin.appendChild(item);
+            });
+        } catch (error) {
+            console.error("Error al cargar calendarios en admin:", error);
+        }
+    };
+    cargarCalendariosAdmin();
+}
+
+// 3. COMPROBACIÓN DEL BUZÓN (También aislado)
+if (listaAdmin || listaCalendariosAdmin) {
+    const comprobarBuzon = async () => {
+        try {
+            const snap = await getDocs(collection(db, "solicitudes"));
+            if (notifDot) {
+                notifDot.style.display = !snap.empty ? "block" : "none";
+            }
+            return snap;
+        } catch (e) {
+            console.error("Error en buzón:", e);
+        }
     };
     comprobarBuzon();
 
@@ -386,7 +447,7 @@ if (listaAdmin) {
             extra.innerHTML = "";
             container.innerHTML = "";
 
-            if (snap.empty) {
+            if (!snap || snap.empty) {
                 extra.innerHTML = "<p style='color: #666; font-size: 14px;'>No hay solicitudes de recuperación pendientes.</p>";
             } else {
                 snap.forEach(d => {
