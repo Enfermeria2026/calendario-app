@@ -190,7 +190,7 @@ button:hover {
 }
 
 .main-content {
-    margin-top: 60px;
+    margin-top: 85px;
     width: 100%;
     height: calc(100vh - 60px);
     display: flex;
