@@ -1,0 +1,193 @@
+/* =========================================================
+   ESTILOS INTERIORES DEL CALENDARIO (CUADRÍCULA Y ESTRELLAS)
+   ========================================================= */
+
+.btn-volver {
+    background: transparent;
+    border: none;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: white;
+    border: 1px solid #ec407a;
+    color: #ec407a;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+    transition: 0.3s;
+}
+
+.icon-btn:hover {
+    background: #ec407a;
+    color: white;
+}
+
+.hidden { display: none !important; }
+
+/* --- CONTROLES DE NAVEGACIÓN --- */
+.calendar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 0 15px;
+}
+
+.view-toggles {
+    display: flex;
+    background: #eee;
+    border-radius: 12px;
+    padding: 4px;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.btn-vista {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-vista.active {
+    background: white;
+    color: #ec407a;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.date-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.date-navigation h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+    text-transform: capitalize;
+}
+
+.nav-btn {
+    background: #fff0f5;
+    color: #ec407a;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* --- CUADRÍCULA DEL CALENDARIO --- */
+.dias-semana-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 0 5px;
+}
+
+/* Vista semanal ocultará los fines de semana usando una clase en el contenedor */
+.vista-semanal-activa {
+    grid-template-columns: repeat(5, 1fr);
+}
+.vista-semanal-activa .fin-semana {
+    display: none;
+}
+
+/* --- CELDAS DE LOS DÍAS --- */
+.day-cell {
+    background: white;
+    border-radius: 10px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    border: 2px solid transparent; /* Para evitar saltos cuando sea "hoy" */
+    transition: transform 0.1s;
+}
+
+.day-cell:active { transform: scale(0.95); }
+
+.day-number {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+/* Estados de los días */
+.day-past {
+    background: #f5f5f5;
+    color: #aaa;
+}
+.day-past .day-number { color: #aaa; }
+
+.day-today {
+    border-color: #ff9800; /* Borde naranja para hoy */
+    background: #fffdfa;
+}
+.day-today .day-number {
+    color: #ff9800;
+}
+
+.day-other-month {
+    opacity: 0.4;
+}
+
+/* --- MINICUADRÍCULA 3x3 PARA LAS ESTRELLAS --- */
+.stars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    flex-grow: 1;
+    align-items: center;
+    justify-items: center;
+}
+
+.star-icon {
+    font-size: 10px;
+}
+
+/* Definición de los 9 colores posibles */
+.c-azul { color: #2196F3; }
+.c-naranja { color: #FF9800; }
+.c-rojo { color: #F44336; }
+.c-verde { color: #4CAF50; }
+.c-morado { color: #9C27B0; }
+.c-rosa { color: #E91E63; }
+.c-marron { color: #795548; }
+.c-amarillo { color: #FFEB3B; }
+.c-negro { color: #212121; }
