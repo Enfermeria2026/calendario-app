@@ -14,19 +14,12 @@ let fechaCalModal = new Date();
 const HOY_REAL = new Date();
 let idEditando = null;
 
-// Funciones para manejar la pantalla de carga
 function mostrarCarga() { document.getElementById('pantalla-carga').classList.remove('hidden'); }
 function ocultarCarga() { document.getElementById('pantalla-carga').classList.add('hidden'); }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Si no hay ID, cortamos la ejecución y salimos inmediatamente
-    if (!miID) {
-        window.location.href = "index.html";
-        return; 
-    }
-    
+    if (!miID) { window.location.href = "index.html"; return; }
     mostrarCarga();
-    
     try {
         await cargarPerfil();
         await cargarLista();
@@ -35,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error("Error al cargar la página:", error);
     } finally {
-        // Pase lo que pase en el bloque anterior (errores o aciertos), esto SIEMPRE se ejecuta
         ocultarCarga();
     }
 });
@@ -133,22 +125,26 @@ window.borrarSeleccionados = () => {
             location.reload();
         } catch (error) {
             console.error(error);
-            ocultarCarga(); // Seguridad en caso de error
+            ocultarCarga(); 
         }
     });
 };
 
-// --- LOGICA MODAL INTERFAZ ---
+// --- LOGICA MODAL INTERFAZ (ACTUALIZADA PARA VIAJES) ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
     const divO = document.getElementById('div-otro-texto');
+    const bloqueNormal = document.getElementById('bloque-fechas-normales');
+    const bloqueViaje = document.getElementById('bloque-fechas-viaje');
     const selT = document.getElementById('ev-trabajo-id');
     const err = document.getElementById('error-no-jobs');
     const btn = document.getElementById('btn-save-event');
     
     divT.classList.add('hidden'); 
     divO.classList.add('hidden');
+    bloqueNormal.classList.remove('hidden');
+    bloqueViaje.classList.add('hidden');
     btn.disabled = false; 
     btn.style.opacity = "1";
     
@@ -166,6 +162,9 @@ window.actualizarInterfazTipo = () => {
         }
     } else if (tipo === "Otro") {
         divO.classList.remove('hidden');
+    } else if (tipo === "Viaje") {
+        bloqueNormal.classList.add('hidden');
+        bloqueViaje.classList.remove('hidden');
     }
 };
 
@@ -190,23 +189,79 @@ function configurarSelectorSemanal() {
     });
 }
 
-// --- GUARDADO ---
+// --- GUARDADO (ACTUALIZADO PARA VIAJES) ---
 window.validarYGuardar = async () => {
     const titulo = document.getElementById('ev-titulo').value.trim();
     const tipo = document.getElementById('ev-tipo').value;
-    const hIni = document.getElementById('ev-hora-ini').value;
-    const hFin = document.getElementById('ev-hora-fin').value;
     
-    if (!titulo || !tipo || !hIni || !hFin) {
-        lanzarAviso("Por favor, rellena todos los campos obligatorios.");
+    if (!titulo || !tipo) {
+        lanzarAviso("Por favor, rellena el título y el tipo obligatoriamente.");
         return;
     }
-    if (hFin < hIni) {
-        lanzarAviso("¿Estás seguro de que el evento finaliza al día siguiente?", "confirmar", procesarGuardado);
+
+    if (tipo === "Viaje") {
+        const fIda = document.getElementById('ev-viaje-fecha-ida').value;
+        const hIda = document.getElementById('ev-viaje-hora-ida').value;
+        const fVuelta = document.getElementById('ev-viaje-fecha-vuelta').value;
+        const hVuelta = document.getElementById('ev-viaje-hora-vuelta').value;
+
+        if(!fIda || !hIda || !fVuelta || !hVuelta) {
+            lanzarAviso("Para un viaje, debes indicar todas las fechas y horas de ida y vuelta.");
+            return;
+        }
+        if(fVuelta < fIda || (fVuelta === fIda && hVuelta <= hIda)) {
+            lanzarAviso("La fecha y hora de vuelta deben ser posteriores a las de ida.");
+            return;
+        }
+        procesarGuardadoViaje(titulo, fIda, hIda, fVuelta, hVuelta);
     } else {
-        procesarGuardado();
+        const hIni = document.getElementById('ev-hora-ini').value;
+        const hFin = document.getElementById('ev-hora-fin').value;
+        if (!hIni || !hFin) {
+            lanzarAviso("Por favor, introduce la hora de inicio y fin.");
+            return;
+        }
+        if (hFin < hIni) {
+            lanzarAviso("¿Estás seguro de que el evento finaliza al día siguiente?", "confirmar", procesarGuardado);
+        } else {
+            procesarGuardado();
+        }
     }
 };
+
+async function procesarGuardadoViaje(titulo, fIda, hIda, fVuelta, hVuelta) {
+    mostrarCarga();
+    try {
+        if (idEditando) {
+            await updateDoc(doc(db, "acontecimientos", idEditando), {
+                titulo: titulo,
+                tipo: "Viaje",
+                lugar: document.getElementById('ev-lugar').value,
+                fechaIda: fIda,
+                horaIda: hIda,
+                fechaVuelta: fVuelta,
+                horaVuelta: hVuelta,
+                fecha: fIda // Guardamos la fecha de ida como principal para ordenar la lista
+            });
+        } else {
+            await addDoc(collection(db, "acontecimientos"), {
+                userId: miID,
+                titulo: titulo,
+                tipo: "Viaje",
+                lugar: document.getElementById('ev-lugar').value,
+                fechaIda: fIda,
+                horaIda: hIda,
+                fechaVuelta: fVuelta,
+                horaVuelta: hVuelta,
+                fecha: fIda
+            });
+        }
+        location.reload();
+    } catch (e) { 
+        console.error(e); 
+        ocultarCarga(); 
+    }
+}
 
 async function procesarGuardado() {
     const fTipo = document.getElementById('ev-fecha-tipo').value;
@@ -260,17 +315,17 @@ async function procesarGuardado() {
         location.reload();
     } catch (e) { 
         console.error(e); 
-        ocultarCarga(); // Seguridad en caso de error
+        ocultarCarga(); 
     }
 }
 
-// --- CARGA DE LISTA ---
+// --- CARGA DE LISTA (ACTUALIZADO PARA VIAJES) ---
 async function cargarLista() {
     const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
     const snap = await getDocs(q);
     todosLosEventos = [];
     snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
-    todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + a.horaInicio) - new Date(b.fecha + "T" + b.horaInicio));
+    todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + (a.horaInicio || a.horaIda)) - new Date(b.fecha + "T" + (b.horaInicio || b.horaIda)));
     
     if (todosLosEventos.length === 0) document.getElementById('subtitulo-vacio').classList.remove('hidden');
     renderizar();
@@ -287,23 +342,43 @@ function renderizar() {
     cont.innerHTML = "";
     
     lista.forEach(ev => {
-        const fFormat = new Date(ev.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const div = document.createElement('div');
         div.className = "event-card";
         let check = modoSeleccion ? `<input type="checkbox" class="check-seleccion" onchange="marcarParaBorrar('${ev.id}')">` : "";
-        div.innerHTML = `
-            <div style="display:flex; align-items:center;">
-                ${check}
-                <div>
-                    <strong style="color:#333; font-size:16px;">${ev.titulo}</strong> <small style="color:#ec407a; margin-left:10px; font-weight:bold;">${fFormat}</small><br>
-                    <small style="color:#666;">${ev.horaInicio} - ${ev.horaFin} (${ev.detalle || ev.tipo})</small>
+        
+        if (ev.tipo === "Viaje") {
+            const fIdaF = new Date(ev.fechaIda).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const fVuelF = new Date(ev.fechaVuelta).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    ${check}
+                    <div>
+                        <strong style="color:#333; font-size:16px;">${ev.titulo} <span style="font-size:12px; color:#aaa;">(Viaje)</span></strong><br>
+                        <small style="color:#ec407a; font-weight:bold;">Ida: ${fIdaF} (${ev.horaIda})</small><br>
+                        <small style="color:#ec407a; font-weight:bold;">Vuelta: ${fVuelF} (${ev.horaVuelta})</small>
+                    </div>
                 </div>
-            </div>
-            <div class="event-actions">
-                <i class="fas fa-pencil-alt" onclick="prepararEdicion('${ev.id}')"></i>
-                <i class="fas fa-trash" onclick="pedirBorrado('${ev.id}')"></i>
-            </div>
-        `;
+                <div class="event-actions">
+                    <i class="fas fa-pencil-alt" onclick="prepararEdicion('${ev.id}')"></i>
+                    <i class="fas fa-trash" onclick="pedirBorrado('${ev.id}')"></i>
+                </div>
+            `;
+        } else {
+            const fFormat = new Date(ev.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    ${check}
+                    <div>
+                        <strong style="color:#333; font-size:16px;">${ev.titulo}</strong> <small style="color:#ec407a; margin-left:10px; font-weight:bold;">${fFormat}</small><br>
+                        <small style="color:#666;">${ev.horaInicio} - ${ev.horaFin} (${ev.detalle || ev.tipo})</small>
+                    </div>
+                </div>
+                <div class="event-actions">
+                    <i class="fas fa-pencil-alt" onclick="prepararEdicion('${ev.id}')"></i>
+                    <i class="fas fa-trash" onclick="pedirBorrado('${ev.id}')"></i>
+                </div>
+            `;
+        }
         cont.appendChild(div);
     });
     
@@ -325,17 +400,26 @@ window.prepararEdicion = async (id) => {
             document.getElementById('ev-tipo').value = ev.tipo;
             actualizarInterfazTipo();
             document.getElementById('ev-lugar').value = ev.lugar || "";
-            document.getElementById('ev-fecha-tipo').value = "especifico";
-            actualizarInterfazFecha();
-            document.getElementById('ev-date-single').value = ev.fecha;
-            document.getElementById('ev-hora-ini').value = ev.horaInicio;
-            document.getElementById('ev-hora-fin').value = ev.horaFin;
+
+            if (ev.tipo === "Viaje") {
+                document.getElementById('ev-viaje-fecha-ida').value = ev.fechaIda;
+                document.getElementById('ev-viaje-hora-ida').value = ev.horaIda;
+                document.getElementById('ev-viaje-fecha-vuelta').value = ev.fechaVuelta;
+                document.getElementById('ev-viaje-hora-vuelta').value = ev.horaVuelta;
+            } else {
+                document.getElementById('ev-fecha-tipo').value = "especifico";
+                actualizarInterfazFecha();
+                document.getElementById('ev-date-single').value = ev.fecha;
+                document.getElementById('ev-hora-ini').value = ev.horaInicio;
+                document.getElementById('ev-hora-fin').value = ev.horaFin;
+            }
+            
             document.getElementById('modal-evento').style.display = "flex";
         }
     } catch (error) {
         console.error(error);
     } finally {
-        ocultarCarga(); // Seguridad garantizada
+        ocultarCarga(); 
     }
 };
 
@@ -346,7 +430,7 @@ window.pedirBorrado = (id) => lanzarAviso("¿Borrar definitivamente este acontec
         location.reload(); 
     } catch (error) {
         console.error(error);
-        ocultarCarga(); // Seguridad garantizada
+        ocultarCarga(); 
     }
 });
 
@@ -380,9 +464,17 @@ window.abrirModalEvento = () => {
     document.getElementById('ev-titulo').value = "";
     document.getElementById('ev-tipo').value = "";
     document.getElementById('ev-lugar').value = "";
+    
+    // Limpiar normales
     document.getElementById('ev-hora-ini').value = "";
     document.getElementById('ev-hora-fin').value = "";
     document.getElementById('ev-fecha-tipo').value = "especifico";
+    
+    // Limpiar viajes
+    document.getElementById('ev-viaje-fecha-ida').value = "";
+    document.getElementById('ev-viaje-hora-ida').value = "";
+    document.getElementById('ev-viaje-fecha-vuelta').value = "";
+    document.getElementById('ev-viaje-hora-vuelta').value = "";
     
     document.querySelectorAll('.day-selected').forEach(el => el.classList.remove('day-selected'));
     document.querySelectorAll('.date-selected').forEach(el => el.classList.remove('date-selected'));
@@ -396,6 +488,6 @@ window.abrirModalEvento = () => {
 
 window.cerrarModales = () => document.getElementById('modal-evento').style.display = "none";
 window.toggleMenu = () => document.getElementById('sidebar').classList.toggle('active');
-window.cerrarSesion = () => { localStorage.clear(); window.location.href="index.html"; };
+window.cerrarSesion = () => { localStorage.removeItem('usuario_activo'); window.location.href="index.html"; };
 document.getElementById('btn-prev').onclick = () => { pagActual--; renderizar(); };
 document.getElementById('btn-next').onclick = () => { pagActual++; renderizar(); };
