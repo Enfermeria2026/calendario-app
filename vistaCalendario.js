@@ -79,14 +79,25 @@ async function asegurarColoresMiembros() {
 }
 
 function configurarControles() {
+    // Botón Anterior Mes
     document.getElementById('btn-prev').onclick = function() {
-        this.blur(); // ¡Esto evita que el botón se quede "clicado"!
+        this.blur(); // Quita el foco
+        
+        const anio = fechaVisualizada.getFullYear();
+        const mes = fechaVisualizada.getMonth();
+        
+        // Bloqueo estricto: Si ya estamos en el mes/año real actual, no hacemos nada
+        if (anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth()) {
+            return;
+        }
+        
         fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
         renderizarMes();
     };
     
+    // Botón Siguiente Mes
     document.getElementById('btn-next').onclick = function() {
-        this.blur(); // ¡Esto evita que el botón se quede "clicado"!
+        this.blur(); // Quita el foco
         fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
         renderizarMes();
     };
