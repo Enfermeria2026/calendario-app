@@ -79,12 +79,14 @@ async function asegurarColoresMiembros() {
 }
 
 function configurarControles() {
-    document.getElementById('btn-prev').onclick = () => {
+    document.getElementById('btn-prev').onclick = function() {
+        this.blur(); // ¡Esto evita que el botón se quede "clicado"!
         fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
         renderizarMes();
     };
     
-    document.getElementById('btn-next').onclick = () => {
+    document.getElementById('btn-next').onclick = function() {
+        this.blur(); // ¡Esto evita que el botón se quede "clicado"!
         fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
         renderizarMes();
     };
