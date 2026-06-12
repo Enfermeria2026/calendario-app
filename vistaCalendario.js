@@ -113,7 +113,16 @@ function renderizarMes() {
     const mes = fechaVisualizada.getMonth();
     
     displayMes.innerText = fechaVisualizada.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-    
+
+    // NUEVO: Capar el botón de ir atrás si estamos en el mes real actual
+    const btnPrev = document.getElementById('btn-prev');
+    if (btnPrev) {
+        const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
+        btnPrev.disabled = esMesActual;
+        // Le damos una opacidad bajita para que el usuario vea que está bloqueado
+        btnPrev.style.opacity = esMesActual ? "0.4" : "1";
+        btnPrev.style.cursor = esMesActual ? "default" : "pointer";
+    }
     const primerDiaDelMes = new Date(anio, mes, 1);
     const ultimoDiaDelMes = new Date(anio, mes + 1, 0);
     const ultimoDiaDeMesPasado = new Date(anio, mes, 0);
