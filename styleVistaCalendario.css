@@ -197,25 +197,30 @@ html, body {
     overflow: hidden; 
 }
 
-/* --- LA MAGIA DE LA VISTA SEMANAL EN 2 FILAS --- */
+/* --- LA MAGIA DE LA VISTA SEMANAL EN 2 FILAS PULIDA --- */
 .vista-semanal-container {
     display: flex !important; /* Sobrescribe el grid global */
     flex-direction: column;
-    gap: 8px;
+    gap: 8px; /* Espacio entre las dos filas */
+    height: 100%; /* Ocupa todo el alto disponible */
 }
 
 .semana-fila-1 {
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* 5 columnas L-V */
     gap: 4px;
-    flex: 1; 
+    /* NUEVO: Esta fila toma más espacio vertical (aprox 66% del total) */
+    flex: 2; 
+    min-height: 0; /* Crucial para flexbox */
 }
 
 .semana-fila-2 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas S-D gigantes */
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas S-D gigantes en ancho */
     gap: 4px;
+    /* NUEVO: Esta fila toma menos espacio vertical (aprox 33% del total) */
     flex: 1; 
+    min-height: 0; /* Crucial para flexbox */
 }
 
 .dia-wrapper {
