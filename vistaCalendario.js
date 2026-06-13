@@ -633,8 +633,8 @@ window.abrirModalConfig = async () => {
                     <div style="flex: 1; overflow: hidden;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Nombre del Calendario</span>
                         <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${datosCalendario.nombre || 'Sin nombre'}
-                        </div>
+    ${datosCalendario && datosCalendario.nombre ? datosCalendario.nombre : 'Nombre no cargado'}
+</div>
                     </div>
                     <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="flex-shrink: 0; margin-left: 10px;"><i class="fas fa-pencil-alt"></i></button>
                 </div>
