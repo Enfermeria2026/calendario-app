@@ -718,3 +718,42 @@ container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar 
 }
 };
 
+// =========================================================
+// FUNCIONALIDAD: CAMBIAR NOMBRE DEL CALENDARIO
+// =========================================================
+window.editarNombreCalendario = async () => {
+    // 1. Obtenemos el nombre actual de la variable global si está disponible
+    const nombreActual = datosCalendario ? datosCalendario.nombre : "Sin nombre";
+    
+    // 2. Mostramos un cuadro de entrada de texto nativo con el nombre actual preestablecido
+    const nuevoNombre = prompt("Introduce el nuevo nombre para el calendario:", nombreActual);
+    
+    // Si el usuario presiona "Cancelar" o deja el campo completamente vacío, cancelamos el proceso
+    if (nuevoNombre === null || nuevoNombre.trim() === "") return;
+    
+    const nombreLimpio = nuevoNombre.trim();
+
+    try {
+        // 3. Actualizamos el documento correspondiente en Firebase Firestore
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { nombre: nombreLimpio });
+
+        // 4. Sincronizamos la variable global en memoria del script
+        if (datosCalendario) {
+            datosCalendario.nombre = nombreLimpio;
+        }
+
+        // 5. Actualizamos el título del calendario que se muestra en la pantalla principal
+        const tituloMain = document.getElementById('titulo-calendario');
+        if (tituloMain) {
+            tituloMain.innerText = nombreLimpio;
+        }
+
+        // 6. Forzamos la actualización del modal de configuración abierto para que muestre el nuevo nombre al instante
+        await window.abrirModalConfig();
+
+    } catch (error) {
+        console.error("Error al actualizar el nombre del calendario:", error);
+        alert("Hubo un problema con la base de datos al intentar cambiar el nombre.");
+    }
+};
