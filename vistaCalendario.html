@@ -78,6 +78,15 @@
 </div>
 </div>
 
+<div id="modal-solicitudes" class="modal-overlay hidden">
+        <div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; height: 70vh; padding: 25px;">
+            <button class="modal-close-btn" onclick="window.cerrarModalSolicitudes()"><i class="fas fa-times"></i></button>
+            <h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Solicitudes de Acceso</h2>
+            <div id="lista-solicitudes-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px;">
+            </div>
+        </div>
+    </div>
+
 <script type="module" src="vistaCalendario.js"></script>
 </body>
 </html>
