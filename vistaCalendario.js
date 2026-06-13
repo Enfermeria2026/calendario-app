@@ -275,6 +275,49 @@ function renderizarSemana() {
     grid.appendChild(fila2);
 }
 
+// Carga los eventos del mes visualizado
+async function cargarAcontecimientos(anio, mes) {
+    const eventos = [];
+    // Consultamos acontecimientos del calendario activo
+    const q = query(collection(db, "acontecimientos"), where("calendarioId", "==", calId));
+    const querySnapshot = await getDocs(q);
+    
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // Asumiendo que guardas la fecha como una cadena "YYYY-MM-DD" o Timestamp
+        // Adaptar según tu estructura de base de datos
+        const fechaEvento = new Date(data.fecha); 
+        if (fechaEvento.getFullYear() === anio && fechaEvento.getMonth() === mes) {
+            eventos.push({ id: doc.id, ...data });
+        }
+    });
+    return eventos;
+}
+
+// Pintar estrellas
+function pintarEstrellas(eventos, fecha, esFilaSemana1 = false, esFilaSemana2 = false) {
+    const dia = fecha.getDate();
+    const eventosDia = eventos.filter(e => new Date(e.fecha).getDate() === dia);
+    
+    const idContainer = `estrellas-${fecha.getFullYear()}-${fecha.getMonth()+1}-${dia}`;
+    const container = document.getElementById(idContainer);
+    if (!container) return;
+
+    // Aplicar la clase de grid correcta
+    if (esFilaSemana1) container.className = "stars-grid-semana-fila1";
+    else if (esFilaSemana2) container.className = "stars-grid-semana-fila2";
+    else container.className = "stars-grid";
+
+    container.innerHTML = ""; // Limpiar antes de pintar
+
+    // Pintar máximo 9 estrellas
+    eventosDia.slice(0, 9).forEach(ev => {
+        const estrella = document.createElement('div');
+        estrella.className = `star-icon bg-${mapaColores[ev.usuarioId] || 'c-negro'}`;
+        container.appendChild(estrella);
+    });
+}
+
 function abrirDetalleDia(fecha) {
     console.log("Día clickeado:", fecha.toLocaleDateString());
 }
