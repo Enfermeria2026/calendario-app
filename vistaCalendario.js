@@ -63,6 +63,7 @@ async function inicializarCalendario() {
                 this.blur(); 
             };
         }
+    }
         
     } else {
         window.location.href = "dashboard.html";
