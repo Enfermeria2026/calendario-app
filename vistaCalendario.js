@@ -214,8 +214,8 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
     }
 
     delDia.slice(0, 9).forEach(acontecimiento => {
-        // OJO: Comprueba si en Firebase lo llamas 'usuarioId', 'usuario_id', o 'id_usuario'
-        const userId = acontecimiento.usuarioId; 
+        // ¡CORREGIDO! Ahora busca 'userId' exactamente como está en tu Firebase
+        const userId = acontecimiento.userId; 
         const colorClase = mapaColores[userId] || 'c-negro';
         
         const estrella = document.createElement('div');
@@ -230,7 +230,6 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
         container.appendChild(estrella);
     });
 }
-
 function renderizarCalendario() {
     if (vistaActual === "mes") {
         renderizarMes();
