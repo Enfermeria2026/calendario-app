@@ -455,8 +455,8 @@ window.abrirModalMiembros = async () => {
                 ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor()"><i class="fas fa-pencil-alt"></i></button>`
                 : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>`;
 
-            // Mantenemos el (Tú) a salvo de recortes usando flex-shrink: 0
-            const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:14px; flex-shrink:0;">(Tú)</span>` : '';
+           // Mantenemos el (Tú) a salvo de recortes y lo separamos del color con margin-right
+const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:14px; flex-shrink:0; margin-right: 12px;">(Tú)</span>` : '';
 
             const row = document.createElement('div');
             row.className = "miembro-row";
