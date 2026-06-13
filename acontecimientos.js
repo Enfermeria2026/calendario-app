@@ -327,21 +327,13 @@ async function procesarGuardado() {
     }
 }
 
-// --- CARGA DE LISTA INTELIGENTE (RECUPERA ANTIGUOS Y FILTRA NUEVOS) ---
+// --- CARGA DE LISTA (SOLO POR USUARIO) ---
 async function cargarLista() {
-    // Buscamos todos los del usuario para no perder los antiguos
     const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
     const snap = await getDocs(q);
     
     todosLosEventos = [];
-    snap.forEach(d => {
-        const evData = d.data();
-        // ¡SOLUCIÓN! Si el evento es antiguo (no tiene calendarioId) O pertenece al calendario activo, se muestra
-        if (!evData.calendarioId || evData.calendarioId === calIdActivo) {
-            todosLosEventos.push({id: d.id, ...evData});
-        }
-    });
-    
+    snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
     todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + (a.horaInicio || a.horaIda)) - new Date(b.fecha + "T" + (b.horaInicio || b.horaIda)));
     
     if (todosLosEventos.length === 0) {
