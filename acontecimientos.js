@@ -2,6 +2,9 @@ import { db } from "./firebase-config.js";
 import { collection, addDoc, query, where, getDocs, doc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const miID = localStorage.getItem('usuario_activo');
+// ¡NUEVO! Rescatamos en qué calendario estamos trabajando
+const calIdActivo = localStorage.getItem('calendario_activo'); 
+
 let misTrabajos = [];
 let diasSemanaSelec = [];
 let diasVariosSelec = [];
@@ -241,11 +244,13 @@ async function procesarGuardadoViaje(titulo, fIda, hIda, fVuelta, hVuelta) {
                 horaIda: hIda,
                 fechaVuelta: fVuelta,
                 horaVuelta: hVuelta,
-                fecha: fIda // Guardamos la fecha de ida como principal para ordenar la lista
+                fecha: fIda, 
+                calendarioId: calIdActivo // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
             });
         } else {
             await addDoc(collection(db, "acontecimientos"), {
                 userId: miID,
+                calendarioId: calIdActivo, // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
                 titulo: titulo,
                 tipo: "Viaje",
                 lugar: document.getElementById('ev-lugar').value,
@@ -296,12 +301,14 @@ async function procesarGuardado() {
                 lugar: document.getElementById('ev-lugar').value,
                 fecha: fechas[0], 
                 horaInicio: document.getElementById('ev-hora-ini').value,
-                horaFin: document.getElementById('ev-hora-fin').value
+                horaFin: document.getElementById('ev-hora-fin').value,
+                calendarioId: calIdActivo // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
             });
         } else {
             for (let f of fechas) {
                 await addDoc(collection(db, "acontecimientos"), {
                     userId: miID,
+                    calendarioId: calIdActivo, // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
                     titulo: document.getElementById('ev-titulo').value,
                     tipo: document.getElementById('ev-tipo').value,
                     detalle: document.getElementById('ev-tipo').value === "Trabajo" ? document.getElementById('ev-trabajo-id').value : document.getElementById('ev-otro-nombre').value,
@@ -319,9 +326,15 @@ async function procesarGuardado() {
     }
 }
 
-// --- CARGA DE LISTA (ACTUALIZADO PARA VIAJES) ---
+// --- CARGA DE LISTA (FILTRANDO POR CALENDARIO) ---
 async function cargarLista() {
-    const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
+    // AHORA SOLO CARGAMOS LOS EVENTOS DE ESTE USUARIO Y ESTE CALENDARIO
+    const q = query(
+        collection(db, "acontecimientos"), 
+        where("userId", "==", miID),
+        where("calendarioId", "==", calIdActivo)
+    );
+    
     const snap = await getDocs(q);
     todosLosEventos = [];
     snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
