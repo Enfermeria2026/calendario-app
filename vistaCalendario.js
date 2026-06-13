@@ -427,7 +427,6 @@ window.abrirModalMiembros = async () => {
     modal.classList.remove('hidden');
 
     try {
-        // Traemos los datos de todos los miembros del calendario de una sola vez
         const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
         const docs = await Promise.all(promesas);
 
@@ -436,7 +435,6 @@ window.abrirModalMiembros = async () => {
             if (d.exists()) miembrosData.push({ id: d.id, ...d.data() });
         });
 
-        // Ordenamos la lista: Yo primero, el resto después
         miembrosData.sort((a, b) => {
             if (a.id === idActivo) return -1;
             if (b.id === idActivo) return 1;
@@ -449,15 +447,16 @@ window.abrirModalMiembros = async () => {
             const esYo = miembro.id === idActivo;
             const miColor = mapaColores[miembro.id] || 'c-negro';
             
-            // Foto o icono por defecto
             const fotoHtml = miembro.foto 
                 ? `<img src="${miembro.foto}" class="miembro-foto">` 
                 : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
 
-            // Botón de lápiz (si soy yo) o de ojo (si es otro)
             const accionHtml = esYo 
                 ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor()"><i class="fas fa-pencil-alt"></i></button>`
                 : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>`;
+
+            // Mantenemos el (Tú) a salvo de recortes usando flex-shrink: 0
+            const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:14px; flex-shrink:0;">(Tú)</span>` : '';
 
             const row = document.createElement('div');
             row.className = "miembro-row";
@@ -465,17 +464,17 @@ window.abrirModalMiembros = async () => {
                 <div class="miembro-info">
                     ${fotoHtml}
                     <div class="miembro-detalles">
-                        <span class="miembro-nombre">${miembro.nombre} ${miembro.apellidos || ''} ${esYo ? '<span style="color:#ec407a;">(Tú)</span>' : ''}</span>
+                        <span class="miembro-nombre">${miembro.nombre} ${miembro.apellidos || ''}</span>
+                        ${tuBadge}
                     </div>
                 </div>
                 <div class="miembro-actions">
-                    <div class="color-dot-indicator bg-${miColor}" style="box-shadow:none; border:none; width:18px; height:18px;"></div>
+                    <div class="color-dot-indicator bg-${miColor}" style="width:16px; height:16px; min-width:16px; min-height:16px; border-radius:50%; flex-shrink:0; box-shadow:none; border:none;"></div>
                     ${accionHtml}
                 </div>
             `;
             container.appendChild(row);
 
-            // Inyectamos la cajita de los colores (oculta) solo debajo de mi nombre
             if (esYo) {
                 const pickerBox = document.createElement('div');
                 pickerBox.id = "selector-colores-box";
@@ -494,13 +493,11 @@ window.mostrarSelectorColor = () => {
     const box = document.getElementById('selector-colores-box');
     if (!box) return;
 
-    // Si ya está abierto, lo cerramos
     if (!box.classList.contains('hidden')) {
         box.classList.add('hidden');
         return;
     }
 
-    // Averiguamos qué colores están ya cogidos por los DEMÁS
     const coloresOcupados = Object.entries(mapaColores)
         .filter(([id, color]) => id !== idActivo) 
         .map(([id, color]) => color);
@@ -508,21 +505,17 @@ window.mostrarSelectorColor = () => {
     box.innerHTML = "";
     box.classList.remove('hidden');
 
-    // Pintamos los 9 colores disponibles
     COLORES_DISPONIBLES.forEach(color => {
         const dot = document.createElement('div');
         dot.className = `color-picker-dot bg-${color}`;
         
-        // Si el color lo tiene otro, lo bloqueamos visualmente
+        // Si el color lo tiene otro compañero, ni siquiera lo mostramos
         if (coloresOcupados.includes(color)) {
-            dot.style.opacity = "0.2";
-            dot.style.cursor = "not-allowed";
+            dot.style.display = "none";
         } else {
-            // Si está libre, permitimos pulsarlo
             dot.onclick = () => cambiarMiColor(color);
         }
         
-        // Ponemos un borde negro al color que tengo yo ahora mismo
         if (mapaColores[idActivo] === color) {
             dot.style.border = "3px solid #333";
         }
@@ -530,7 +523,6 @@ window.mostrarSelectorColor = () => {
         box.appendChild(dot);
     });
 };
-
 window.cambiarMiColor = async (nuevoColor) => {
     // 1. Cambiamos el color en el mapa local
     mapaColores[idActivo] = nuevoColor;
