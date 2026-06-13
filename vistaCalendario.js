@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const idActivo = localStorage.getItem('usuario_activo');
 const calId = localStorage.getItem('calendario_activo');
 let fechaVisualizada = new Date();
@@ -27,36 +27,82 @@ const uData = uSnap.data();
 document.getElementById('header-user-name').innerText = uData.nombre;
 }
 }
+
 async function inicializarCalendario() {
-const docSnap = await getDoc(doc(db, "calendarios", calId));
-if (docSnap.exists()) {
-datosCalendario = docSnap.data();
-document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
-  await asegurarColoresMiembros();
+    const docSnap = await getDoc(doc(db, "calendarios", calId));
+    if (docSnap.exists()) {
+        datosCalendario = docSnap.data();
+        document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
+        await asegurarColoresMiembros();
 
-const miColor = mapaColores[idActivo] || 'c-negro';
-const ind = document.getElementById('user-color-indicator');
-if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
+        const miColor = mapaColores[idActivo] || 'c-negro';
+        const ind = document.getElementById('user-color-indicator');
+        if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
 
-renderizarCalendario();
+        renderizarCalendario();
 
-// Botón de miembros para TODOS
-document.getElementById('btn-miembros').onclick = function() {
-window.abrirModalMiembros();
-this.blur();
+        // Botón de miembros para TODOS
+        document.getElementById('btn-miembros').onclick = function() {
+            window.abrirModalMiembros();
+            this.blur();
+        };
+
+        // Extraemos estas dos variables para saber si quien mira es Titular o Admin
+        const esTitular = datosCalendario.titular === idActivo;
+        const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
+
+        // Botón de configuración SOLO para admins/titular
+        if (esTitular || esAdmin) {
+            document.getElementById('btn-config').classList.remove('hidden');
+            document.getElementById('btn-config').onclick = function() {
+                window.abrirModalConfig();
+                this.blur();
+            };
+        }
+
+        // --- NUEVO: GESTIÓN DEL BUZÓN DE SOLICITUDES ---
+        const btnSolicitudes = document.getElementById('btn-solicitudes');
+        const badgeSolicitudes = document.getElementById('solicitudes-badge');
+        
+        if (btnSolicitudes) {
+            // El buzón solo se muestra si eres titular/admin Y la privacidad está activada
+            if ((esTitular || esAdmin) && datosCalendario.requiere_aprobacion === true) {
+                btnSolicitudes.classList.remove('hidden');
+                btnSolicitudes.onclick = function() { 
+                    window.abrirModalSolicitudes(); 
+                    this.blur(); 
+                };
+                
+                // Si hay solicitudes pendientes, mostramos el puntito rojo flotante
+                if (datosCalendario.solicitudes && datosCalendario.solicitudes.length > 0) {
+                    if (badgeSolicitudes) badgeSolicitudes.classList.remove('hidden');
+                } else {
+                    if (badgeSolicitudes) badgeSolicitudes.classList.add('hidden');
+                }
+            } else {
+                btnSolicitudes.classList.add('hidden');
+            }
+        }
+        // -----------------------------------------------
+
+    } else {
+        window.location.href = "dashboard.html";
+    }
+}
+
+window.cambiarPrivacidad = async (checked) => {
+    try {
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { requiere_aprobacion: checked });
+        datosCalendario.requiere_aprobacion = checked;
+        
+        // Relanzamos la inicialización para ocultar o mostrar el buzón al instante
+        await inicializarCalendario();
+    } catch (error) {
+        console.error("Error al cambiar privacidad:", error);
+    }
 };
-// Botón de configuración SOLO para admins/titular
-if (datosCalendario.titular === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
-document.getElementById('btn-config').classList.remove('hidden');
-document.getElementById('btn-config').onclick = function() {
-window.abrirModalConfig();
-this.blur();
-};
-}
-} else {
-window.location.href = "dashboard.html";
-}
-}
+
 async function asegurarColoresMiembros() {
 let necesitaActualizar = false;
 mapaColores = datosCalendario.colores_miembros || {};
@@ -1391,4 +1437,107 @@ window.procesarBorradoCalendarioTotal = async () => {
     }
 };
 
+// =========================================================
+// FUNCIONALIDAD: GESTIÓN DEL BUZÓN DE SOLICITUDES PENDIENTES
+// =========================================================
+window.abrirModalSolicitudes = async () => {
+    const modal = document.getElementById('modal-solicitudes');
+    const container = document.getElementById('lista-solicitudes-container');
+    if (!modal || !container) return;
 
+    container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'><i class='fas fa-spinner fa-spin'></i> Cargando solicitudes...</p>";
+    modal.classList.remove('hidden');
+
+    try {
+        // Leemos las solicitudes actuales del calendario directamente de memoria
+        const listaSolicitudes = datosCalendario.solicitudes || [];
+
+        if (listaSolicitudes.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:#888; margin-top:40px;'>No hay solicitudes pendientes</p>";
+            return;
+        }
+
+        // Cargamos los perfiles de los usuarios que están pidiendo entrar
+        const promesas = listaSolicitudes.map(mId => getDoc(doc(db, "usuarios", mId)));
+        const docs = await Promise.all(promesas);
+
+        container.innerHTML = "";
+
+        docs.forEach(d => {
+            if (d.exists()) {
+                const usuario = d.data();
+                const fotoHtml = usuario.foto
+                    ? `<img src="${usuario.foto}" class="miembro-foto">`
+                    : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
+
+                const row = document.createElement('div');
+                row.className = "miembro-row";
+                row.innerHTML = `
+                    <div class="miembro-info">
+                        ${fotoHtml}
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+                            <span class="miembro-nombre">${usuario.nombre} ${usuario.apellidos || ''}</span>
+                            <span style="color:#999; font-size:11px;">Desea unirse</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                        <button class="btn-icono-accion" onclick="window.rechazarSolicitud('${d.id}')" style="color: #ef5350; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer;"><i class="fas fa-times"></i></button>
+                        <button class="btn-icono-accion" onclick="window.aceptarSolicitud('${d.id}')" style="color: #4CAF50; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer;"><i class="fas fa-check"></i></button>
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+        });
+    } catch (error) {
+        console.error("Error al cargar solicitudes:", error);
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar las solicitudes.</p>";
+    }
+};
+
+window.cerrarModalSolicitudes = () => {
+    document.getElementById('modal-solicitudes').classList.add('hidden');
+};
+
+window.aceptarSolicitud = async (solicitanteId) => {
+    try {
+        const calRef = doc(db, "calendarios", calId);
+        
+        // Pasamos al usuario de 'solicitudes' a 'miembros' en Firebase
+        await updateDoc(calRef, {
+            miembros: arrayUnion(solicitanteId),
+            solicitudes: arrayRemove(solicitanteId)
+        });
+
+        // Sincronizamos en memoria local
+        datosCalendario.miembros.push(solicitanteId);
+        datosCalendario.solicitudes = datosCalendario.solicitudes.filter(id => id !== solicitanteId);
+
+        // Volvemos a asegurar los colores y refrescar vistas
+        await asegurarColoresMiembros();
+        await window.abrirModalSolicitudes(); // Refresca la lista de la modal
+        await inicializarCalendario();       // Refresca el botón del buzón y puntito rojo
+        
+    } catch (error) {
+        console.error("Error al aceptar solicitud:", error);
+    }
+};
+
+window.rechazarSolicitud = async (solicitanteId) => {
+    try {
+        const calRef = doc(db, "calendarios", calId);
+        
+        // Simplemente lo quitamos del array de solicitudes
+        await updateDoc(calRef, {
+            solicitudes: arrayRemove(solicitanteId)
+        });
+
+        // Sincronizamos en memoria local
+        datosCalendario.solicitudes = datosCalendario.solicitudes.filter(id => id !== solicitanteId);
+
+        await window.abrirModalSolicitudes();
+        await inicializarCalendario();
+        
+    } catch (error) {
+        console.error("Error al rechazar solicitud:", error);
+    }
+};
