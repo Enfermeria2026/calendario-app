@@ -729,17 +729,21 @@ ${estitular ? `
 </div>
 
 <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px; text-align: left;">
-<div>
-<div style="font-size: 14px; font-weight: bold; color: #333;">Privacidad</div>
-<div style="font-size: 11px; color: #999;">Requerir aprobación para unirse</div>
-</div>
-<label style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
-<input type="checkbox" id="toggle-priv" ${requiereAprobacion ? 'checked' : ''} onchange="cambiarPrivacidad(this.checked)" style="opacity: 0; width: 0; height: 0;">
-<span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${requiereAprobacion ? '#ec407a' : '#ccc'}; border-radius: 24px; transition: .3s;">
-<span style="position: absolute; height: 18px; width: 18px; left: ${requiereAprobacion ? '23px' : '3px'}; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
-</span>
-</label>
-</div>
+            <div>
+                <div style="font-size: 14px; font-weight: bold; color: #333;">Privacidad</div>
+                <div style="font-size: 11px; color: #999;">Requerir aprobación para unirse</div>
+            </div>
+            ${esTitular ? `
+            <label style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
+                <input type="checkbox" id="toggle-priv" ${requiereAprobacion ? 'checked' : ''} onchange="window.cambiarPrivacidad(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${requiereAprobacion ? '#ec407a' : '#ccc'}; border-radius: 24px; transition: .3s;">
+                    <span style="position: absolute; height: 18px; width: 18px; left: ${requiereAprobacion ? '23px' : '3px'}; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                </span>
+            </label>
+            ` : `
+            <i class="fas fa-lock" style="color:#ccc; margin-left: 10px; font-size: 16px;" title="Solo el titular puede cambiar la privacidad"></i>
+            `}
+        </div>
 
 <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
 `;
@@ -1502,7 +1506,7 @@ window.abrirModalSolicitudes = async () => {
 
                 const row = document.createElement('div');
                 row.className = "miembro-row";
-                row.innerHTML = `
+               row.innerHTML = `
                     <div class="miembro-info">
                         ${fotoHtml}
                         <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
@@ -1510,9 +1514,9 @@ window.abrirModalSolicitudes = async () => {
                             <span style="color:#999; font-size:11px;">Desea unirse</span>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                        <button class="btn-icono-accion" onclick="window.rechazarSolicitud('${d.id}')" style="color: #ef5350; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer;"><i class="fas fa-times"></i></button>
-                        <button class="btn-icono-accion" onclick="window.aceptarSolicitud('${d.id}')" style="color: #4CAF50; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer;"><i class="fas fa-check"></i></button>
+                    <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
+                        <button class="btn-icono-accion" onclick="window.rechazarSolicitud('${d.id}')" style="color: #ef5350; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;"><i class="fas fa-times"></i></button>
+                        <button class="btn-icono-accion" onclick="window.aceptarSolicitud('${d.id}')" style="color: #4CAF50; width:32px; height:32px; border: 1px solid #ddd; border-radius:6px; background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;"><i class="fas fa-check"></i></button>
                     </div>
                 `;
                 container.appendChild(row);
