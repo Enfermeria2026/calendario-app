@@ -434,7 +434,7 @@ let rolHtml = "";
 
 if (esYo) {
 if (estitular) {
-rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">titular</span>`;
+rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Titular</span>`;
 } else if (esAdmin) {
 rolHtml = `<span style="color: #ec407a; font-weight: 700; font-size: 11px; margin-top: 2px;">Eres Administrador</span>`;
 } else {
@@ -442,7 +442,7 @@ rolHtml = `<span style="color: #999; font-weight: normal; font-size: 11px; margi
 }
 } else {
 if (estitular) {
-rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">titular</span>`;
+rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Titular</span>`;
 } else if (esAdmin) {
 rolHtml = `<span style="color: #f06292; font-weight: 600; font-size: 11px; margin-top: 2px;">Administrador</span>`;
 } else {
@@ -673,7 +673,7 @@ miembrosData.forEach(miembro => {
 const mEstitular = datos.titular === miembro.id;
 const mEsAdmin = datos.admins && datos.admins.includes(miembro.id);
 const soyYo = miembro.id === idActivo;
-let rolTxt = mEstitular ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">titular</span>` : mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : `<span style="color: #999; font-size: 11px;">Miembro</span>`;
+let rolTxt = mEstitular ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Titular</span>` : mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : `<span style="color: #999; font-size: 11px;">Miembro</span>`;
 
 let botonesHtml = ``;
 if (!mEstitular && !soyYo) {
