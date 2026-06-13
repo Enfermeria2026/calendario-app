@@ -476,3 +476,36 @@ button:active:focus,
     transition: all 0.1s ease;
 }
 
+/* --- CORRECCIÓN DEFINITIVA BOTONES --- */
+
+/* 1. Evitar flash gris de móvil y selección de texto al hacer doble clic */
+* {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* 2. Eliminar el borde/foco automático que se queda pegado */
+button:focus, 
+.btn-icono-accion:focus, 
+.cal-btn:focus, 
+.pagination button:focus,
+.btn-vista:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    /* No ponemos background transparente aquí para no romper el color de los botones activos */
+}
+
+/* 3. Efecto "Rosita" real solo al pulsar (Active) */
+/* Usamos !important para asegurar que esto gane a cualquier otro estilo */
+.btn-icono-accion:active, 
+.cal-btn:active, 
+.pagination button:active, 
+#btn-prev:active, 
+#btn-next:active,
+.btn-vista:active {
+    background-color: #fce4ec !important; /* Tu rosita */
+    color: #ec407a !important;
+    transform: scale(0.95) !important;
+    transition: background-color 0.1s, transform 0.1s !important;
+}
