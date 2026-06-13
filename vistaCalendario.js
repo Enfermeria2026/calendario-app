@@ -98,7 +98,7 @@ window.cambiarPrivacidad = async (checked) => {
         
         // Relanzamos la inicialización para ocultar o mostrar el buzón al instante
         await inicializarCalendario();
-        configurarControles()
+        window.abrirModalConfig();
     } catch (error) {
         console.error("Error al cambiar privacidad:", error);
     }
