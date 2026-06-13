@@ -653,8 +653,13 @@ window.abrirModalConfig = async () => {
                     </div>
                     <div style="display: flex; flex-shrink: 0;">
                         ${esCreador ? `
-                            <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" style="${btnStyle}" title="Nuevo código"><i class="fas fa-sync-alt"></i></button>
-                            <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();" style="${btnStyle}" title="Editar código"><i class="fas fa-pencil-alt"></i></button>
+                           <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); this.blur();" style="${btnStyle}" title="Nuevo código">
+    <i class="fas fa-sync-alt"></i>
+</button>
+
+<button class="btn-icono-accion" onclick="editarCodigoInvitacion(); this.blur();" style="${btnStyle}" title="Editar código">
+    <i class="fas fa-pencil-alt"></i>
+</button>
                         ` : '<i class="fas fa-lock" style="color:#ccc; margin-left: 10px;"></i>'}
                     </div>
                 </div>
