@@ -101,6 +101,7 @@ function configurarControles() {
             fechaVisualizada.setDate(fechaVisualizada.getDate() - 7);
         }
         renderizarCalendario();
+        this.blur();
     };
     
     document.getElementById('btn-next').onclick = function() {
@@ -111,6 +112,7 @@ function configurarControles() {
             fechaVisualizada.setDate(fechaVisualizada.getDate() + 7);
         }
         renderizarCalendario();
+        this.blur();
     };
 
     document.getElementById('btn-vista-mes').onclick = function() {
@@ -121,6 +123,7 @@ function configurarControles() {
         this.classList.add('active');
         fechaVisualizada = new Date(fechaVisualizada.getFullYear(), fechaVisualizada.getMonth(), 1);
         renderizarCalendario();
+        this.blur();
     };
 
     document.getElementById('btn-vista-semana').onclick = function() {
@@ -131,6 +134,7 @@ function configurarControles() {
         this.classList.add('active');
         renderizarCalendario();
     };
+    this.blur();
 }
 
 function obtenerLunes(d) {
