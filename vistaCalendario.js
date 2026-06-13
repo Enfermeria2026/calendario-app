@@ -465,10 +465,10 @@ window.abrirModalMiembros = async () => {
                 ? `<img src="${miembro.foto}" class="miembro-foto">` 
                 : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
 
-           // Botón de lápiz o de ojo con micro-retraso para móviles
+           // Botón de lápiz y ojo limpios
             const accionHtml = esYo 
-                ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor(); setTimeout(() => this.blur(), 50);"><i class="fas fa-pencil-alt"></i></button>`
-                : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")}); setTimeout(() => this.blur(), 50);'><i class="fas fa-eye"></i></button>`;
+                ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor()"><i class="fas fa-pencil-alt"></i></button>`
+                : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>`;
 
             const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:15px; flex-shrink:0; margin-right: 12px;">(Tú)</span>` : '';
 
