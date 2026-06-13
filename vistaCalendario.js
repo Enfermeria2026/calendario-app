@@ -1,5 +1,4 @@
 import { db } from "./firebase-config.js";
-// Importación limpia y unificada (solo una vez)
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const idActivo = localStorage.getItem('usuario_activo');
@@ -135,10 +134,9 @@ function obtenerLunes(d) {
 }
 
 // =========================================================
-// NUEVO SISTEMA DE ESTRELLAS Y FIREBASE
+// SISTEMA DE CARGA DE ACONTECIMIENTOS Y PINTADO DE ESTRELLAS
 // =========================================================
 
-// Esta función carga todos los acontecimientos de un rango de fechas
 async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
     const acontecimientos = [];
     try {
@@ -164,7 +162,6 @@ async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
     return acontecimientos;
 }
 
-// Esta función inyecta las estrellas en las celdas
 function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSemana2 = false) {
     const idContainer = `estrellas-${fecha.getFullYear()}-${fecha.getMonth()+1}-${fecha.getDate()}`;
     const container = document.getElementById(idContainer);
@@ -183,10 +180,19 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
     );
 
     delDia.slice(0, 9).forEach(acontecimiento => {
-        const userId = acontecimiento.usuario_id; // Asegúrate de que el campo en Firebase se llama 'usuario_id'
+        // CORREGIDO: Uso de 'usuarioId' tal cual viene de tu Firebase original
+        const userId = acontecimiento.usuarioId; 
         const colorClase = mapaColores[userId] || 'c-negro';
+        
         const estrella = document.createElement('div');
         estrella.className = `star-icon bg-${colorClase}`;
+        
+        // SEGURIDAD AUTOMÁTICA: Forzamos tamaño para que no midan 0px y sean visibles
+        estrella.style.width = "6px";
+        estrella.style.height = "6px";
+        estrella.style.borderRadius = "50%";
+        estrella.style.display = "block";
+        
         container.appendChild(estrella);
     });
 }
@@ -200,7 +206,7 @@ function renderizarCalendario() {
 }
 
 // =========================================================
-// RENDERIZADO VISUAL
+// RENDERIZADO VISUAL DE LAS VISTAS
 // =========================================================
 
 async function renderizarMes() {
@@ -304,6 +310,9 @@ async function renderizarSemana() {
     domingo.setDate(lunes.getDate() + 6);
     const listaAcontecimientos = await cargarAcontecimientosDelPeriodo(lunes, domingo);
 
+    // Guardamos las llamadas para pintar después de añadir las filas de forma segura al DOM
+    const llamadasPintar = [];
+
     for (let i = 0; i < 7; i++) {
         const diaSemana = new Date(lunes);
         diaSemana.setDate(lunes.getDate() + i);
@@ -334,14 +343,21 @@ async function renderizarSemana() {
 
         if (i < 5) {
             fila1.appendChild(wrapper);
-            grid.appendChild(fila1); 
-            pintarEstrellas(listaAcontecimientos, diaSemana, true, false);
+            llamadasPintar.push({ fecha: diaSemana, f1: true, f2: false });
         } else {
             fila2.appendChild(wrapper);
-            grid.appendChild(fila2);
-            pintarEstrellas(listaAcontecimientos, diaSemana, false, true);
+            llamadasPintar.push({ fecha: diaSemana, f1: false, f2: true });
         }
     }
+
+    // Primero inyectamos las estructuras completas al DOM
+    grid.appendChild(fila1);
+    grid.appendChild(fila2);
+
+    // Ahora que existen físicamente en pantalla, pintamos las estrellas sin riesgo de fallos
+    llamadasPintar.forEach(item => {
+        pintarEstrellas(listaAcontecimientos, item.fecha, item.f1, item.f2);
+    });
 }
 
 function abrirDetalleDia(fecha) {
