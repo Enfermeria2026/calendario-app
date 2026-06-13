@@ -48,9 +48,15 @@ async function inicializarCalendario() {
         
         renderizarCalendario();
         
+        // --- CAMBIO AQUÍ: Botón de miembros para TODOS ---
+        document.getElementById('btn-miembros').onclick = function() { 
+            window.abrirModalMiembros(); 
+            this.blur(); 
+        };
+        
+        // --- Botón de configuración SOLO para admins ---
         if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
             document.getElementById('btn-config').classList.remove('hidden');
-            document.getElementById('btn-miembros').onclick = function() { this.blur(); };
             document.getElementById('btn-config').onclick = function() { this.blur(); };
         }
     } else {
@@ -407,3 +413,169 @@ async function renderizarSemana() {
 function abrirDetalleDia(fecha) {
     console.log("Día clickeado:", fecha.toLocaleDateString());
 }
+
+// =========================================================
+// SISTEMA DE MIEMBROS, PERFILES Y COLORES
+// =========================================================
+
+window.abrirModalMiembros = async () => {
+    const modal = document.getElementById('modal-miembros');
+    const container = document.getElementById('lista-miembros-container');
+    if (!modal || !container) return;
+
+    container.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'><i class='fas fa-spinner fa-spin'></i> Cargando miembros...</p>";
+    modal.classList.remove('hidden');
+
+    try {
+        // Traemos los datos de todos los miembros del calendario de una sola vez
+        const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+        const docs = await Promise.all(promesas);
+
+        let miembrosData = [];
+        docs.forEach(d => {
+            if (d.exists()) miembrosData.push({ id: d.id, ...d.data() });
+        });
+
+        // Ordenamos la lista: Yo primero, el resto después
+        miembrosData.sort((a, b) => {
+            if (a.id === idActivo) return -1;
+            if (b.id === idActivo) return 1;
+            return 0;
+        });
+
+        container.innerHTML = "";
+
+        miembrosData.forEach(miembro => {
+            const esYo = miembro.id === idActivo;
+            const miColor = mapaColores[miembro.id] || 'c-negro';
+            
+            // Foto o icono por defecto
+            const fotoHtml = miembro.foto 
+                ? `<img src="${miembro.foto}" class="miembro-foto">` 
+                : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
+
+            // Botón de lápiz (si soy yo) o de ojo (si es otro)
+            const accionHtml = esYo 
+                ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor()"><i class="fas fa-pencil-alt"></i></button>`
+                : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>`;
+
+            const row = document.createElement('div');
+            row.className = "miembro-row";
+            row.innerHTML = `
+                <div class="miembro-info">
+                    ${fotoHtml}
+                    <div class="miembro-detalles">
+                        <span class="miembro-nombre">${miembro.nombre} ${miembro.apellidos || ''} ${esYo ? '<span style="color:#ec407a;">(Tú)</span>' : ''}</span>
+                    </div>
+                </div>
+                <div class="miembro-actions">
+                    <div class="color-dot-indicator bg-${miColor}" style="box-shadow:none; border:none; width:18px; height:18px;"></div>
+                    ${accionHtml}
+                </div>
+            `;
+            container.appendChild(row);
+
+            // Inyectamos la cajita de los colores (oculta) solo debajo de mi nombre
+            if (esYo) {
+                const pickerBox = document.createElement('div');
+                pickerBox.id = "selector-colores-box";
+                pickerBox.className = "color-picker-box hidden";
+                container.appendChild(pickerBox);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error cargando miembros:", error);
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar.</p>";
+    }
+};
+
+window.mostrarSelectorColor = () => {
+    const box = document.getElementById('selector-colores-box');
+    if (!box) return;
+
+    // Si ya está abierto, lo cerramos
+    if (!box.classList.contains('hidden')) {
+        box.classList.add('hidden');
+        return;
+    }
+
+    // Averiguamos qué colores están ya cogidos por los DEMÁS
+    const coloresOcupados = Object.entries(mapaColores)
+        .filter(([id, color]) => id !== idActivo) 
+        .map(([id, color]) => color);
+
+    box.innerHTML = "";
+    box.classList.remove('hidden');
+
+    // Pintamos los 9 colores disponibles
+    COLORES_DISPONIBLES.forEach(color => {
+        const dot = document.createElement('div');
+        dot.className = `color-picker-dot bg-${color}`;
+        
+        // Si el color lo tiene otro, lo bloqueamos visualmente
+        if (coloresOcupados.includes(color)) {
+            dot.style.opacity = "0.2";
+            dot.style.cursor = "not-allowed";
+        } else {
+            // Si está libre, permitimos pulsarlo
+            dot.onclick = () => cambiarMiColor(color);
+        }
+        
+        // Ponemos un borde negro al color que tengo yo ahora mismo
+        if (mapaColores[idActivo] === color) {
+            dot.style.border = "3px solid #333";
+        }
+
+        box.appendChild(dot);
+    });
+};
+
+window.cambiarMiColor = async (nuevoColor) => {
+    // 1. Cambiamos el color en el mapa local
+    mapaColores[idActivo] = nuevoColor;
+    
+    try {
+        // 2. Lo guardamos en Firebase
+        await updateDoc(doc(db, "calendarios", calId), { colores_miembros: mapaColores });
+        datosCalendario.colores_miembros = mapaColores;
+        
+        // 3. Actualizamos la lista abierta para que se cierre la paleta y se vea el nuevo color
+        abrirModalMiembros(); 
+        
+        // 4. Cambiamos el punto de color de nuestra cabecera superior
+        const ind = document.getElementById('user-color-indicator');
+        if(ind) ind.className = `color-dot-indicator bg-${nuevoColor}`;
+        
+    } catch (error) {
+        console.error("Error guardando nuevo color:", error);
+    }
+};
+
+window.cerrarModalMiembros = () => {
+    document.getElementById('modal-miembros').classList.add('hidden');
+    // Tal y como pediste: al cerrar la cruz, se recarga el calendario entero
+    renderizarCalendario();
+};
+
+window.verPerfilUsuario = (user) => {
+    const modal = document.getElementById('modal-perfil-miembro');
+    const content = document.getElementById('perfil-miembro-content');
+    
+    const fotoHtml = user.foto 
+        ? `<img src="${user.foto}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; margin:0 auto 15px auto; display:block; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">` 
+        : `<div style="width:110px; height:110px; border-radius:50%; background:#ddd; color:white; font-size:45px; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><i class="fas fa-user"></i></div>`;
+
+    content.innerHTML = `
+        ${fotoHtml}
+        <h2 style="margin: 0; color: #333; font-size: 22px;">${user.nombre} ${user.apellidos || ''}</h2>
+        <p style="color: #ec407a; font-weight: bold; font-size: 14px; margin-top: 5px; margin-bottom: 20px;"><i class="fas fa-birthday-cake"></i> ${user.fecha || 'Sin fecha registrada'}</p>
+        
+        <div style="background: #fcfcfc; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: left;">
+            <strong style="color: #999; font-size: 12px; letter-spacing: 1px;">DESCRIPCIÓN</strong>
+            <p style="color: #444; margin-top: 8px; font-size: 15px; line-height: 1.5; margin-bottom: 0;">${user.descripcion || 'Este usuario aún no ha escrito ninguna descripción en su perfil.'}</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+};
