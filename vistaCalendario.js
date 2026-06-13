@@ -140,33 +140,50 @@ function obtenerLunes(d) {
 async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
     const acontecimientos = [];
     try {
-        // Verificamos que el calendario haya cargado y tenga miembros
         if (!datosCalendario || !datosCalendario.miembros || datosCalendario.miembros.length === 0) {
             return acontecimientos;
         }
 
-        // ¡LA MAGIA DE TU SISTEMA! 
-        // Creamos una búsqueda en Firebase por CADA miembro del calendario
         const promesas = datosCalendario.miembros.map(miembroId => {
             const q = query(collection(db, "acontecimientos"), where("userId", "==", miembroId));
             return getDocs(q);
         });
 
-        // Esperamos a que Firebase nos devuelva los eventos de todos los miembros a la vez
         const resultados = await Promise.all(promesas);
 
         resultados.forEach(querySnapshot => {
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                if (data.fecha) {
+                
+                if (data.tipo === "Viaje" && data.fechaIda && data.fechaVuelta) {
+                    // Si es un viaje, normalizamos las fechas de ida y vuelta
+                    const fIdaDoc = new Date(data.fechaIda);
+                    const fVueltaDoc = new Date(data.fechaVuelta);
+                    
+                    const fIdaClean = new Date(fIdaDoc.getFullYear(), fIdaDoc.getMonth(), fIdaDoc.getDate());
+                    const fVueltaClean = new Date(fVueltaDoc.getFullYear(), fVueltaDoc.getMonth(), fVueltaDoc.getDate());
+                    const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+                    const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+
+                    // El viaje se carga si se solapa de alguna forma con el mes/semana visible
+                    if (fIdaClean <= fFinClean && fVueltaClean >= fInicioClean) {
+                        acontecimientos.push({ 
+                            id: docSnap.id, 
+                            ...data, 
+                            esViaje: true,
+                            fechaIdaObjeto: fIdaClean,
+                            fechaVueltaObjeto: fVueltaClean
+                        });
+                    }
+                } else if (data.fecha) {
+                    // Acontecimiento normal (Trabajo, Otro...)
                     let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
                     const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
                     const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
                     const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
 
-                    // Si el evento cae dentro del mes que estamos viendo, lo guardamos para pintarlo
                     if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
-                        acontecimientos.push({ id: docSnap.id, ...data, fechaObjeto: fDocClean });
+                        acontecimientos.push({ id: docSnap.id, ...data, esViaje: false, fechaObjeto: fDocClean });
                     }
                 }
             });
