@@ -2,7 +2,7 @@ import { db } from "./firebase-config.js";
 import { collection, addDoc, query, where, getDocs, doc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const miID = localStorage.getItem('usuario_activo');
-// ¡NUEVO! Rescatamos en qué calendario estamos trabajando
+// Rescatamos el calendario activo en el que está el usuario
 const calIdActivo = localStorage.getItem('calendario_activo'); 
 
 let misTrabajos = [];
@@ -133,7 +133,7 @@ window.borrarSeleccionados = () => {
     });
 };
 
-// --- LOGICA MODAL INTERFAZ (ACTUALIZADA PARA VIAJES) ---
+// --- LOGICA MODAL INTERFAZ ---
 window.actualizarInterfazTipo = () => {
     const tipo = document.getElementById('ev-tipo').value;
     const divT = document.getElementById('div-trabajo-select');
@@ -192,7 +192,7 @@ function configurarSelectorSemanal() {
     });
 }
 
-// --- GUARDADO (ACTUALIZADO PARA VIAJES) ---
+// --- GUARDADO DE EVENTOS ---
 window.validarYGuardar = async () => {
     const titulo = document.getElementById('ev-titulo').value.trim();
     const tipo = document.getElementById('ev-tipo').value;
@@ -245,12 +245,12 @@ async function procesarGuardadoViaje(titulo, fIda, hIda, fVuelta, hVuelta) {
                 fechaVuelta: fVuelta,
                 horaVuelta: hVuelta,
                 fecha: fIda, 
-                calendarioId: calIdActivo // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
+                calendarioId: calIdActivo
             });
         } else {
             await addDoc(collection(db, "acontecimientos"), {
                 userId: miID,
-                calendarioId: calIdActivo, // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
+                calendarioId: calIdActivo, 
                 titulo: titulo,
                 tipo: "Viaje",
                 lugar: document.getElementById('ev-lugar').value,
@@ -302,13 +302,14 @@ async function procesarGuardado() {
                 fecha: fechas[0], 
                 horaInicio: document.getElementById('ev-hora-ini').value,
                 horaFin: document.getElementById('ev-hora-fin').value,
-                calendarioId: calIdActivo // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
+                calendarioId: calIdActivo
             });
         } else {
             for (let f of fechas) {
+                // ¡CORREGIDO! Ahora sí añade el 'calendarioId' a cada evento normal creado
                 await addDoc(collection(db, "acontecimientos"), {
                     userId: miID,
-                    calendarioId: calIdActivo, // ¡AQUÍ SE GUARDA LA ETIQUETA DEL CALENDARIO!
+                    calendarioId: calIdActivo, 
                     titulo: document.getElementById('ev-titulo').value,
                     tipo: document.getElementById('ev-tipo').value,
                     detalle: document.getElementById('ev-tipo').value === "Trabajo" ? document.getElementById('ev-trabajo-id').value : document.getElementById('ev-otro-nombre').value,
@@ -326,21 +327,27 @@ async function procesarGuardado() {
     }
 }
 
-// --- CARGA DE LISTA (FILTRANDO POR CALENDARIO) ---
+// --- CARGA DE LISTA INTELIGENTE (RECUPERA ANTIGUOS Y FILTRA NUEVOS) ---
 async function cargarLista() {
-    // AHORA SOLO CARGAMOS LOS EVENTOS DE ESTE USUARIO Y ESTE CALENDARIO
-    const q = query(
-        collection(db, "acontecimientos"), 
-        where("userId", "==", miID),
-        where("calendarioId", "==", calIdActivo)
-    );
-    
+    // Buscamos todos los del usuario para no perder los antiguos
+    const q = query(collection(db, "acontecimientos"), where("userId", "==", miID));
     const snap = await getDocs(q);
+    
     todosLosEventos = [];
-    snap.forEach(d => todosLosEventos.push({id: d.id, ...d.data()}));
+    snap.forEach(d => {
+        const evData = d.data();
+        // ¡SOLUCIÓN! Si el evento es antiguo (no tiene calendarioId) O pertenece al calendario activo, se muestra
+        if (!evData.calendarioId || evData.calendarioId === calIdActivo) {
+            todosLosEventos.push({id: d.id, ...evData});
+        }
+    });
+    
     todosLosEventos.sort((a,b) => new Date(a.fecha + "T" + (a.horaInicio || a.horaIda)) - new Date(b.fecha + "T" + (b.horaInicio || b.horaIda)));
     
-    if (todosLosEventos.length === 0) document.getElementById('subtitulo-vacio').classList.remove('hidden');
+    if (todosLosEventos.length === 0) {
+        const sub = document.getElementById('subtitulo-vacio');
+        if(sub) sub.classList.remove('hidden');
+    }
     renderizar();
 }
 
@@ -349,7 +356,9 @@ function renderizar() {
     const inicio = (pagActual - 1) * limite;
     const lista = todosLosEventos.slice(inicio, inicio + limite);
     
-    document.getElementById('barra-seleccion').style.display = todosLosEventos.length > 1 ? "flex" : "none";
+    const barra = document.getElementById('barra-seleccion');
+    if(barra) barra.style.display = todosLosEventos.length > 1 ? "flex" : "none";
+    
     const cont = document.getElementById('contenedor-eventos');
     if(!cont) return;
     cont.innerHTML = "";
@@ -398,7 +407,9 @@ function renderizar() {
     document.getElementById('page-info').innerText = `Página ${pagActual} de ${totalPags}`;
     document.getElementById('btn-prev').disabled = pagActual === 1;
     document.getElementById('btn-next').disabled = pagActual === totalPags;
-    document.getElementById('paginacion-box').style.display = todosLosEventos.length > 0 ? "flex" : "none";
+    
+    const pagBox = document.getElementById('paginacion-box');
+    if(pagBox) pagBox.style.display = todosLosEventos.length > 0 ? "flex" : "none";
 }
 
 window.prepararEdicion = async (id) => {
