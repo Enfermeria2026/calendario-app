@@ -451,9 +451,10 @@ window.abrirModalMiembros = async () => {
                 ? `<img src="${miembro.foto}" class="miembro-foto">` 
                 : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
 
+           // Botón de lápiz (si soy yo) o de ojo (si es otro), con desclique automático (this.blur())
             const accionHtml = esYo 
-                ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor()"><i class="fas fa-pencil-alt"></i></button>`
-                : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")})'><i class="fas fa-eye"></i></button>`;
+                ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor(); this.blur();"><i class="fas fa-pencil-alt"></i></button>`
+                : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")}); this.blur();'><i class="fas fa-eye"></i></button>`;
 
            // Mantenemos el (Tú) a salvo de recortes y lo separamos del color con margin-right
 const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:14px; flex-shrink:0; margin-right: 12px;">(Tú)</span>` : '';
