@@ -10,7 +10,7 @@ let datosCalendario = null;
 let mapaColores = {};
 let vistaActual = "mes"; 
 
-const COLORES_DISPONIBLES = ['c-azul', 'c-naranja', 'c-rojo', 'c-verde', 'c-morado', 'c-rosa', 'c-marron', 'c-amarillo', 'c-negro'];
+const COLORES_DISPONIBLES = ['c-azul', 'c-naranja', 'c-rojo', 'c-verde', 'c-morado', 'c-rosa', 'c-marron', 'c-amarillo', 'c-negro', 'c-cian', 'c-magenta', 'c-celeste'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!idActivo || !calId) { window.location.href = "dashboard.html"; return; }
