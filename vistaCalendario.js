@@ -1164,3 +1164,157 @@ window.confirmarExpulsion = async (miembroId) => {
     }
 };
 
+// =========================================================
+// FUNCIONALIDAD: TRASPASAR TITULARIDAD DEL CALENDARIO
+// =========================================================
+window.iniciarTraspasoTitular = async () => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    msg.innerText = "Traspasar titularidad del calendario";
+    
+    // Mostramos un spinner de carga dentro del modal mientras leemos los nombres de los miembros
+    extra.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando miembros del equipo...</p>";
+    
+    // El botón de aceptar empieza deshabilitado (disabled) y con opacidad reducida hasta que elijan a alguien
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-ejecutar-traspaso" disabled 
+                style="background: #ef5350; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: default; transition: 0.2s; opacity: 0.5;">
+            Confirmar Traspaso
+        </button>
+    `;
+    
+    modal.classList.remove('hidden');
+
+    try {
+        // Cargamos los datos de todos los miembros para poder mostrar sus nombres reales
+        const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+        const docs = await Promise.all(promesas);
+        
+        let miembrosCandidatos = [];
+        docs.forEach(d => {
+            // SÓLO añadimos a los miembros que NO sean el usuario activo actual (tú no te puedes traspasar a ti mismo)
+            if (d.exists() && d.id !== idActivo) {
+                miembrosCandidatos.push({ id: d.id, ...d.data() });
+            }
+        });
+
+        // Si no hay más miembros en el calendario, avisamos de que es imposible realizar el traspaso
+        if (miembrosCandidatos.length === 0) {
+            extra.innerHTML = `
+                <p style="color: #ef5350; font-size: 14px; line-height: 1.5; margin: 0; text-align: left;">
+                    No puedes traspasar la titularidad porque eres el único miembro actual de este calendario.
+                </p>
+            `;
+            return;
+        }
+
+        // Construimos el aviso de peligro y la lista seleccionable
+        let htmlContenido = `
+            <p style="color: #ef5350; font-weight: bold; font-size: 13px; margin: 0 0 12px 0; text-align: left; line-height: 1.4;">
+                <i class="fas fa-exclamation-triangle"></i> ¡ATENCIÓN! Al aceptar, cederás todos tus derechos de titular, serás ELIMINADO de este calendario inmediatamente y perderás el acceso al mismo.
+            </p>
+            <p style="color: #666; font-size: 13px; margin: 0 0 10px 0; text-align: left;">
+                Selecciona al nuevo titular del calendario:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; text-align: left;">
+        `;
+
+        miembrosCandidatos.forEach(miembro => {
+            // El truco de usar input type="radio" con el mismo 'name' garantiza que SÓLO SE PUEDA SELECCIONAR UNO
+            htmlContenido += `
+                <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; background: #fafafa;">
+                    <input type="radio" name="radio-nuevo-titular" value="${miembro.id}" onchange="window.desbloquearBotonTraspaso()" style="accent-color: #ec407a; cursor: pointer;">
+                    <span style="font-size: 14px; font-weight: bold; color: #333;">${miembro.nombre} ${miembro.apellidos || ''}</span>
+                </label>
+            `;
+        });
+
+        htmlContenido += `</div>`;
+        extra.innerHTML = htmlContenido;
+
+    } catch (error) {
+        console.error("Error al preparar el traspaso:", error);
+        extra.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar los miembros.</p>";
+    }
+};
+
+// Esta función se ejecuta en tiempo real en cuanto el usuario marca un radio button de la lista
+window.desbloquearBotonTraspaso = () => {
+    const btn = document.getElementById('btn-ejecutar-traspaso');
+    if (!btn) return;
+
+    // Conseguimos el ID del usuario seleccionado en los radio buttons
+    const seleccionado = document.querySelector('input[name="radio-nuevo-titular"]:checked');
+    
+    if (seleccionado) {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        // Vinculamos la ejecución final pasándole el ID elegido
+        btn.onclick = () => window.procesarTraspasoTitularDefinitivo(seleccionado.value);
+    }
+};
+
+// La ejecución crítica en Firebase al pulsar "Confirmar Traspaso"
+window.procesarTraspasoTitularDefinitivo = async (nuevoTitularId) => {
+    const btn = document.getElementById('btn-ejecutar-traspaso');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traspasando...';
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+    }
+
+    try {
+        // 1. Te eliminamos de la lista general de miembros del calendario
+        let miembrosActuales = datosCalendario.miembros || [];
+        miembrosActuales = miembrosActuales.filter(id => id !== idActivo);
+
+        // 2. Te eliminamos de la lista de administradores por si acaso estabas metido en ella
+        let adminsActuales = datosCalendario.admins || [];
+        adminsActuales = adminsActuales.filter(id => id !== idActivo);
+
+        // 3. Eliminamos tu color asignado del mapa para dejarlo libre
+        let coloresActuales = datosCalendario.colores_miembros || {};
+        if (coloresActuales[idActivo]) {
+            delete coloresActuales[idActivo];
+        }
+
+        // 4. Subimos los datos limpios a Firebase Firestore sustituyendo 'creador' por 'titular' como me pediste
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, {
+            titular: nuevoTitularId, // <-- Modificado con tu nuevo campo 'titular'
+            miembros: miembrosActuales,
+            admins: adminsActuales,
+            colores_miembros: coloresActuales
+        });
+
+        // 5. Cerramos los modales visuales para que no parpadee la interfaz
+        document.getElementById('miModal').classList.add('hidden');
+        document.getElementById('modal-config').classList.add('hidden');
+
+        // 6. ¡Redirección obligatoria! Como ya no eres parte del calendario, volvemos a la pantalla principal
+        window.location.href = "dashboard.html";
+
+    } catch (error) {
+        console.error("Error crítico durante el traspaso de titularidad:", error);
+        alert("Hubo un error de conexión al intentar procesar el traspaso.");
+        if (btn) {
+            btn.innerHTML = 'Confirmar Traspaso';
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
+    }
+};
+
+
+
+
