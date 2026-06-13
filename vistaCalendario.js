@@ -621,41 +621,41 @@ window.abrirModalConfig = async () => {
 
         const requiereAprobacion = datosCalendario.requiere_aprobacion || false;
 
-        // 1. SECCIÓN DE INFO, CÓDIGO Y PRIVACIDAD
+        // 1. SECCIÓN DE INFO, CÓDIGO Y PRIVACIDAD (Alineado a la izquierda)
         let htmlInfo = `
-            <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec;">
+            <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec; text-align: left;">
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div>
-                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Nombre del Calendario</span>
+                    <div style="flex: 1; overflow: hidden;">
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Nombre del Calendario</span>
                         <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px;">${datosCalendario.nombre}</div>
                     </div>
-                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="flex-shrink: 0;"><i class="fas fa-pencil-alt"></i></button>
                 </div>
                 
-                <hr style="border: none; border-top: 1px solid #fce4ec; margin: 10px 0;">
+                <hr style="border: none; border-top: 1px solid #fce4ec; margin: 12px 0;">
                 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Código de Invitación</span>
-                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datosCalendario.codigo_invitacion}</div>
+                    <div style="flex: 1; overflow: hidden;">
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Código de Invitación</span>
+                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datosCalendario.codigo_acceso || '---'}</div>
                     </div>
                     ${esCreador 
-                        ? `<div style="display: flex; gap: 5px;">
+                        ? `<div style="display: flex; gap: 5px; flex-shrink: 0;">
                                <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" title="Generar código nuevo"><i class="fas fa-sync-alt"></i></button>
                                <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();" title="Editar código"><i class="fas fa-pencil-alt"></i></button>
                            </div>`
-                        : `<i class="fas fa-lock" style="color: #ccc; margin-right: 5px;" title="Solo el creador puede cambiarlo"></i>`
+                        : `<i class="fas fa-lock" style="color: #ccc; margin-right: 5px; flex-shrink: 0;" title="Solo el creador puede cambiarlo"></i>`
                     }
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px; text-align: left;">
                 <div>
                     <div style="font-size: 14px; font-weight: bold; color: #333;">Privacidad</div>
                     <div style="font-size: 11px; color: #999;">Requerir aprobación para unirse</div>
                 </div>
-                <label style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                <label style="position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0;">
                     <input type="checkbox" id="toggle-priv" ${requiereAprobacion ? 'checked' : ''} onchange="cambiarPrivacidad(this.checked)" style="opacity: 0; width: 0; height: 0;">
                     <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${requiereAprobacion ? '#ec407a' : '#ccc'}; border-radius: 24px; transition: .3s;">
                         <span style="position: absolute; content: ''; height: 18px; width: 18px; left: ${requiereAprobacion ? '23px' : '3px'}; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
@@ -666,7 +666,7 @@ window.abrirModalConfig = async () => {
             <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
         `;
 
-        // 2. LISTA DE MIEMBROS
+        // 2. LISTA DE MIEMBROS (Roles alineados a la izquierda)
         let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
         miembrosData.forEach(miembro => {
             const mEsCreador = datosCalendario.creador === miembro.id;
@@ -690,11 +690,11 @@ window.abrirModalConfig = async () => {
 
             htmlMiembros += `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #f0f0f0; border-radius: 8px;">
-                    <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
                         <span style="font-weight: bold; font-size: 14px; color: #333;">${miembro.nombre} ${miembro.apellidos || ''} ${soyYo ? '<span style="color:#ec407a;">(Tú)</span>' : ''}</span>
                         ${rolTxt}
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
                         ${botonesHtml}
                     </div>
                 </div>
@@ -702,12 +702,11 @@ window.abrirModalConfig = async () => {
         });
         htmlMiembros += `</div>`;
 
-        // 3. ZONA DE PELIGRO (Solo Creador)
+        // 3. ZONA DE PELIGRO (Sin texto y con márgenes limpios)
         let htmlZonaPeligro = ``;
         if (esCreador) {
             htmlZonaPeligro = `
-                <h3 style="margin: 20px 0 0 0; font-size: 14px; color: #d32f2f; text-transform: uppercase; letter-spacing: 1px;">Zona de Peligro</h3>
-                <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
                     
                     <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
                         <i class="fas fa-sign-out-alt"></i> Salir y ceder titularidad
