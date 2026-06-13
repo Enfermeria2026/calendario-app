@@ -1333,7 +1333,7 @@ window.eliminarCalendarioDefinitivo = () => {
     // Diseño del aviso de peligro con enfoque de advertencia crítica
     extra.innerHTML = `
         <p style="color: #ef5350; font-weight: bold; font-size: 14px; margin: 0 0 12px 0; text-align: left; line-height: 1.4;">
-            <i class="fas fa-exclamation-triangle"></i> ¡ADENCIÓN CRÍTICA! Esta acción es completamente irreversible. 
+            <i class="fas fa-exclamation-triangle"></i> ¡ATENCIÓN! Esta acción es irreversible. 
         </p>
         <p style="color: #666; font-size: 13px; margin: 0; text-align: left; line-height: 1.5;">
             Al confirmar, este calendario se borrará de forma permanente de la base de datos. 
@@ -1349,7 +1349,7 @@ window.eliminarCalendarioDefinitivo = () => {
         </button>
         <button id="btn-borrar-calendario-ok" onclick="window.procesarBorradoCalendarioTotal()" 
                 style="background: #d32f2f; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none;">
-            Eliminar definitivamente
+            Eliminar
         </button>
     `;
 
