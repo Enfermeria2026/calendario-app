@@ -834,20 +834,18 @@ window.editarCodigoInvitacion = () => {
 
     if (!modal) return;
 
-    // Obtenemos el código actual de acceso
     const codigoActual = datosCalendario ? (datosCalendario.codigo_acceso || "") : "";
 
     msg.innerText = "Cambiar código de invitación";
     
-    // Insertamos el input configurado con los estilos de tu aplicación
+    // CORRECCIÓN: Se quita 'text-transform: uppercase;' para permitir escribir en minúsculas nativamente
     extra.innerHTML = `
         <input type="text" id="input-nuevo-codigo" value="${codigoActual}" 
-               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; outline: none; margin-bottom: 10px; font-family: inherit; color: #333; text-transform: uppercase;"
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; outline: none; margin-bottom: 10px; font-family: inherit; color: #333;"
                placeholder="Mínimo 6 y máximo 10 caracteres..." autocomplete="off">
         <p id="error-codigo" style="color: #ef5350; font-size: 12px; margin: 0; min-height: 15px;"></p>
     `;
 
-    // Botones personalizados respetando tus estilos
     btns.innerHTML = `
         <button onclick="document.getElementById('miModal').classList.add('hidden');" 
                 style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
@@ -861,7 +859,6 @@ window.editarCodigoInvitacion = () => {
 
     modal.classList.remove('hidden');
     
-    // Ponemos el foco en el input automáticamente
     setTimeout(() => {
         const input = document.getElementById('input-nuevo-codigo');
         if (input) {
@@ -871,7 +868,7 @@ window.editarCodigoInvitacion = () => {
     }, 100);
 };
 
-// Guardar el código manual con validación de longitud
+// Guardar el código manual con la nueva validación de campo vacío
 window.guardarNuevoCodigoInvitacion = async () => {
     const input = document.getElementById('input-nuevo-codigo');
     const errorMsg = document.getElementById('error-codigo');
@@ -879,37 +876,42 @@ window.guardarNuevoCodigoInvitacion = async () => {
     
     if (!input) return;
     
-    // Pasamos a mayúsculas y quitamos espacios en blanco
-    const nuevoCodigo = input.value.trim().toUpperCase();
+    const valorInput = input.value.trim();
     
-    // REQUISITO: Mínimo 6 y máximo 10 caracteres
+    // CORRECCIÓN 1: Si está vacío, muestra el mensaje personalizado exacto que pides
+    if (valorInput === "") {
+        errorMsg.innerText = "Inserte el nuevo código de invitación.";
+        input.style.borderColor = "#ef5350";
+        return;
+    }
+    
+    // Lo convertimos a mayúsculas internamente para guardarlo estandarizado en la base de datos
+    const nuevoCodigo = valorInput.toUpperCase();
+    
+    // Validación de longitud (Mínimo 6 y máximo 10)
     if (nuevoCodigo.length < 6 || nuevoCodigo.length > 10) {
         errorMsg.innerText = "El código debe tener entre 6 y 10 caracteres.";
-        input.style.borderColor = "#ef5350"; // Alerta visual roja
+        input.style.borderColor = "#ef5350";
         return;
     }
 
-    // Efecto visual de guardando
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     btnGuardar.style.opacity = "0.7";
     btnGuardar.disabled = true;
 
     try {
-        // Actualizamos en Firebase
         const calRef = doc(db, "calendarios", calId);
         await updateDoc(calRef, { codigo_acceso: nuevoCodigo });
 
-        // Sincronizamos en la memoria local
         if (datosCalendario) {
             datosCalendario.codigo_acceso = nuevoCodigo;
         }
 
-        // Cerramos la alerta y refrescamos los datos del panel de configuración
         document.getElementById('miModal').classList.add('hidden');
         await window.abrirModalConfig();
 
     } catch (error) {
-        console.error("Error al actualizar el código de invitación:", error);
+        console.error("Error:", error);
         errorMsg.innerText = "Hubo un error al guardar en la base de datos.";
         btnGuardar.innerHTML = 'Guardar';
         btnGuardar.style.opacity = "1";
@@ -919,7 +921,7 @@ window.guardarNuevoCodigoInvitacion = async () => {
 
 
 // =========================================================
-// FUNCIONALIDAD: GENERAR CÓDIGO ALEATORIO
+// FUNCIONALIDAD: GENERAR CÓDIGO ALEATORIO (9 DÍGITOS NUMÉRICOS)
 // =========================================================
 window.generarCodigoAleatorio = () => {
     const modal = document.getElementById('miModal');
@@ -951,7 +953,7 @@ window.generarCodigoAleatorio = () => {
     modal.classList.remove('hidden');
 };
 
-// Generación y confirmación del código aleatorio
+// CORRECCIÓN: Ahora genera estrictamente un código NUMÉRICO de 9 dígitos
 window.confirmarCodigoAleatorio = async () => {
     const btnConfirmar = document.getElementById('btn-confirmar-aleatorio');
     if (!btnConfirmar) return;
@@ -960,33 +962,28 @@ window.confirmarCodigoAleatorio = async () => {
     btnConfirmar.style.opacity = "0.7";
     btnConfirmar.disabled = true;
 
-    // Generamos un código de 6 caracteres alfanuméricos en mayúsculas
-    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    // Generamos un código puramente numérico de 9 dígitos (0-9)
     let codigoAleatorio = "";
-    for (let i = 0; i < 6; i++) {
-        codigoAleatorio += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    for (let i = 0; i < 9; i++) {
+        codigoAleatorio += Math.floor(Math.random() * 10).toString();
     }
 
     try {
-        // Actualizamos en Firebase Firestore
         const calRef = doc(db, "calendarios", calId);
         await updateDoc(calRef, { codigo_acceso: codigoAleatorio });
 
-        // Sincronizamos en memoria
         if (datosCalendario) {
             datosCalendario.codigo_acceso = codigoAleatorio;
         }
 
-        // Cerramos el modal y recargamos la vista de ajustes automáticamente
         document.getElementById('miModal').classList.add('hidden');
-        await window.abrirModalConfig();
+        await window.abrirModalConfig(); // Recarga automáticamente el panel de configuración de fondo
 
     } catch (error) {
-        console.error("Error al generar código aleatorio:", error);
+        console.error("Error:", error);
         alert("No se pudo generar el código aleatorio. Comprueba tu conexión.");
         btnConfirmar.innerHTML = 'Aceptar';
         btnConfirmar.style.opacity = "1";
         btnConfirmar.disabled = false;
     }
 };
-
