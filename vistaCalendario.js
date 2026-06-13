@@ -587,3 +587,120 @@ window.verPerfilUsuario = (user) => {
     
     modal.classList.remove('hidden');
 };
+
+// =========================================================
+// SISTEMA DE CONFIGURACIÓN DEL CALENDARIO
+// =========================================================
+
+window.abrirModalConfig = async () => {
+    const modal = document.getElementById('modal-config');
+    const container = document.getElementById('config-container');
+    if (!modal || !container) return;
+
+    modal.classList.remove('hidden');
+    container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando ajustes...</p>";
+
+    const esCreador = datosCalendario.creador === idActivo;
+    const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
+
+    // Seguridad extra: Si alguien abre esto hackeando, lo echamos
+    if (!esCreador && !esAdmin) {
+        container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos.</p>";
+        return;
+    }
+
+    try {
+        // Cargamos los usuarios igual que en miembros
+        const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+        const docs = await Promise.all(promesas);
+        let miembrosData = [];
+        docs.forEach(d => {
+            if (d.exists()) miembrosData.push({ id: d.id, ...d.data() });
+        });
+
+        // HTML del Nombre
+        let htmlInfo = `
+            <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Nombre del Calendario</span>
+                        <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px;">${datosCalendario.nombre}</div>
+                    </div>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();"><i class="fas fa-pencil-alt"></i></button>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #fce4ec; margin: 10px 0;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Código de Invitación</span>
+                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datosCalendario.codigo_invitacion}</div>
+                    </div>
+                    ${esCreador 
+                        ? `<button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();"><i class="fas fa-pencil-alt"></i></button>`
+                        : `<i class="fas fa-lock" style="color: #ccc; margin-right: 5px;"></i>`
+                    }
+                </div>
+            </div>
+            
+            <h3 style="margin: 5px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
+        `;
+
+        // HTML de la Lista de Miembros
+        let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+        
+        miembrosData.forEach(miembro => {
+            const mEsCreador = datosCalendario.creador === miembro.id;
+            const mEsAdmin = datosCalendario.admins && datosCalendario.admins.includes(miembro.id);
+            const soyYo = miembro.id === idActivo;
+
+            let rolTxt = mEsCreador ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Creador</span>` : 
+                         mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : 
+                         `<span style="color: #999; font-size: 11px;">Miembro</span>`;
+
+            // Botones de acción según quién mira
+            let botonesHtml = ``;
+            if (!mEsCreador && !soyYo) { 
+                // Nadie puede echar al creador ni a sí mismo desde esta lista
+                if (esCreador) {
+                    // El creador puede coronar/quitar admin y echar
+                    const iconoCorona = mEsAdmin ? `<i class="fas fa-user-times" style="color:#ffb300;"></i>` : `<i class="fas fa-user-shield" style="color:#ffb300;"></i>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="toggleAdmin('${miembro.id}', ${mEsAdmin}); document.activeElement.blur();" title="Gestionar Rol">${iconoCorona}</button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                } else if (esAdmin && !mEsAdmin) {
+                    // El admin solo puede echar a miembros rasos
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                }
+            }
+
+            htmlMiembros += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #f0f0f0; border-radius: 8px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: bold; font-size: 14px; color: #333;">${miembro.nombre} ${miembro.apellidos || ''} ${soyYo ? '<span style="color:#ec407a;">(Tú)</span>' : ''}</span>
+                        ${rolTxt}
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        ${botonesHtml}
+                    </div>
+                </div>
+            `;
+        });
+        htmlMiembros += `</div>`;
+
+        // Botón especial del Creador
+        let htmlAccionesBajas = ``;
+        if (esCreador) {
+            htmlAccionesBajas = `
+                <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="margin-top: 10px; background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">
+                    <i class="fas fa-sign-out-alt"></i> Salir y ceder titularidad
+                </button>
+            `;
+        }
+
+        container.innerHTML = htmlInfo + htmlMiembros + htmlAccionesBajas;
+
+    } catch (error) {
+        console.error("Error cargando configuración:", error);
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar ajustes.</p>";
+    }
+};
