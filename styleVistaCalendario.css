@@ -105,9 +105,9 @@ box-shadow: none !important;
 -webkit-tap-highlight-color: transparent;
 }
 .btn-vista.active {
-background: white !important;
-color: #ec407a !important;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    background: white !important;
+    color: #ec407a !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .date-navigation {
 display: flex;
