@@ -402,7 +402,7 @@ html, body {
 button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
     outline: none !important;
     background-color: transparent; 
-}
+} /* <-- ¡ESTA ES LA LLAVE QUE FALTABA! */
 
 /* =========================================================
    PROTECCIÓN ANTI-CLIC FANTASMA PARA MÓVILES
@@ -419,20 +419,40 @@ button, a {
 
 /* 2. Si el dispositivo es táctil (no tiene ratón), anulamos el hover pegajoso */
 @media (hover: none) {
-    .btn-icono-accion:hover, 
-    #btn-prev:hover, 
-    #btn-next:hover, 
-    .btn-vista:hover {
-        /* Obligamos a que el botón no cambie de color ni de fondo al soltar el dedo */
+    
+    /* A) BOTÓN DEL LÁPIZ Y DEL OJO: Vuelven a su gris al soltar */
+    .btn-icono-accion:hover {
         background-color: transparent !important;
-        color: #999 !important; /* El color original de tus iconos */
+        color: #999 !important;
         transform: none !important;
     }
     
-    /* Solo reacciona en el milisegundo exacto que tu dedo está apretando la pantalla */
-    .btn-icono-accion:active {
-        color: #ec407a !important;
+    /* B) FLECHAS DE PASAR MES/SEMANA: Vuelven a su ROSITA original al soltar */
+    #btn-prev:hover, 
+    #btn-next:hover {
+        background-color: transparent !important;
+        color: #ec407a !important; 
+        transform: none !important;
+    }
+
+    /* C) BOTONES DE VISTA (MES / SEMANA) */
+    .btn-vista:hover {
+        background-color: transparent !important;
+        color: #ec407a !important; /* Texto rosa cuando no están activos */
+    }
+    
+    /* ESCUDO: Si el botón de Mes o Semana está pulsado (.active), se queda rosa con letras blancas */
+    .btn-vista.active,
+    .btn-vista.active:hover {
+        background-color: #ec407a !important;
+        color: white !important;
+        font-weight: bold !important;
+    }
+    
+    /* Efecto momentáneo en el milisegundo que el dedo aprieta la pantalla */
+    .btn-icono-accion:active,
+    #btn-prev:active,
+    #btn-next:active {
         transform: scale(0.9) !important;
     }
-}
 }
