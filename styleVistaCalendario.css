@@ -402,6 +402,7 @@ html, body {
 button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
     outline: none !important;
     background-color: transparent; 
+}
 
 /* =========================================================
    PROTECCIÓN ANTI-CLIC FANTASMA PARA MÓVILES
