@@ -90,6 +90,7 @@ async function asegurarColoresMiembros() {
 
 function configurarControles() {
     document.getElementById('btn-prev').onclick = function() {
+        this.blur();
    
         if (vistaActual === "mes") {
             if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
@@ -104,6 +105,7 @@ function configurarControles() {
     };
     
     document.getElementById('btn-next').onclick = function() {
+        this.blur();
        
         if (vistaActual === "mes") {
             fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
@@ -115,6 +117,7 @@ function configurarControles() {
     };
 
     document.getElementById('btn-vista-mes').onclick = function() {
+        this.blur();
        
         if (vistaActual === "mes") return;
         vistaActual = "mes";
@@ -126,6 +129,7 @@ function configurarControles() {
     };
 
     document.getElementById('btn-vista-semana').onclick = function() {
+        this.blur();
        
         if (vistaActual === "semana") return;
         vistaActual = "semana";
