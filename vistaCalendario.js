@@ -134,60 +134,45 @@ function obtenerLunes(d) {
 }
 
 // =========================================================
-// SISTEMA DE CARGA DE ACONTECIMIENTOS (MODO DIAGNÓSTICO)
+// SISTEMA DE CARGA BASADO EN LOS MIEMBROS DEL CALENDARIO
 // =========================================================
 
 async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
     const acontecimientos = [];
     try {
-        console.log("🔍 Buscando acontecimientos para el calendario ID:", calId);
-        
-        // OJO: Si en tu Firebase el campo se llama 'calendario_id' o de otra forma, la consulta dará 0 resultados
-        const q = query(collection(db, "acontecimientos"), where("calendarioId", "==", calId));
-        const querySnapshot = await getDocs(q);
-        
-        console.log(`📦 Se han encontrado ${querySnapshot.size} documentos en Firebase para este calendario.`);
-        
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            console.log("📄 Revisando documento:", doc.id, data);
+        // Verificamos que el calendario haya cargado y tenga miembros
+        if (!datosCalendario || !datosCalendario.miembros || datosCalendario.miembros.length === 0) {
+            return acontecimientos;
+        }
 
-            if (data.fecha) {
-                let fechaDoc;
-                
-                // SISTEMA ANTI-ERRORES DE FECHA
-                if (typeof data.fecha.toDate === 'function') {
-                    fechaDoc = data.fecha.toDate(); // Si es Timestamp de Firebase
-                } else if (typeof data.fecha === 'string' && data.fecha.includes('/')) {
-                    // Si guardaste la fecha como "13/06/2026"
-                    const partes = data.fecha.split('/');
-                    if (partes.length === 3) fechaDoc = new Date(partes[2], partes[1] - 1, partes[0]);
-                    else fechaDoc = new Date(data.fecha);
-                } else {
-                    fechaDoc = new Date(data.fecha); // Si es formato estándar "YYYY-MM-DD"
+        // ¡LA MAGIA DE TU SISTEMA! 
+        // Creamos una búsqueda en Firebase por CADA miembro del calendario
+        const promesas = datosCalendario.miembros.map(miembroId => {
+            const q = query(collection(db, "acontecimientos"), where("userId", "==", miembroId));
+            return getDocs(q);
+        });
+
+        // Esperamos a que Firebase nos devuelva los eventos de todos los miembros a la vez
+        const resultados = await Promise.all(promesas);
+
+        resultados.forEach(querySnapshot => {
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.fecha) {
+                    let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
+                    const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
+                    const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+                    const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+
+                    // Si el evento cae dentro del mes que estamos viendo, lo guardamos para pintarlo
+                    if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
+                        acontecimientos.push({ id: docSnap.id, ...data, fechaObjeto: fDocClean });
+                    }
                 }
-
-                if (isNaN(fechaDoc)) {
-                    console.error("❌ ERROR: La fecha no se entiende en el documento:", doc.id);
-                    return; 
-                }
-
-                const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
-                const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-                const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-
-                if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
-                    console.log("✅ Acontecimiento DENTRO del mes. Añadido a la lista.");
-                    acontecimientos.push({ id: doc.id, ...data, fechaObjeto: fDocClean });
-                } else {
-                    console.log("⚠️ Acontecimiento FUERA del mes visualizado.");
-                }
-            } else {
-                console.warn("❌ El documento no tiene un campo llamado 'fecha':", doc.id);
-            }
+            });
         });
     } catch (error) {
-        console.error("❌ Error crítico conectando con Firebase:", error);
+        console.error("Error cargando acontecimientos de los miembros:", error);
     }
     return acontecimientos;
 }
