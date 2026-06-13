@@ -603,6 +603,13 @@ window.abrirModalConfig = async () => {
     modal.classList.remove('hidden');
     container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando ajustes...</p>";
 
+    // ASEGURAR QUE TENEMOS LOS DATOS DEL CALENDARIO
+    if (!datosCalendario) {
+        console.error("No hay datos de calendario cargados");
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar datos.</p>";
+        return;
+    }
+
     const esCreador = datosCalendario.creador === idActivo;
     const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
 
