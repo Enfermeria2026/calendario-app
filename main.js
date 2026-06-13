@@ -286,13 +286,33 @@ if (btnUnirse) {
                     const calDoc = snap.docs[0];
                     const calData = calDoc.data();
                     
-                    // Comprobamos si el usuario ya está dentro
+                // Comprobamos si el usuario ya está dentro
                     if (calData.miembros && calData.miembros.includes(idActivo)) {
                         window.ocultarCarga();
                         setTimeout(() => lanzarAviso("Ya formas parte de este calendario."), 300);
                         return;
                     }
 
+                    // --- NUEVO: COMPROBACIÓN DE PRIVACIDAD (REQUERIR APROBACIÓN) ---
+                    if (calData.requiere_aprobacion === true) {
+                        // Si ya envió una solicitud previamente, le avisamos para no duplicar
+                        if (calData.solicitudes && calData.solicitudes.includes(idActivo)) {
+                            window.ocultarCarga();
+                            setTimeout(() => lanzarAviso("Tu solicitud de acceso ya está enviada y pendiente de aprobación."), 300);
+                            return;
+                        }
+
+                        // Guardamos su ID en la lista de solicitudes pendientes
+                        await updateDoc(doc(db, "calendarios", calDoc.id), {
+                            solicitudes: arrayUnion(idActivo)
+                        });
+
+                        window.ocultarCarga();
+                        setTimeout(() => lanzarAviso("La solicitud ya ha sido enviada al titular y administradores del calendario."), 300);
+                        return; // Cortamos la función aquí para que NO se una directamente
+                    }
+
+                    
                     // --- NUEVA RESTRICCIÓN: LÍMITE DE 9 PARTICIPANTES ---
                     if (calData.miembros && calData.miembros.length >= 9) {
                         window.ocultarCarga();
