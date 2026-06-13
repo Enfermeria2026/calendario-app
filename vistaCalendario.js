@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+// Importación limpia y unificada (solo una vez)
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 const idActivo = localStorage.getItem('usuario_activo');
@@ -86,7 +86,6 @@ function configurarControles() {
             if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
             fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
         } else {
-            // Comprobación de seguridad para no retroceder de la semana actual
             const lunesActualSemana = obtenerLunes(fechaVisualizada);
             const lunesSemanaHoy = obtenerLunes(HOY_REAL);
             
@@ -127,18 +126,71 @@ function configurarControles() {
     };
 }
 
-// Función matemática corregida e infalible para calcular el lunes de la semana actual
 function obtenerLunes(d) {
     const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const day = date.getDay();
-    
-    // En JS: Dom=0, Lun=1, Mar=2, Mié=3, Jue=4, Vie=5, Sáb=6
-    // Queremos saber cuántos días restar para volver al Lunes (donde Lunes = 0 días de resta)
     const diasPorRestar = (day === 0) ? 6 : day - 1;
-    
     date.setDate(date.getDate() - diasPorRestar);
     return date;
 }
+
+// =========================================================
+// NUEVO SISTEMA DE ESTRELLAS Y FIREBASE
+// =========================================================
+
+// Esta función carga todos los acontecimientos de un rango de fechas
+async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
+    const acontecimientos = [];
+    try {
+        const q = query(collection(db, "acontecimientos"), where("calendarioId", "==", calId));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.fecha) {
+                let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
+                const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
+                const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+                const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+
+                if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
+                    acontecimientos.push({ id: doc.id, ...data, fechaObjeto: fDocClean });
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Error cargando acontecimientos:", error);
+    }
+    return acontecimientos;
+}
+
+// Esta función inyecta las estrellas en las celdas
+function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSemana2 = false) {
+    const idContainer = `estrellas-${fecha.getFullYear()}-${fecha.getMonth()+1}-${fecha.getDate()}`;
+    const container = document.getElementById(idContainer);
+    if (!container) return;
+
+    if (esFilaSemana1) container.className = "stars-grid-semana-fila1";
+    else if (esFilaSemana2) container.className = "stars-grid-semana-fila2";
+    else container.className = "stars-grid";
+
+    container.innerHTML = ""; 
+
+    const delDia = acontecimientos.filter(a => 
+        a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
+        a.fechaObjeto.getMonth() === fecha.getMonth() &&
+        a.fechaObjeto.getDate() === fecha.getDate()
+    );
+
+    delDia.slice(0, 9).forEach(acontecimiento => {
+        const userId = acontecimiento.usuario_id; // Asegúrate de que el campo en Firebase se llama 'usuario_id'
+        const colorClase = mapaColores[userId] || 'c-negro';
+        const estrella = document.createElement('div');
+        estrella.className = `star-icon bg-${colorClase}`;
+        container.appendChild(estrella);
+    });
+}
+
 function renderizarCalendario() {
     if (vistaActual === "mes") {
         renderizarMes();
@@ -147,13 +199,16 @@ function renderizarCalendario() {
     }
 }
 
-function renderizarMes() {
+// =========================================================
+// RENDERIZADO VISUAL
+// =========================================================
+
+async function renderizarMes() {
     const grid = document.getElementById('calendar-grid');
     const header = document.getElementById('dias-header');
     const display = document.getElementById('mes-actual-display');
     if(!grid || !header || !display) return;
 
-    // Restauramos formato de Mes
     header.style.display = ""; 
     grid.className = "calendar-grid"; 
     header.innerHTML = "<div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>";
@@ -177,12 +232,20 @@ function renderizarMes() {
     let diaSemInicio = primerDia.getDay() - 1;
     if (diaSemInicio === -1) diaSemInicio = 6;
     
+    const fechaInicioCarga = new Date(anio, mes, 1 - diaSemInicio);
+    const celdasVaciasFinal = (diaSemInicio + ultimoDia.getDate()) < 42 ? 42 - (diaSemInicio + ultimoDia.getDate()) : 0;
+    const fechaFinCarga = new Date(anio, mes + 1, celdasVaciasFinal);
+
+    const listaAcontecimientos = await cargarAcontecimientosDelPeriodo(fechaInicioCarga, fechaFinCarga);
+    
     for (let i = 0; i < diaSemInicio; i++) {
         const celda = document.createElement('div');
         celda.className = "day-cell day-other-month day-past";
         const diaPasado = (ultimoDiaPasado.getDate() - diaSemInicio + 1) + i;
-        celda.innerHTML = `<div class="day-number">${diaPasado}</div><div class="stars-grid"></div>`;
+        const fPasada = new Date(anio, mes - 1, diaPasado);
+        celda.innerHTML = `<div class="day-number">${diaPasado}</div><div class="stars-grid" id="estrellas-${fPasada.getFullYear()}-${fPasada.getMonth()+1}-${diaPasado}"></div>`;
         grid.appendChild(celda);
+        pintarEstrellas(listaAcontecimientos, fPasada);
     }
     
     for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
@@ -196,26 +259,27 @@ function renderizarMes() {
         celda.innerHTML = `<div class="day-number">${dia}</div><div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}"></div>`;
         celda.onclick = () => abrirDetalleDia(fCelda);
         grid.appendChild(celda);
+        pintarEstrellas(listaAcontecimientos, fCelda);
     }
     
-    const generadas = diaSemInicio + ultimoDia.getDate();
-    if (generadas < 42) {
-        for (let j = 1; j <= (42 - generadas); j++) {
+    if (celdasVaciasFinal > 0) {
+        for (let j = 1; j <= celdasVaciasFinal; j++) {
             const celdaVacia = document.createElement('div');
             celdaVacia.className = "day-cell day-other-month";
-            celdaVacia.innerHTML = `<div class="day-number">${j}</div><div class="stars-grid"></div>`;
+            const fSiguiente = new Date(anio, mes + 1, j);
+            celdaVacia.innerHTML = `<div class="day-number">${j}</div><div class="stars-grid" id="estrellas-${fSiguiente.getFullYear()}-${fSiguiente.getMonth()+1}-${j}"></div>`;
             grid.appendChild(celdaVacia);
+            pintarEstrellas(listaAcontecimientos, fSiguiente);
         }
     }
 }
 
-function renderizarSemana() {
+async function renderizarSemana() {
     const grid = document.getElementById('calendar-grid');
     const header = document.getElementById('dias-header');
     const display = document.getElementById('mes-actual-display');
     if(!grid || !header || !display) return;
 
-    // Ocultamos la cabecera estándar de días porque los inyectaremos nosotros
     header.style.display = "none";
     grid.className = "vista-semanal-container";
     grid.innerHTML = "";
@@ -229,7 +293,6 @@ function renderizarSemana() {
     btnPrev.style.opacity = esSemanaActual ? "0.3" : "1";
     btnPrev.style.cursor = esSemanaActual ? "default" : "pointer";
 
-    // Creamos los dos contenedores de filas
     const fila1 = document.createElement('div');
     fila1.className = "semana-fila-1";
     const fila2 = document.createElement('div');
@@ -237,7 +300,10 @@ function renderizarSemana() {
 
     const nombresDias = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
 
-    // Pintamos los 7 días
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    const listaAcontecimientos = await cargarAcontecimientosDelPeriodo(lunes, domingo);
+
     for (let i = 0; i < 7; i++) {
         const diaSemana = new Date(lunes);
         diaSemana.setDate(lunes.getDate() + i);
@@ -251,7 +317,7 @@ function renderizarSemana() {
 
         const celda = document.createElement('div');
         celda.className = "day-cell";
-        celda.style.flex = "1"; // Ocupa todo el alto de su fila
+        celda.style.flex = "1";
         
         if (diaSemana < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
         if (diaSemana.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
@@ -266,56 +332,16 @@ function renderizarSemana() {
         wrapper.appendChild(headerDia);
         wrapper.appendChild(celda);
 
-        // Repartimos: L-V a la fila 1, S-D a la fila 2
-        if (i < 5) fila1.appendChild(wrapper);
-        else fila2.appendChild(wrapper);
-    }
-
-    grid.appendChild(fila1);
-    grid.appendChild(fila2);
-}
-
-// Carga los eventos del mes visualizado
-async function cargarAcontecimientos(anio, mes) {
-    const eventos = [];
-    // Consultamos acontecimientos del calendario activo
-    const q = query(collection(db, "acontecimientos"), where("calendarioId", "==", calId));
-    const querySnapshot = await getDocs(q);
-    
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        // Asumiendo que guardas la fecha como una cadena "YYYY-MM-DD" o Timestamp
-        // Adaptar según tu estructura de base de datos
-        const fechaEvento = new Date(data.fecha); 
-        if (fechaEvento.getFullYear() === anio && fechaEvento.getMonth() === mes) {
-            eventos.push({ id: doc.id, ...data });
+        if (i < 5) {
+            fila1.appendChild(wrapper);
+            grid.appendChild(fila1); 
+            pintarEstrellas(listaAcontecimientos, diaSemana, true, false);
+        } else {
+            fila2.appendChild(wrapper);
+            grid.appendChild(fila2);
+            pintarEstrellas(listaAcontecimientos, diaSemana, false, true);
         }
-    });
-    return eventos;
-}
-
-// Pintar estrellas
-function pintarEstrellas(eventos, fecha, esFilaSemana1 = false, esFilaSemana2 = false) {
-    const dia = fecha.getDate();
-    const eventosDia = eventos.filter(e => new Date(e.fecha).getDate() === dia);
-    
-    const idContainer = `estrellas-${fecha.getFullYear()}-${fecha.getMonth()+1}-${dia}`;
-    const container = document.getElementById(idContainer);
-    if (!container) return;
-
-    // Aplicar la clase de grid correcta
-    if (esFilaSemana1) container.className = "stars-grid-semana-fila1";
-    else if (esFilaSemana2) container.className = "stars-grid-semana-fila2";
-    else container.className = "stars-grid";
-
-    container.innerHTML = ""; // Limpiar antes de pintar
-
-    // Pintar máximo 9 estrellas
-    eventosDia.slice(0, 9).forEach(ev => {
-        const estrella = document.createElement('div');
-        estrella.className = `star-icon bg-${mapaColores[ev.usuarioId] || 'c-negro'}`;
-        container.appendChild(estrella);
-    });
+    }
 }
 
 function abrirDetalleDia(fecha) {
