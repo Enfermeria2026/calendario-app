@@ -1,90 +1,79 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interior del Calendario</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="styleVistaCalendario.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interior del Calendario</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="styleVistaCalendario.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body style="background-color: #fff5f8;">
+<header class="header" style="justify-content: space-between; align-items: center; display: flex; box-sizing: border-box; height: 60px; padding: 0 15px;">
+<div class="header-left" style="display: flex; align-items: center; height: 100%;">
+<button onclick="location.href='dashboard.html'" class="btn-volver">
+<i class="fas fa-arrow-left"></i> Volver
+</button>
+</div>
 
-    <header class="header" style="justify-content: space-between; align-items: center; display: flex; box-sizing: border-box; height: 60px; padding: 0 15px;">
-        <div class="header-left" style="display: flex; align-items: center; height: 100%;">
-            <button onclick="location.href='dashboard.html'" class="btn-volver">
-                <i class="fas fa-arrow-left"></i> Volver
-            </button>
-        </div>
-        
-        <div class="header-center" style="display: flex; align-items: center; gap: 8px; color: white; font-weight: bold; font-size: 15px;">
-            <span id="header-user-name">Cargando...</span>
-            <div id="user-color-indicator" class="color-dot-indicator"></div>
-        </div>
+<div class="header-center" style="display: flex; align-items: center; gap: 8px; color: white; font-weight: bold; font-size: 15px;">
+<span id="header-user-name">Cargando...</span>
+<div id="user-color-indicator" class="color-dot-indicator"></div>
+</div>
+<div class="header-right" style="display: flex; align-items: center; height: 100%;">
+<button id="btn-miembros" class="icon-btn" title="Miembros"><i class="fas fa-users"></i></button>
+<button id="btn-config" class="icon-btn hidden" title="Configuración"><i class="fas fa-cog"></i></button>
+</div>
+</header>
+<main class="main-content">
 
-        <div class="header-right" style="display: flex; align-items: center; height: 100%;">
-            <button id="btn-miembros" class="icon-btn" title="Miembros"><i class="fas fa-users"></i></button>
-            <button id="btn-config" class="icon-btn hidden" title="Configuración"><i class="fas fa-cog"></i></button>
-        </div>
-    </header>
+<div class="calendar-controls">
+<span id="titulo-calendario" style="color: #ec407a; font-weight: 800; font-size: 20px; margin-bottom: 15px; display: block; text-align: center;">Cargando...</span>
+<div class="view-toggles">
+<button id="btn-vista-mes" class="btn-vista active">Mes</button>
+<button id="btn-vista-semana" class="btn-vista">Semana</button>
+</div>
 
-    <main class="main-content">
-        
-        <div class="calendar-controls">
-            <span id="titulo-calendario" style="color: #ec407a; font-weight: 800; font-size: 20px; margin-bottom: 15px; display: block; text-align: center;">Cargando...</span>
-
-            <div class="view-toggles">
-                <button id="btn-vista-mes" class="btn-vista active">Mes</button>
-                <button id="btn-vista-semana" class="btn-vista">Semana</button>
-            </div>
-            
-            <div class="date-navigation">
-                <button id="btn-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="mes-actual-display">Mes Año</h2>
-                <button id="btn-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </div>
-
-        <div class="dias-semana-header" id="dias-header"></div>
-
-       <div class="calendar-grid" id="calendar-grid"></div>
-
-    </main>
-
-    <div id="miModal" class="modal-overlay hidden">
-        <div class="modal-box" style="padding: 30px; max-width: 380px; text-align: left;">
-            <p id="modalMsg" style="font-weight: bold; color: #333; font-size: 16px; margin-bottom: 25px;"></p>
-            <div id="modalExtra"></div>
-            <div class="modal-btns" id="modalBtnsContainer" style="display: flex; gap: 10px; justify-content: flex-end;"></div>
-        </div>
-    </div>
-
-    <div id="modal-miembros" class="modal-overlay hidden">
-        <div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; height: 70vh; padding: 25px;">
-            <button class="modal-close-btn" onclick="cerrarModalMiembros()"><i class="fas fa-times"></i></button>
-            <h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Miembros</h2>
-            <div id="lista-miembros-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px;">
-                </div>
-        </div>
-    </div>
-
-    <div id="modal-perfil-miembro" class="modal-overlay hidden" style="z-index: 1001;">
-        <div class="modal-box" style="text-align: center; padding: 35px 25px;">
-            <button class="modal-close-btn" onclick="document.getElementById('modal-perfil-miembro').classList.add('hidden')"><i class="fas fa-times"></i></button>
-            <div id="perfil-miembro-content">
-                </div>
-        </div>
-    </div>
-
+<div class="date-navigation">
+<button id="btn-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+<h2 id="mes-actual-display">Mes Año</h2>
+<button id="btn-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+</div>
+</div>
+<div class="dias-semana-header" id="dias-header"></div>
+<div class="calendar-grid" id="calendar-grid"></div>
+</main>
+<div id="miModal" class="modal-overlay hidden">
+<div class="modal-box" style="padding: 30px; max-width: 380px; text-align: left;">
+<p id="modalMsg" style="font-weight: bold; color: #333; font-size: 16px; margin-bottom: 25px;"></p>
+<div id="modalExtra"></div>
+<div class="modal-btns" id="modalBtnsContainer" style="display: flex; gap: 10px; justify-content: flex-end;"></div>
+</div>
+</div>
+<div id="modal-miembros" class="modal-overlay hidden">
+<div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; height: 70vh; padding: 25px;">
+<button class="modal-close-btn" onclick="cerrarModalMiembros()"><i class="fas fa-times"></i></button>
+<h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Miembros</h2>
+<div id="lista-miembros-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px;">
+</div>
+</div>
+</div>
+<div id="modal-perfil-miembro" class="modal-overlay hidden" style="z-index: 1001;">
+<div class="modal-box" style="text-align: center; padding: 35px 25px;">
+<button class="modal-close-btn" onclick="document.getElementById('modal-perfil-miembro').classList.add('hidden')"><i class="fas fa-times"></i></button>
+<div id="perfil-miembro-content">
+</div>
+</div>
+</div>
 <div id="modal-config" class="modal-overlay hidden" style="z-index: 1005;">
-        <div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; max-height: 80vh; padding: 25px;">
-            <button class="modal-close-btn" onclick="document.getElementById('modal-config').classList.add('hidden')"><i class="fas fa-times"></i></button>
-            <h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Configuración</h2>
-            <div id="config-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 5px;">
-                </div>
-        </div>
-    </div>
-    
-    <script type="module" src="vistaCalendario.js"></script>
+<div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; max-height: 80vh; padding: 25px;">
+<button class="modal-close-btn" onclick="document.getElementById('modal-config').classList.add('hidden')"><i class="fas fa-times"></i></button>
+<h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Configuración</h2>
+<div id="config-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 5px;">
+</div>
+</div>
+</div>
+
+<script type="module" src="vistaCalendario.js"></script>
 </body>
 </html>
