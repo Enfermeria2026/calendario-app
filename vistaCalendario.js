@@ -1188,7 +1188,7 @@ window.iniciarTraspasoTitular = async () => {
         </button>
         <button id="btn-ejecutar-traspaso" disabled 
                 style="background: #ef5350; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: default; transition: 0.2s; opacity: 0.5;">
-            Confirmar Traspaso
+            Confirmar
         </button>
     `;
     
@@ -1231,9 +1231,11 @@ window.iniciarTraspasoTitular = async () => {
         miembrosCandidatos.forEach(miembro => {
             // El truco de usar input type="radio" con el mismo 'name' garantiza que SÓLO SE PUEDA SELECCIONAR UNO
             htmlContenido += `
-                <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; background: #fafafa;">
-                    <input type="radio" name="radio-nuevo-titular" value="${miembro.id}" onchange="window.desbloquearBotonTraspaso()" style="accent-color: #ec407a; cursor: pointer;">
-                    <span style="font-size: 14px; font-weight: bold; color: #333;">${miembro.nombre} ${miembro.apellidos || ''}</span>
+                <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 15px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; background: #fafafa;">
+                    <span style="font-size: 14px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                        ${miembro.nombre} ${miembro.apellidos || ''}
+                    </span>
+                    <input type="radio" name="radio-nuevo-titular" value="${miembro.id}" onchange="window.desbloquearBotonTraspaso()" style="accent-color: #ec407a; cursor: pointer; width: 18px; height: 18px; margin: 0; flex-shrink: 0; outline: none;">
                 </label>
             `;
         });
