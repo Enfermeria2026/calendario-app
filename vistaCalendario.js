@@ -606,7 +606,7 @@ window.abrirModalConfig = async () => {
     if (!modal || !container) return;
 
     modal.classList.remove('hidden');
-    container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando...</p>";
+    container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando ajustes...</p>";
 
     try {
         const docSnap = await getDoc(doc(db, "calendarios", calId));
@@ -617,7 +617,7 @@ window.abrirModalConfig = async () => {
         const esAdmin = datos.admins && datos.admins.includes(idActivo);
 
         if (!esCreador && !esAdmin) {
-            container.innerHTML = "<p style='color:red; text-align:center;'>Sin permisos.</p>";
+            container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos.</p>";
             return;
         }
 
@@ -626,55 +626,53 @@ window.abrirModalConfig = async () => {
         let miembrosData = [];
         docs.forEach(d => { if (d.exists()) miembrosData.push({ id: d.id, ...d.data() }); });
 
-        const requiereAprobacion = datos.requiere_aprobacion || false;
+        const blur = "setTimeout(() => document.activeElement.blur(), 100);";
 
         let htmlInfo = `
             <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec; text-align: left;">
-                
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <div style="min-width: 0; flex: 1; margin-right: 10px;">
+                    <div style="min-width: 0; flex: 1;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Nombre</span>
-                        <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${datos.nombre || 'Sin nombre'}
-                        </div>
+                        <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${datos.nombre || 'Sin nombre'}</div>
                     </div>
-                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); setTimeout(() => document.activeElement.blur(), 100);"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); ${blur}"><i class="fas fa-pencil-alt"></i></button>
                 </div>
-                
                 <hr style="border: none; border-top: 1px solid #fce4ec; margin: 12px 0;">
-                
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="min-width: 0; flex: 1; margin-right: 10px;">
+                    <div style="min-width: 0; flex: 1;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Código</span>
-                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px;">${datos.codigo_acceso || '---'}</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datos.codigo_acceso || '---'}</div>
                     </div>
-                    <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                        ${esCreador ? `
-                            <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); setTimeout(() => document.activeElement.blur(), 100);"><i class="fas fa-sync-alt"></i></button>
-                            <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); setTimeout(() => document.activeElement.blur(), 100);"><i class="fas fa-pencil-alt"></i></button>
-                        ` : '<i class="fas fa-lock" style="color:#ccc;"></i>'}
+                    <div style="display: flex; flex-shrink: 0;">
+                        ${esCreador ? `<button class="btn-icono-accion" onclick="generarCodigoAleatorio(); ${blur}"><i class="fas fa-sync-alt"></i></button>
+                                       <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); ${blur}"><i class="fas fa-pencil-alt"></i></button>` : '<i class="fas fa-lock" style="color:#ccc; margin-left:10px;"></i>'}
                     </div>
                 </div>
             </div>
 
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px;">
+                <div><div style="font-size: 14px; font-weight: bold; color: #333;">Privacidad</div><div style="font-size: 11px; color: #999;">Requerir aprobación</div></div>
+                <input type="checkbox" ${datos.requiere_aprobacion ? 'checked' : ''} onchange="cambiarPrivacidad(this.checked)">
+            </div>
             <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
         `;
 
         let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">`;
         miembrosData.forEach(miembro => {
-            const mEsCreador = datos.creador === miembro.id;
-            const botonesHtml = esCreador && miembro.id !== idActivo ? 
-                `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); setTimeout(() => document.activeElement.blur(), 100);" style="color: #ef5350;"><i class="fas fa-trash"></i></button>` : '';
-
+            const mEsAdmin = datos.admins && datos.admins.includes(miembro.id);
+            const botones = esCreador && miembro.id !== idActivo ? `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); ${blur}" style="color: #ef5350;"><i class="fas fa-trash"></i></button>` : '';
             htmlMiembros += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid #f0f0f0; border-radius: 8px;">
-                                <div>${miembro.nombre}</div>
-                                <div>${botonesHtml}</div>
+                                <div>${miembro.nombre}</div><div>${botones}</div>
                              </div>`;
         });
         htmlMiembros += `</div>`;
 
-        container.innerHTML = htmlInfo + htmlMiembros;
-    } catch (error) {
-        container.innerHTML = "Error al cargar.";
-    }
+        let htmlZonaPeligro = esCreador ? `
+            <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                <button onclick="iniciarTraspasoCreador(); ${blur}" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">Traspasar titularidad</button>
+                <button onclick="eliminarCalendarioDefinitivo(); ${blur}" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">Eliminar Calendario</button>
+            </div>` : '';
+
+        container.innerHTML = htmlInfo + htmlMiembros + htmlZonaPeligro;
+    } catch (e) { container.innerHTML = "Error al cargar."; }
 };
