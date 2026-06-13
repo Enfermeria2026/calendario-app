@@ -822,3 +822,171 @@ window.guardarNuevoNombreCalendario = async () => {
         btnGuardar.disabled = false;
     }
 };
+
+// =========================================================
+// FUNCIONALIDAD: EDITAR CÓDIGO DE INVITACIÓN MANUALMENTE
+// =========================================================
+window.editarCodigoInvitacion = () => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    // Obtenemos el código actual de acceso
+    const codigoActual = datosCalendario ? (datosCalendario.codigo_acceso || "") : "";
+
+    msg.innerText = "Cambiar código de invitación";
+    
+    // Insertamos el input configurado con los estilos de tu aplicación
+    extra.innerHTML = `
+        <input type="text" id="input-nuevo-codigo" value="${codigoActual}" 
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; outline: none; margin-bottom: 10px; font-family: inherit; color: #333; text-transform: uppercase;"
+               placeholder="Mínimo 6 y máximo 10 caracteres..." autocomplete="off">
+        <p id="error-codigo" style="color: #ef5350; font-size: 12px; margin: 0; min-height: 15px;"></p>
+    `;
+
+    // Botones personalizados respetando tus estilos
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-guardar-codigo" onclick="guardarNuevoCodigoInvitacion()" 
+                style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Guardar
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+    
+    // Ponemos el foco en el input automáticamente
+    setTimeout(() => {
+        const input = document.getElementById('input-nuevo-codigo');
+        if (input) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+    }, 100);
+};
+
+// Guardar el código manual con validación de longitud
+window.guardarNuevoCodigoInvitacion = async () => {
+    const input = document.getElementById('input-nuevo-codigo');
+    const errorMsg = document.getElementById('error-codigo');
+    const btnGuardar = document.getElementById('btn-guardar-codigo');
+    
+    if (!input) return;
+    
+    // Pasamos a mayúsculas y quitamos espacios en blanco
+    const nuevoCodigo = input.value.trim().toUpperCase();
+    
+    // REQUISITO: Mínimo 6 y máximo 10 caracteres
+    if (nuevoCodigo.length < 6 || nuevoCodigo.length > 10) {
+        errorMsg.innerText = "El código debe tener entre 6 y 10 caracteres.";
+        input.style.borderColor = "#ef5350"; // Alerta visual roja
+        return;
+    }
+
+    // Efecto visual de guardando
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    btnGuardar.style.opacity = "0.7";
+    btnGuardar.disabled = true;
+
+    try {
+        // Actualizamos en Firebase
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { codigo_acceso: nuevoCodigo });
+
+        // Sincronizamos en la memoria local
+        if (datosCalendario) {
+            datosCalendario.codigo_acceso = nuevoCodigo;
+        }
+
+        // Cerramos la alerta y refrescamos los datos del panel de configuración
+        document.getElementById('miModal').classList.add('hidden');
+        await window.abrirModalConfig();
+
+    } catch (error) {
+        console.error("Error al actualizar el código de invitación:", error);
+        errorMsg.innerText = "Hubo un error al guardar en la base de datos.";
+        btnGuardar.innerHTML = 'Guardar';
+        btnGuardar.style.opacity = "1";
+        btnGuardar.disabled = false;
+    }
+};
+
+
+// =========================================================
+// FUNCIONALIDAD: GENERAR CÓDIGO ALEATORIO
+// =========================================================
+window.generarCodigoAleatorio = () => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    msg.innerText = "¿Generar código aleatorio?";
+    
+    extra.innerHTML = `
+        <p style="color: #666; font-size: 14px; margin: 0 0 15px 0; line-height: 1.5; text-align: left;">
+            ¿Estás seguro de que quieres cambiar el código de invitación actual por un nuevo código generado de forma completamente aleatoria?
+        </p>
+    `;
+
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-confirmar-aleatorio" onclick="confirmarCodigoAleatorio()" 
+                style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Aceptar
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+};
+
+// Generación y confirmación del código aleatorio
+window.confirmarCodigoAleatorio = async () => {
+    const btnConfirmar = document.getElementById('btn-confirmar-aleatorio');
+    if (!btnConfirmar) return;
+
+    btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+    btnConfirmar.style.opacity = "0.7";
+    btnConfirmar.disabled = true;
+
+    // Generamos un código de 6 caracteres alfanuméricos en mayúsculas
+    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let codigoAleatorio = "";
+    for (let i = 0; i < 6; i++) {
+        codigoAleatorio += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+
+    try {
+        // Actualizamos en Firebase Firestore
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { codigo_acceso: codigoAleatorio });
+
+        // Sincronizamos en memoria
+        if (datosCalendario) {
+            datosCalendario.codigo_acceso = codigoAleatorio;
+        }
+
+        // Cerramos el modal y recargamos la vista de ajustes automáticamente
+        document.getElementById('miModal').classList.add('hidden');
+        await window.abrirModalConfig();
+
+    } catch (error) {
+        console.error("Error al generar código aleatorio:", error);
+        alert("No se pudo generar el código aleatorio. Comprueba tu conexión.");
+        btnConfirmar.innerHTML = 'Aceptar';
+        btnConfirmar.style.opacity = "1";
+        btnConfirmar.disabled = false;
+    }
+};
+
