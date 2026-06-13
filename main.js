@@ -160,7 +160,7 @@ async function cargarCalendarios() {
             
             div.className = "event-card"; 
             
-            const esCreador = cal.creador === idActivo;
+            const estitular = cal.titular === idActivo;
             
             div.innerHTML = `
                 <div class="card-header">
@@ -176,8 +176,8 @@ async function cargarCalendarios() {
                 
                 <div class="card-actions">
                     <button class="btn-action-primary" id="btn-entrar-${docSnap.id}">Entrar</button>
-                    <button class="${esCreador ? 'btn-action-danger' : 'btn-action-secondary'}" id="btn-accion-${docSnap.id}">
-                        ${esCreador ? 'Eliminar' : 'Salir del calendario'}
+                    <button class="${estitular ? 'btn-action-danger' : 'btn-action-secondary'}" id="btn-accion-${docSnap.id}">
+                        ${estitular ? 'Eliminar' : 'Salir del calendario'}
                     </button>
                 </div>
             `;
@@ -192,7 +192,7 @@ async function cargarCalendarios() {
 
             // Acción Dinámica (Eliminar / Salir)
             document.getElementById(`btn-accion-${docSnap.id}`).onclick = () => {
-                if (esCreador) {
+                if (estitular) {
                     lanzarAviso(`¡Atención! Esta acción eliminará definitivamente el calendario "${cal.nombre}" tanto para ti como para todos los miembros que forman parte de él. ¿Deseas continuar?`, "confirmar", async () => {
                         window.mostrarCarga();
                         try {
@@ -340,7 +340,7 @@ window.guardarCalendario = async () => {
             nombre: nombre,
             descripcion: desc,
             codigo_acceso: codigo,
-            creador: idActivo,
+            titular: idActivo,
             fecha_creacion: new Date().toISOString(),
             miembros: [idActivo],
             admins: [idActivo]
