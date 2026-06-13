@@ -604,37 +604,40 @@ window.abrirModalConfig = async () => {
     container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando ajustes...</p>";
 
     try {
-        // 1. Recargamos datos frescos de Firebase para asegurar que todo esté al día
+        // 1. Cargar datos directos de Firebase
         const docSnap = await getDoc(doc(db, "calendarios", calId));
-        if (!docSnap.exists()) throw new Error("Calendario no encontrado");
-        datosCalendario = docSnap.data();
+        if (!docSnap.exists()) {
+            container.innerHTML = "<p style='color:red; text-align:center;'>Calendario no encontrado.</p>";
+            return;
+        }
+        const datos = docSnap.data(); // Aquí tenemos todos los datos frescos
 
-        const esCreador = datosCalendario.creador === idActivo;
-        const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
+        // 2. Verificar permisos
+        const esCreador = datos.creador === idActivo;
+        const esAdmin = datos.admins && datos.admins.includes(idActivo);
 
         if (!esCreador && !esAdmin) {
             container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos.</p>";
             return;
         }
 
-        // 2. Cargamos miembros
-        const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+        // 3. Obtener datos de miembros
+        const promesas = datos.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
         const docs = await Promise.all(promesas);
         let miembrosData = [];
         docs.forEach(d => { if (d.exists()) miembrosData.push({ id: d.id, ...d.data() }); });
 
-        const requiereAprobacion = datosCalendario.requiere_aprobacion || false;
+        const requiereAprobacion = datos.requiere_aprobacion || false;
 
-        // 3. ESTRUCTURA HTML (Alineada a la izquierda)
+        // 4. Construir el HTML (Alineado a la izquierda)
         let htmlInfo = `
             <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec; text-align: left;">
-                
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="flex: 1; overflow: hidden;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Nombre del Calendario</span>
                         <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-    ${datosCalendario && datosCalendario.nombre ? datosCalendario.nombre : 'Nombre no cargado'}
-</div>
+                            ${datos.nombre || 'Sin nombre'}
+                        </div>
                     </div>
                     <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="flex-shrink: 0; margin-left: 10px;"><i class="fas fa-pencil-alt"></i></button>
                 </div>
@@ -644,7 +647,7 @@ window.abrirModalConfig = async () => {
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="flex: 1; overflow: hidden;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Código de Invitación</span>
-                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datosCalendario.codigo_acceso || '---'}</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datos.codigo_acceso || '---'}</div>
                     </div>
                     ${esCreador 
                         ? `<div style="display: flex; gap: 5px; flex-shrink: 0; margin-left: 10px;">
@@ -672,11 +675,10 @@ window.abrirModalConfig = async () => {
             <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
         `;
 
-        // 4. LISTA DE MIEMBROS
         let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
         miembrosData.forEach(miembro => {
-            const mEsCreador = datosCalendario.creador === miembro.id;
-            const mEsAdmin = datosCalendario.admins && datosCalendario.admins.includes(miembro.id);
+            const mEsCreador = datos.creador === miembro.id;
+            const mEsAdmin = datos.admins && datos.admins.includes(miembro.id);
             const soyYo = miembro.id === idActivo;
 
             let rolTxt = mEsCreador ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Creador</span>` : 
@@ -706,7 +708,6 @@ window.abrirModalConfig = async () => {
         });
         htmlMiembros += `</div>`;
 
-        // 5. ZONA DE PELIGRO (Sin texto, caja roja)
         let htmlZonaPeligro = ``;
         if (esCreador) {
             htmlZonaPeligro = `
@@ -724,7 +725,7 @@ window.abrirModalConfig = async () => {
         container.innerHTML = htmlInfo + htmlMiembros + htmlZonaPeligro;
 
     } catch (error) {
-        console.error("Error cargando configuración:", error);
-        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar ajustes.</p>";
+        console.error("Error:", error);
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar datos.</p>";
     }
 };
