@@ -60,6 +60,23 @@
         </div>
     </div>
 
+    <div id="modal-miembros" class="modal-overlay hidden">
+        <div class="modal-box" style="display: flex; flex-direction: column; width: 90%; max-width: 400px; height: 70vh; padding: 25px;">
+            <button class="modal-close-btn" onclick="cerrarModalMiembros()"><i class="fas fa-times"></i></button>
+            <h2 style="margin-top: 0; margin-bottom: 20px; color: #ec407a; text-align: center; font-size: 22px;">Miembros</h2>
+            <div id="lista-miembros-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px;">
+                </div>
+        </div>
+    </div>
+
+    <div id="modal-perfil-miembro" class="modal-overlay hidden" style="z-index: 1001;">
+        <div class="modal-box" style="text-align: center; padding: 35px 25px;">
+            <button class="modal-close-btn" onclick="document.getElementById('modal-perfil-miembro').classList.add('hidden')"><i class="fas fa-times"></i></button>
+            <div id="perfil-miembro-content">
+                </div>
+        </div>
+    </div>
+    
     <script type="module" src="vistaCalendario.js"></script>
 </body>
 </html>
