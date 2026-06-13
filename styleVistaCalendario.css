@@ -450,3 +450,27 @@ button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
         background-color: transparent !important;
     }
 }
+
+/* =========================================================
+   BLOQUE ANTI-CLICK PERSISTENTE (CSS ANTÍDOTO)
+   ========================================================= */
+
+/* Obligamos a que el botón de editar nunca guarde el estado visual de "pulsado" */
+.btn-icono-accion:active, 
+.btn-icono-accion:focus, 
+.btn-icono-accion:visited {
+    outline: none !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important; /* Mantiene el color que tenga el icono */
+    transform: none !important; /* Si quieres que se mueva al pulsar, quita esta línea */
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Forzamos que las flechas y botones de configuración se mantengan inalterables */
+#btn-prev:active, #btn-next:active,
+#btn-prev:focus, #btn-next:focus {
+    background-color: white !important; /* O el color que tengan tus botones en reposo */
+    outline: none !important;
+}
