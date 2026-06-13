@@ -205,42 +205,42 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
 
     container.innerHTML = ""; 
 
-    // 1. Sacamos todos los eventos que caen exactamente en este día
-    const delDia = acontecimientos.filter(a => 
-        a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
-        a.fechaObjeto.getMonth() === fecha.getMonth() &&
-        a.fechaObjeto.getDate() === fecha.getDate()
-    );
+    const fActualClean = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
-    // 2. MAGIA DE FILTRADO: Nos aseguramos de que cada usuario tenga solo 1 evento/estrella
+    // FILTRADO INTELIGENTE: El evento cuenta para hoy si es normal y coincide la fecha,
+    // O si es un viaje y el día de hoy está entre la ida y la vuelta (inclusive)
+    const delDia = acontecimientos.filter(a => {
+        if (a.esViaje) {
+            return fActualClean >= a.fechaIdaObjeto && fActualClean <= a.fechaVueltaObjeto;
+        } else {
+            return a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
+                   a.fechaObjeto.getMonth() === fecha.getMonth() &&
+                   a.fechaObjeto.getDate() === fecha.getDate();
+        }
+    });
+
+    // Sistema anti-duplicados por usuario (mantenemos tu regla de oro)
     const usuariosVistos = new Set();
     const eventosUnicosPorUsuario = [];
 
     for (let ev of delDia) {
         if (!usuariosVistos.has(ev.userId)) {
             usuariosVistos.add(ev.userId);
-            eventosUnicosPorUsuario.push(ev); // Lo guardamos solo si es el primero de este usuario
+            eventosUnicosPorUsuario.push(ev);
         }
     }
 
-    // 3. Pintamos las estrellas usando FontAwesome en lugar de puntos CSS
     eventosUnicosPorUsuario.slice(0, 9).forEach(acontecimiento => {
         const userId = acontecimiento.userId; 
-        
-        // Usamos la clase de color de texto (ej: c-azul) en lugar de fondo (bg-c-azul)
         const colorClase = mapaColores[userId] || 'c-negro';
         
-        // Creamos el icono de estrella
         const estrella = document.createElement('i');
         estrella.className = `fas fa-star ${colorClase}`;
-        
-        // Aquí puedes cambiar los 8px por 9px o 10px si quieres que la estrella sea más grande
         estrella.style.fontSize = "8px"; 
         
         container.appendChild(estrella);
     });
 }
-
 function renderizarCalendario() {
     if (vistaActual === "mes") {
         renderizarMes();
