@@ -1,62 +1,876 @@
-* =========================================================
-   ESTILOS INTERIORES DEL CALENDARIO (VERSION DEFINITIVA)
+=========================================================
+
+   ESTILOS INTERIORES DEL CALENDARIO (VERSION COMPLETA Y DEFINITIVA)
+
    ========================================================= */
 
-html, body { height: 100%; height: 100dvh; margin: 0; overflow: hidden; display: flex; flex-direction: column; box-sizing: border-box; }
-.main-content { padding-top: 100px !important; padding-bottom: 80px !important; display: flex; flex-direction: column; flex: 1; width: 100%; align-items: center; color: #888; overflow: hidden; box-sizing: border-box; contain: layout; }
-.btn-volver { background: transparent; border: none; color: white; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 0; margin: 0; -webkit-tap-highlight-color: transparent; }
-.color-dot-indicator { width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(255,255,255,0.6); background-color: #ccc; }
-.header-right { display: flex; align-items: center; gap: 8px; }
-.icon-btn { background: white; border: 1px solid #ec407a; color: #ec407a; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; font-size: 15px; margin: 0 !important; display: flex; align-items: center; justify-content: center; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+
+html, body {
+
+    height: 100%;
+
+    height: 100dvh;
+
+    margin: 0;
+
+    overflow: hidden; 
+
+    display: flex;
+
+    flex-direction: column;
+
+    box-sizing: border-box;
+
+}
+
+
+
+.main-content {
+
+    padding-top: 100px !important; /* Aumentado de 70px a 100px para que no tape el título */
+
+    padding-bottom: 80px !important;
+
+    display: flex; 
+
+    flex-direction: column;
+
+    flex: 1; 
+
+    width: 100%;
+
+    align-items: center;
+
+    color: #888;
+
+    overflow: hidden; 
+
+    box-sizing: border-box;
+
+    contain: layout;
+
+}
+
+
+
+/* --- CABECERA ROSA --- */
+
+.btn-volver {
+
+    background: transparent;
+
+    border: none;
+
+    color: white; 
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center; 
+
+    gap: 8px;
+
+    padding: 0;
+
+    margin: 0;
+
+    -webkit-tap-highlight-color: transparent;
+
+}
+
+
+
+.color-dot-indicator {
+
+    width: 14px;
+
+    height: 14px;
+
+    border-radius: 50%;
+
+    border: 2px solid white;
+
+    box-shadow: 0 0 6px rgba(255,255,255,0.6);
+
+    background-color: #ccc; 
+
+}
+
+
+
+.header-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px; 
+
+}
+
+
+
+.icon-btn {
+
+    background: white;
+
+    border: 1px solid #ec407a;
+
+    color: #ec407a;
+
+    border-radius: 50%;
+
+    width: 38px;
+
+    height: 38px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    margin: 0 !important; 
+
+    display: flex;
+
+    align-items: center; 
+
+    justify-content: center;
+
+    padding: 0;
+
+    -webkit-tap-highlight-color: transparent;
+
+}
+
+
+
 .hidden { display: none !important; }
-.calendar-controls { display: flex; flex-direction: column; width: 100%; gap: 15px; margin-bottom: 15px; padding: 0 15px; box-sizing: border-box; align-items: center; flex-shrink: 0; }
-.view-toggles { display: flex; background: #e9e9e9; border-radius: 8px; padding: 3px; width: fit-content; align-items: center; box-sizing: border-box; }
-.btn-vista { background: transparent; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; color: #777; cursor: pointer; font-size: 14px; margin: 0; line-height: 1; outline: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent; }
-.btn-vista.active { background: white; color: #ec407a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.date-navigation { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); width: 100%; box-sizing: border-box; }
-.date-navigation h2 { margin: 0; font-size: 17px; color: #333; text-transform: capitalize; font-weight: bold; line-height: 1; }
-.nav-btn { background: #fff0f5; color: #ec407a; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; outline: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent; transition: background 0.1s, transform 0.1s; }
-.nav-btn:active { background: #ec407a !important; color: white !important; transform: scale(0.92); }
-@media (hover: hover) { .nav-btn:hover { background: #f8bbd0; color: #ec407a; } }
-.dias-semana-header { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; text-align: center; font-weight: bold; font-size: 12px; color: #999; margin-bottom: 8px; padding: 0 8px; box-sizing: border-box; flex-shrink: 0; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); gap: 4px; width: 100%; flex: 1; padding: 0 8px; box-sizing: border-box; overflow: hidden; }
-.vista-semanal-container { display: flex !important; flex-direction: column; width: 100%; height: 100%; gap: 8px; padding: 0 8px 5px 8px; box-sizing: border-box; overflow: hidden; }
-.semana-fila-1 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; min-height: 0; }
-.semana-fila-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%; margin: 0; flex: 1; min-height: 0; }
-.dia-wrapper { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
-.dia-header-semana { text-align: center; font-weight: bold; font-size: 12px; color: #999; margin-bottom: 4px; flex-shrink: 0; }
-.day-cell { background: white; border-radius: 8px; display: flex; flex-direction: column; padding: 4px; box-sizing: border-box; cursor: pointer; border: 2px solid transparent; justify-content: space-between; overflow: hidden; height: 100%; min-height: 0; }
-.day-number { font-weight: bold; font-size: 14px; color: #444; line-height: 1.1; }
+
+
+
+/* --- CONTROLES DE NAVEGACIÓN Y TÍTULO --- */
+
+.calendar-controls {
+
+    display: flex;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+
+    padding: 0 15px;
+
+    box-sizing: border-box;
+
+    align-items: center; 
+
+    flex-shrink: 0;
+
+}
+
+
+
+.view-toggles {
+
+    display: flex;
+
+    background: #e9e9e9; 
+
+    border-radius: 8px;
+
+    padding: 3px; 
+
+    width: fit-content;
+
+    align-items: center; 
+
+    box-sizing: border-box;
+
+}
+
+
+
+.btn-vista {
+
+    background: transparent;
+
+    border: none;
+
+    padding: 8px 18px; 
+
+    border-radius: 6px;
+
+    font-weight: bold;
+
+    color: #777;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    margin: 0; 
+
+    line-height: 1;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    -webkit-tap-highlight-color: transparent;
+
+}
+
+
+
+.btn-vista.active {
+
+    background: white;
+
+    color: #ec407a;
+
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+}
+
+
+
+.date-navigation {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center; 
+
+    background: white;
+
+    padding: 8px 15px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+}
+
+
+
+.date-navigation h2 {
+
+    margin: 0; 
+
+    font-size: 17px;
+
+    color: #333;
+
+    text-transform: capitalize;
+
+    font-weight: bold;
+
+    line-height: 1; 
+
+}
+
+
+
+.nav-btn {
+
+    background: #fff0f5;
+
+    color: #ec407a;
+
+    border: none;
+
+    width: 32px;
+
+    height: 32px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0;
+
+    margin: 0;
+
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    -webkit-tap-highlight-color: transparent; 
+
+    transition: background 0.1s, transform 0.1s;
+
+}
+
+
+
+.nav-btn:active {
+
+    background: #ec407a !important;
+
+    color: white !important;
+
+    transform: scale(0.92);
+
+}
+
+
+
+@media (hover: hover) {
+
+    .nav-btn:hover { background: #f8bbd0; color: #ec407a; }
+
+}
+
+
+
+/* --- CUADRÍCULA FLEXIBLE MES --- */
+
+.dias-semana-header {
+
+    display: grid;
+
+    grid-template-columns: repeat(7, 1fr);
+
+    width: 100%;
+
+    text-align: center;
+
+    font-weight: bold;
+
+    font-size: 12px;
+
+    color: #999;
+
+    margin-bottom: 8px;
+
+    padding: 0 8px; 
+
+    box-sizing: border-box;
+
+    flex-shrink: 0; 
+
+}
+
+
+
+.calendar-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(7, 1fr);
+
+    grid-template-rows: repeat(6, 1fr); 
+
+    gap: 4px; 
+
+    width: 100%;
+
+    flex: 1; 
+
+    padding: 0 8px; 
+
+    box-sizing: border-box;
+
+    overflow: hidden; 
+
+}
+
+
+
+/* --- LA MAGIA DE LA VISTA SEMANAL (2 FILAS) --- */
+
+.vista-semanal-container {
+
+    display: flex !important;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    height: 100%; /* Ocupa el 100% disponible */
+
+    gap: 8px;
+
+    padding: 0 8px 5px 8px; /* He reducido el padding inferior de 15px a 5px */
+
+    box-sizing: border-box; /* Esto obliga a que el padding se reste del tamaño total, no se sume */
+
+    overflow: hidden;
+
+}
+
+
+
+.semana-fila-1 {
+
+    display: grid;
+
+    grid-template-columns: repeat(5, 1fr);
+
+    gap: 4px;
+
+    flex: 1; /* Fila superior (L-V) más grande */
+
+    min-height: 0;
+
+}
+
+
+
+.semana-fila-2 {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
+
+    gap: 4px;
+
+    width: 100%; /* AHORA OCUPA TODO EL ANCHO */
+
+    margin: 0;   /* Quitamos el centrado forzado */
+
+    flex: 1;     /* Mantiene la proporción de altura */
+
+    min-height: 0;
+
+}
+
+
+
+.dia-wrapper {
+
+    display: flex;
+
+    flex-direction: column;
+
+    height: 100%;
+
+    min-height: 0;
+
+    overflow: hidden;
+
+}
+
+
+
+.dia-header-semana {
+
+    text-align: center;
+
+    font-weight: bold;
+
+    font-size: 12px;
+
+    color: #999;
+
+    margin-bottom: 4px;
+
+    flex-shrink: 0;
+
+}
+
+
+
+/* --- CASILLAS DE LOS DÍAS (Única definición) --- */
+
+.day-cell {
+
+    background: white;
+
+    border-radius: 8px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 4px; 
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+
+    border: 2px solid transparent; 
+
+    justify-content: space-between; 
+
+    overflow: hidden; 
+
+    height: 100%;
+
+    min-height: 0;
+
+}
+
+
+
+.day-number {
+
+    font-weight: bold;
+
+    font-size: 14px;
+
+    color: #444;
+
+    line-height: 1.1;
+
+}
+
+
+
 .day-past { background: #f8f8f8; color: #aaa; }
+
+.day-past .day-number { color: #bbb; }
+
+
+
 .day-today { border-color: #ff9800; background: #fffdf9; }
-.stars-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1px; flex-grow: 1; align-items: center; justify-content: center; min-height: 0; }
-.stars-grid-semana-fila1 { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(5, 1fr); gap: 1px; flex-grow: 1; align-items: center; justify-content: center; min-height: 0; }
-.stars-grid-semana-fila2 { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1px; flex-grow: 1; align-items: center; justify-content: center; min-height: 0; }
+
+.day-today .day-number { color: #ff9800; }
+
+
+
+.day-other-month { opacity: 0.3; }
+
+
+
+/* --- ESTRELLAS Y REJILLAS ADAPTATIVAS --- */
+
+
+
+/* Por defecto: Mes (3x3) */
+
+.stars-grid { 
+
+    display: grid; 
+
+    grid-template-columns: repeat(3, 1fr); 
+
+    grid-template-rows: repeat(3, 1fr); 
+
+    gap: 1px; flex-grow: 1; 
+
+    align-items: center; justify-content: center; 
+
+    min-height: 0; 
+
+}
+
+
+
+/* Fila 1 Semanal: L-V (2 columnas x 5 filas) */
+
+.stars-grid-semana-fila1 {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    grid-template-rows: repeat(5, 1fr);
+
+    gap: 1px;
+
+    flex-grow: 1;
+
+    align-items: center; justify-content: center;
+
+    min-height: 0;
+
+}
+
+
+
+/* Fila 2 Semanal: S-D (5 columnas x 2 filas) */
+
+.stars-grid-semana-fila2 {
+
+    display: grid;
+
+    grid-template-columns: repeat(5, 1fr);
+
+    grid-template-rows: repeat(2, 1fr);
+
+    gap: 1px;
+
+    flex-grow: 1;
+
+    align-items: center; justify-content: center;
+
+    min-height: 0;
+
+}
+
+
+
+.star-icon { width: 6px; height: 6px; border-radius: 50%; }
+
+
+
+/* --- COLORES Y FONDOS --- */
+
 .bg-c-azul { background-color: #2196F3 !important; }
+
 .bg-c-naranja { background-color: #FF9800 !important; }
+
 .bg-c-rojo { background-color: #F44336 !important; }
+
 .bg-c-verde { background-color: #4CAF50 !important; }
+
 .bg-c-morado { background-color: #8800FF !important; }
+
 .bg-c-rosa { background-color: #E91E63 !important; }
+
 .bg-c-marron { background-color: #795548 !important; }
+
 .bg-c-amarillo { background-color: #FFEB3B !important; }
+
 .bg-c-negro { background-color: #212121 !important; }
+
+
+
+.c-azul { color: #2196F3; }
+
+.c-naranja { color: #FF9800; }
+
+.c-rojo { color: #F44336; }
+
+.c-verde { color: #4CAF50; }
+
+.c-morado { color: #8800FF; }
+
+.c-rosa { color: #E91E63; }
+
+.c-marron { color: #795548; }
+
+.c-amarillo { color: #FFEB3B; }
+
+.c-negro { color: #212121; }
+
+
+
+/* =========================================================
+
+   ESTILOS DE LOS MODALES DE MIEMBROS Y PERFILES
+
+   ========================================================= */
+
+
+
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0, 0, 0, 0.65); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+
 .modal-box { background: white; border-radius: 18px; position: relative; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.modal-close-btn { position: absolute; top: 12px; right: 12px; background: #f5f5f5; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #888; cursor: pointer; padding: 0; outline: none; transition: 0.2s; -webkit-tap-highlight-color: transparent; z-index: 10; }
+
+
+
+/* --- CRUZ REDONDA EN LA ESQUINA --- */
+
+.modal-close-btn { 
+
+    position: absolute; 
+
+    top: 12px; 
+
+    right: 12px; 
+
+    background: #f5f5f5; 
+
+    border: none; 
+
+    width: 32px; 
+
+    height: 32px; 
+
+    border-radius: 50%; 
+
+    display: flex; 
+
+    align-items: center; 
+
+    justify-content: center;
+
+    font-size: 16px; 
+
+    color: #888; 
+
+    cursor: pointer; 
+
+    padding: 0; 
+
+    outline: none; 
+
+    transition: 0.2s; 
+
+    -webkit-tap-highlight-color: transparent; 
+
+    z-index: 10;
+
+}
+
 .modal-close-btn:active { background: #feeceea1; color: #ec407a; transform: scale(0.9); }
+
+
+
+/* Filas de los miembros */
+
 .miembro-row { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+
 .miembro-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
+
 .miembro-foto { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #ddd; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0; }
+
 .miembro-detalles { display: flex; flex-direction: row; align-items: center; gap: 6px; overflow: hidden; width: 100%; }
+
 .miembro-nombre { font-weight: bold; color: #333; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 .miembro-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; height: 100%; }
+
+.btn-icono-accion { background: none; border: none; color: #999; font-size: 18px; cursor: pointer; padding: 0 5px; margin: 0; display: flex; align-items: center; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
+
+.btn-icono-accion:active { color: #ec407a; transform: scale(0.9); }
+
+
+
+/* Selector de colores */
+
 .color-picker-box { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: -5px; margin-bottom: 15px; padding: 15px; background: #fdf5f8; border-radius: 12px; border: 1px solid #fce4ec; }
+
 .color-picker-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid transparent; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+
 .color-picker-dot:active { transform: scale(0.8); }
 
-/* --- BLOQUE CORRECTOR FINAL (Sustituye todo lo anterior de botones) --- */
-* { -webkit-tap-highlight-color: transparent !important; }
-button:focus, .btn-icono-accion:focus, .nav-btn:focus, .btn-vista:focus { outline: none !important; box-shadow: none !important; background-color: transparent !important; }
-.btn-icono-accion { width: 32px !important; height: 32px !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; margin-left: 10px !important; border: 1px solid #ddd !important; border-radius: 6px !important; background: white !important; cursor: pointer !important; color: #999 !important; transition: all 0.1s; }
-.btn-icono-accion:active, .nav-btn:active, .btn-vista:active { background-color: #fce4ec !important; color: #ec407a !important; transform: scale(0.9) !important; transition: all 0.1s !important; }
+
+
+/* --- NUEVO ROSA MÁS CLARO --- */
+
+.c-rosa { color: #FF80AB; } 
+
+.bg-c-rosa { background-color: #FF80AB !important; }
+
+
+
+/* --- NUEVOS COLORES COMPLEMENTARIOS --- */
+
+/* Cian */
+
+.c-cian { color: #008B8B; }
+
+.bg-c-cian { background-color: #008B8B !important; }
+
+
+
+/* Magenta */
+
+.c-magenta { color: #800080; }
+
+.bg-c-magenta { background-color: #800080 !important; }
+
+
+
+/* Celeste */
+
+.c-celeste { color: #B2FFFF; }
+
+.bg-c-celeste { background-color: #B2FFFF !important; }
+
+
+
+/* --- FORZAR QUITAR EL SOMBREADO/FOCO AL PULSAR EN MÓVILES --- */
+
+button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
+
+    outline: none !important;
+
+}
+
+
+
+/* --- CORRECCIÓN UNIFICADA DE BOTONES (PEGA ESTO AL FINAL DEL CSS) --- */
+
+
+
+/* 1. Reset global para móviles */
+
+* {
+
+    -webkit-tap-highlight-color: transparent !important;
+
+}
+
+
+
+/* 2. Eliminar el borde feo del foco (aquí evitamos el "pegado") */
+
+button:focus, 
+
+.btn-icono-accion:focus, 
+
+.nav-btn:focus, 
+
+.btn-vista:focus {
+
+    outline: none !important;
+
+    box-shadow: none !important;
+
+    background-color: transparent !important;
+
+}
+
+
+
+/* 3. Efecto ROSA al pulsar (solo mientras el dedo toca) */
+
+.btn-icono-accion:active, 
+
+.nav-btn:active,
+
+.btn-vista:active,
+
+.pagination button:active {
+
+    background-color: #fce4ec !important; 
+
+    color: #ec407a !important;
+
+    transform: scale(0.95) !important;
+
+    transition: background-color 0.1s, transform 0.1s !important;
+
+}
+
+
+
+/* 4. Asegurar que los botones activos (mes/semana) mantengan su color */
+
+.btn-vista.active {
+
+    background-color: white !important;
+
+    color: #ec407a !important;
+
+} 
+
