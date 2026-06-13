@@ -397,3 +397,9 @@ html, body {
 /* Celeste */
 .c-celeste { color: #B2FFFF; }
 .bg-c-celeste { background-color: #B2FFFF !important; }
+
+/* --- FORZAR QUITAR EL SOMBREADO/FOCO AL PULSAR EN MÓVILES --- */
+button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
+    outline: none !important;
+    background-color: transparent; 
+}
