@@ -292,12 +292,19 @@ if (btnUnirse) {
                         setTimeout(() => lanzarAviso("Ya formas parte de este calendario."), 300);
                         return;
                     }
+
+                    // --- NUEVA RESTRICCIÓN: LÍMITE DE 9 PARTICIPANTES ---
+                    if (calData.miembros && calData.miembros.length >= 9) {
+                        window.ocultarCarga();
+                        setTimeout(() => lanzarAviso("No puedes unirte. Este calendario ha alcanzado el límite máximo de 9 participantes."), 300);
+                        return;
+                    }
+                    // ----------------------------------------------------
                     
                     // Añadimos al usuario a la lista de miembros usando arrayUnion
                     await updateDoc(doc(db, "calendarios", calDoc.id), {
                         miembros: arrayUnion(idActivo)
                     });
-                    
                     // Recargamos la lista visual de calendarios
                     cargarCalendarios();
                     window.ocultarCarga();
