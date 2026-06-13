@@ -188,33 +188,42 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
 
     container.innerHTML = ""; 
 
+    // 1. Sacamos todos los eventos que caen exactamente en este día
     const delDia = acontecimientos.filter(a => 
         a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
         a.fechaObjeto.getMonth() === fecha.getMonth() &&
         a.fechaObjeto.getDate() === fecha.getDate()
     );
 
-    if (delDia.length > 0) {
-        console.log(`⭐ Pintando ${delDia.length} estrellas para el día ${fecha.getDate()}`);
+    // 2. MAGIA DE FILTRADO: Nos aseguramos de que cada usuario tenga solo 1 evento/estrella
+    const usuariosVistos = new Set();
+    const eventosUnicosPorUsuario = [];
+
+    for (let ev of delDia) {
+        if (!usuariosVistos.has(ev.userId)) {
+            usuariosVistos.add(ev.userId);
+            eventosUnicosPorUsuario.push(ev); // Lo guardamos solo si es el primero de este usuario
+        }
     }
 
-    delDia.slice(0, 9).forEach(acontecimiento => {
-        // ¡CORREGIDO! Ahora busca 'userId' exactamente como está en tu Firebase
+    // 3. Pintamos las estrellas usando FontAwesome en lugar de puntos CSS
+    eventosUnicosPorUsuario.slice(0, 9).forEach(acontecimiento => {
         const userId = acontecimiento.userId; 
+        
+        // Usamos la clase de color de texto (ej: c-azul) en lugar de fondo (bg-c-azul)
         const colorClase = mapaColores[userId] || 'c-negro';
         
-        const estrella = document.createElement('div');
-        estrella.className = `star-icon bg-${colorClase}`;
+        // Creamos el icono de estrella
+        const estrella = document.createElement('i');
+        estrella.className = `fas fa-star ${colorClase}`;
         
-        // Forzamos tamaño para evitar que midan 0 píxeles
-        estrella.style.width = "6px";
-        estrella.style.height = "6px";
-        estrella.style.borderRadius = "50%";
-        estrella.style.display = "block";
+        // Aquí puedes cambiar los 8px por 9px o 10px si quieres que la estrella sea más grande
+        estrella.style.fontSize = "8px"; 
         
         container.appendChild(estrella);
     });
 }
+
 function renderizarCalendario() {
     if (vistaActual === "mes") {
         renderizarMes();
