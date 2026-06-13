@@ -134,30 +134,60 @@ function obtenerLunes(d) {
 }
 
 // =========================================================
-// SISTEMA DE CARGA DE ACONTECIMIENTOS Y PINTADO DE ESTRELLAS
+// SISTEMA DE CARGA DE ACONTECIMIENTOS (MODO DIAGNÓSTICO)
 // =========================================================
 
 async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
     const acontecimientos = [];
     try {
+        console.log("🔍 Buscando acontecimientos para el calendario ID:", calId);
+        
+        // OJO: Si en tu Firebase el campo se llama 'calendario_id' o de otra forma, la consulta dará 0 resultados
         const q = query(collection(db, "acontecimientos"), where("calendarioId", "==", calId));
         const querySnapshot = await getDocs(q);
         
+        console.log(`📦 Se han encontrado ${querySnapshot.size} documentos en Firebase para este calendario.`);
+        
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            console.log("📄 Revisando documento:", doc.id, data);
+
             if (data.fecha) {
-                let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
+                let fechaDoc;
+                
+                // SISTEMA ANTI-ERRORES DE FECHA
+                if (typeof data.fecha.toDate === 'function') {
+                    fechaDoc = data.fecha.toDate(); // Si es Timestamp de Firebase
+                } else if (typeof data.fecha === 'string' && data.fecha.includes('/')) {
+                    // Si guardaste la fecha como "13/06/2026"
+                    const partes = data.fecha.split('/');
+                    if (partes.length === 3) fechaDoc = new Date(partes[2], partes[1] - 1, partes[0]);
+                    else fechaDoc = new Date(data.fecha);
+                } else {
+                    fechaDoc = new Date(data.fecha); // Si es formato estándar "YYYY-MM-DD"
+                }
+
+                if (isNaN(fechaDoc)) {
+                    console.error("❌ ERROR: La fecha no se entiende en el documento:", doc.id);
+                    return; 
+                }
+
                 const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
                 const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
                 const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
 
                 if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
+                    console.log("✅ Acontecimiento DENTRO del mes. Añadido a la lista.");
                     acontecimientos.push({ id: doc.id, ...data, fechaObjeto: fDocClean });
+                } else {
+                    console.log("⚠️ Acontecimiento FUERA del mes visualizado.");
                 }
+            } else {
+                console.warn("❌ El documento no tiene un campo llamado 'fecha':", doc.id);
             }
         });
     } catch (error) {
-        console.error("Error cargando acontecimientos:", error);
+        console.error("❌ Error crítico conectando con Firebase:", error);
     }
     return acontecimientos;
 }
@@ -179,15 +209,19 @@ function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSe
         a.fechaObjeto.getDate() === fecha.getDate()
     );
 
+    if (delDia.length > 0) {
+        console.log(`⭐ Pintando ${delDia.length} estrellas para el día ${fecha.getDate()}`);
+    }
+
     delDia.slice(0, 9).forEach(acontecimiento => {
-        // CORREGIDO: Uso de 'usuarioId' tal cual viene de tu Firebase original
+        // OJO: Comprueba si en Firebase lo llamas 'usuarioId', 'usuario_id', o 'id_usuario'
         const userId = acontecimiento.usuarioId; 
         const colorClase = mapaColores[userId] || 'c-negro';
         
         const estrella = document.createElement('div');
         estrella.className = `star-icon bg-${colorClase}`;
         
-        // SEGURIDAD AUTOMÁTICA: Forzamos tamaño para que no midan 0px y sean visibles
+        // Forzamos tamaño para evitar que midan 0 píxeles
         estrella.style.width = "6px";
         estrella.style.height = "6px";
         estrella.style.borderRadius = "50%";
