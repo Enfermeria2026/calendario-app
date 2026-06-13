@@ -635,7 +635,7 @@ window.abrirModalConfig = async () => {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="flex: 1; overflow: hidden;">
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Nombre del Calendario</span>
-                        <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px;">${datosCalendario.nombre}</div>
+                        <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px;">${datosCalendario ? datosCalendario.nombre : 'Cargando...'}</div>
                     </div>
                     <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="flex-shrink: 0;"><i class="fas fa-pencil-alt"></i></button>
                 </div>
