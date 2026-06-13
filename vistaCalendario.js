@@ -435,6 +435,7 @@ window.abrirModalMiembros = async () => {
             if (d.exists()) miembrosData.push({ id: d.id, ...d.data() });
         });
 
+        // Ordenamos la lista: Yo primero, el resto después
         miembrosData.sort((a, b) => {
             if (a.id === idActivo) return -1;
             if (b.id === idActivo) return 1;
@@ -447,26 +448,56 @@ window.abrirModalMiembros = async () => {
             const esYo = miembro.id === idActivo;
             const miColor = mapaColores[miembro.id] || 'c-negro';
             
+            // 1. Averiguamos si este miembro en concreto es Creador o Admin
+            const esCreador = datosCalendario.creador === miembro.id;
+            const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(miembro.id);
+
+            // 2. SISTEMA DE ETIQUETAS DINÁMICAS DE ROL
+            let rolHtml = "";
+
+            if (esYo) {
+                // Si el perfil que está mirando la pantalla es...
+                if (esCreador) {
+                    rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Creador</span>`;
+                } else if (esAdmin) {
+                    rolHtml = `<span style="color: #ec407a; font-weight: 700; font-size: 11px; margin-top: 2px;">Eres Administrador</span>`;
+                } else {
+                    rolHtml = `<span style="color: #999; font-weight: normal; font-size: 11px; margin-top: 2px;">Sin rol asignado</span>`;
+                }
+            } else {
+                // Para el resto de los compañeros que aparecen en la lista...
+                if (esCreador) {
+                    rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Creador</span>`;
+                } else if (esAdmin) {
+                    rolHtml = `<span style="color: #f06292; font-weight: 600; font-size: 11px; margin-top: 2px;">Administrador</span>`;
+                }
+                // Si no es nada, simplemente no le ponemos etiqueta debajo de su nombre para que quede más limpio
+            }
+
+            // Foto de perfil
             const fotoHtml = miembro.foto 
                 ? `<img src="${miembro.foto}" class="miembro-foto">` 
                 : `<div class="miembro-foto"><i class="fas fa-user"></i></div>`;
 
-           // Botón de lápiz (si soy yo) o de ojo (si es otro), con desclique automático (this.blur())
+            // Botón de acción con desclique automático
             const accionHtml = esYo 
                 ? `<button class="btn-icono-accion" onclick="mostrarSelectorColor(); this.blur();"><i class="fas fa-pencil-alt"></i></button>`
                 : `<button class="btn-icono-accion" onclick='verPerfilUsuario(${JSON.stringify(miembro).replace(/'/g, "&#39;")}); this.blur();'><i class="fas fa-eye"></i></button>`;
 
-           // Mantenemos el (Tú) a salvo de recortes y lo separamos del color con margin-right
-const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:14px; flex-shrink:0; margin-right: 12px;">(Tú)</span>` : '';
+            const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:15px; flex-shrink:0; margin-right: 12px;">(Tú)</span>` : '';
 
+            // 3. Montamos la fila inyectando los textos en vertical gracias al contenedor "miembro-detalles-col"
             const row = document.createElement('div');
             row.className = "miembro-row";
             row.innerHTML = `
                 <div class="miembro-info">
                     ${fotoHtml}
-                    <div class="miembro-detalles">
-                        <span class="miembro-nombre">${miembro.nombre} ${miembro.apellidos || ''}</span>
-                        ${tuBadge}
+                    <div style="display: flex; flex-direction: column; overflow: hidden; width: 100%;">
+                        <div class="miembro-detalles">
+                            <span class="miembro-nombre">${miembro.nombre} ${miembro.apellidos || ''}</span>
+                            ${tuBadge}
+                        </div>
+                        ${rolHtml}
                     </div>
                 </div>
                 <div class="miembro-actions">
@@ -485,11 +516,10 @@ const tuBadge = esYo ? `<span style="color:#ec407a; font-weight:bold; font-size:
         });
 
     } catch (error) {
-        console.error("Error cargando miembros:", error);
+        console.error("Error cargando miembros con roles:", error);
         container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar.</p>";
     }
 };
-
 window.mostrarSelectorColor = () => {
     const box = document.getElementById('selector-colores-box');
     if (!box) return;
