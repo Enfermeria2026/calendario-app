@@ -457,3 +457,15 @@ color: #ec407a !important;
 transform: scale(0.95) !important;
 transition: background-color 0.1s, transform 0.1s !important;
 }
+
+/* --- NOTIFICACIÓN EN EL BUZÓN (PUNTITO ROJO) --- */
+.badge-rojo {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background-color: #ef5350; /* Tu color rojo de avisos */
+    border-radius: 50%;
+    border: 2px solid white;
+}
