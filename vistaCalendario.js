@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const idActivo = localStorage.getItem('usuario_activo');
 const calId = localStorage.getItem('calendario_activo');
 let fechaVisualizada = new Date();
@@ -1317,6 +1317,78 @@ window.procesarTraspasoTitularDefinitivo = async (nuevoTitularId) => {
     }
 };
 
+// =========================================================
+// FUNCIONALIDAD: ELIMINAR CALENDARIO DEFINITIVAMENTE
+// =========================================================
+window.eliminarCalendarioDefinitivo = () => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
 
+    if (!modal) return;
+
+    msg.innerText = "¿Eliminar este calendario?";
+    
+    // Diseño del aviso de peligro con enfoque de advertencia crítica
+    extra.innerHTML = `
+        <p style="color: #ef5350; font-weight: bold; font-size: 14px; margin: 0 0 12px 0; text-align: left; line-height: 1.4;">
+            <i class="fas fa-exclamation-triangle"></i> ¡ADENCIÓN CRÍTICA! Esta acción es completamente irreversible. 
+        </p>
+        <p style="color: #666; font-size: 13px; margin: 0; text-align: left; line-height: 1.5;">
+            Al confirmar, este calendario se borrará de forma permanente de la base de datos. 
+            Implica la pérdida total de los datos asociados y se eliminará el acceso tanto para ti como para todos los demás miembros del equipo.
+        </p>
+    `;
+
+    // Botón de cancelar gris y botón de acción destructiva en rojo oscuro (#d32f2f)
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none;">
+            Cancelar
+        </button>
+        <button id="btn-borrar-calendario-ok" onclick="window.procesarBorradoCalendarioTotal()" 
+                style="background: #d32f2f; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none;">
+            Eliminar definitivamente
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+};
+
+// Ejecución del borrado en la base de datos de Firebase Firestore
+window.procesarBorradoCalendarioTotal = async () => {
+    const btn = document.getElementById('btn-borrar-calendario-ok');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+    }
+
+    try {
+        // 1. Eliminamos físicamente el documento usando tu calId y db globales
+        const calRef = doc(db, "calendarios", calId);
+        await deleteDoc(calRef);
+
+        // 2. Limpiamos la memoria del navegador por seguridad
+        localStorage.removeItem('calendario_activo');
+
+        // 3. Ocultamos los contenedores de los modales para evitar saltos visuales
+        document.getElementById('miModal').classList.add('hidden');
+        document.getElementById('modal-config').classList.add('hidden');
+        
+        // 4. Redirección automática hacia la pantalla de inicio
+        window.location.href = "dashboard.html";
+
+    } catch (error) {
+        console.error("Error crítico al eliminar el calendario:", error);
+        alert("Hubo un problema de conexión al intentar eliminar el calendario.");
+        if (btn) {
+            btn.innerHTML = 'Eliminar definitivamente';
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
+    }
+};
 
 
