@@ -403,109 +403,36 @@ button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
     outline: none !important;
 }
 
-/* =========================================================
-   COMPORTAMIENTO EXACTO DE LOS BOTONES Y ANTI-CLIC MÓVIL
-   ========================================================= */
+/* --- CORRECCIÓN UNIFICADA DE BOTONES (PEGA ESTO AL FINAL DEL CSS) --- */
 
-/* Eliminar recuadro azul nativo de los móviles */
+/* 1. Reset global para móviles */
 * {
     -webkit-tap-highlight-color: transparent !important;
 }
 
-/* --- 1. BOTONES < y > (Pasar de mes/semana) --- */
-#btn-prev, #btn-next {
-    background-color: white !important; /* Estado normal: fondo blanco */
-    transition: background-color 0.1s, transform 0.1s;
-}
-#btn-prev:active, #btn-next:active {
-    background-color: #fce4ec !important; /* Estado apretado: rosita claro */
-    transform: scale(0.9) !important; /* Se hacen un pelín más pequeños al pulsar */
-}
-
-/* --- 2. PROTECCIÓN TÁCTIL (Solo para móviles) --- */
-@media (hover: none) {
-    /* Flechas: Forzamos que vuelvan a blanco en cuanto levantes el dedo */
-    #btn-prev:hover, #btn-next:hover {
-        background-color: white !important;
-        transform: none !important;
-    }
-    #btn-prev:active, #btn-next:active {
-        background-color: #fce4ec !important; 
-        transform: scale(0.9) !important;
-    }
-
-    /* Lápiz y ojo: Limpiamos el hover enganchado para que vuelvan a su estado gris/inactivo */
-    .btn-icono-accion:hover {
-        background-color: transparent !important;
-        color: #999 !important;
-        transform: none !important;
-    }
-    .btn-icono-accion:active {
-        color: #ec407a !important;
-        transform: scale(0.9) !important;
-    }
-    
-    /* Mes/Semana: Anulamos el efecto pegajoso SIN cambiar tus colores originales */
-    .btn-vista:hover:not(.active) {
-        background-color: transparent !important;
-    }
-}
-
-/* --- 1. LIMPIEZA GLOBAL DE MÓVIL --- */
-* {
-    -webkit-tap-highlight-color: transparent !important;
-}
-
-/* --- 2. ELIMINAR EL FOCO (El causante de que se queden clicados) --- */
+/* 2. Eliminar el borde feo del foco (aquí evitamos el "pegado") */
 button:focus, 
-button:active:focus, 
 .btn-icono-accion:focus, 
+.nav-btn:focus, 
 .btn-vista:focus {
     outline: none !important;
     box-shadow: none !important;
-    background-color: transparent !important; /* Mantiene tu fondo original */
+    background-color: transparent !important;
 }
 
-/* --- 3. EFECTO ANIMADO (El color rosa/oscurecido al pulsar) --- */
-.btn-icono-accion:active,
-#btn-prev:active,
-#btn-next:active,
-.btn-vista:active {
-    transform: scale(0.95) !important;
-    filter: brightness(0.9) !important; /* Oscurece ligeramente cualquier color (rosa, blanco, etc) */
-    transition: all 0.1s ease;
-}
-
-/* --- CORRECCIÓN DEFINITIVA BOTONES --- */
-
-/* 1. Evitar flash gris de móvil y selección de texto al hacer doble clic */
-* {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-}
-
-/* 2. Eliminar el borde/foco automático que se queda pegado */
-button:focus, 
-.btn-icono-accion:focus, 
-.cal-btn:focus, 
-.pagination button:focus,
-.btn-vista:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    /* No ponemos background transparente aquí para no romper el color de los botones activos */
-}
-
-/* 3. Efecto "Rosita" real solo al pulsar (Active) */
-/* Usamos !important para asegurar que esto gane a cualquier otro estilo */
+/* 3. Efecto ROSA al pulsar (solo mientras el dedo toca) */
 .btn-icono-accion:active, 
-.cal-btn:active, 
-.pagination button:active, 
-#btn-prev:active, 
-#btn-next:active,
-.btn-vista:active {
-    background-color: #fce4ec !important; /* Tu rosita */
+.nav-btn:active,
+.btn-vista:active,
+.pagination button:active {
+    background-color: #fce4ec !important; 
     color: #ec407a !important;
     transform: scale(0.95) !important;
     transition: background-color 0.1s, transform 0.1s !important;
+}
+
+/* 4. Asegurar que los botones activos (mes/semana) mantengan su color */
+.btn-vista.active {
+    background-color: white !important;
+    color: #ec407a !important;
 }
