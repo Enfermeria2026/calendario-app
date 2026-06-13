@@ -509,13 +509,22 @@ window.mostrarSelectorColor = () => {
         const dot = document.createElement('div');
         dot.className = `color-picker-dot bg-${color}`;
         
-        // Si el color lo tiene otro compañero, ni siquiera lo mostramos
+        // Centramos el contenido (el candado) dentro del círculo
+        dot.style.display = "flex";
+        dot.style.alignItems = "center";
+        dot.style.justifyContent = "center";
+        
+        // Si el color lo tiene otro compañero, le ponemos el candado
         if (coloresOcupados.includes(color)) {
-            dot.style.display = "none";
+            dot.style.cursor = "not-allowed";
+            dot.style.opacity = "0.5"; // Lo hacemos un pelín transparente para que se vea bloqueado
+            dot.innerHTML = `<i class="fas fa-lock" style="color: rgba(255,255,255,0.9); font-size: 12px;"></i>`;
         } else {
+            // Si está libre, permitimos pulsarlo
             dot.onclick = () => cambiarMiColor(color);
         }
         
+        // El color actual del usuario lleva el borde
         if (mapaColores[idActivo] === color) {
             dot.style.border = "3px solid #333";
         }
@@ -523,6 +532,7 @@ window.mostrarSelectorColor = () => {
         box.appendChild(dot);
     });
 };
+
 window.cambiarMiColor = async (nuevoColor) => {
     // 1. Cambiamos el color en el mapa local
     mapaColores[idActivo] = nuevoColor;
