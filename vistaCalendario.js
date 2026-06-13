@@ -604,58 +604,57 @@ window.abrirModalConfig = async () => {
     container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando ajustes...</p>";
 
     try {
-        // 1. Cargar datos directos de Firebase
+        // 1. Carga de datos frescos desde Firebase
         const docSnap = await getDoc(doc(db, "calendarios", calId));
-        if (!docSnap.exists()) {
-            container.innerHTML = "<p style='color:red; text-align:center;'>Calendario no encontrado.</p>";
-            return;
-        }
-        const datos = docSnap.data(); // Aquí tenemos todos los datos frescos
+        if (!docSnap.exists()) throw new Error("Calendario no encontrado");
+        const datos = docSnap.data();
 
-        // 2. Verificar permisos
+        // 2. Verificación de permisos
         const esCreador = datos.creador === idActivo;
         const esAdmin = datos.admins && datos.admins.includes(idActivo);
 
         if (!esCreador && !esAdmin) {
-            container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos.</p>";
+            container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos para ver esto.</p>";
             return;
         }
 
-        // 3. Obtener datos de miembros
+        // 3. Carga de miembros
         const promesas = datos.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
         const docs = await Promise.all(promesas);
         let miembrosData = [];
         docs.forEach(d => { if (d.exists()) miembrosData.push({ id: d.id, ...d.data() }); });
 
+        // 4. Estilos reutilizables para botones (para evitar solapamientos)
+        const btnStyle = "width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; margin-left: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; background: white;";
+
+        // 5. Construcción del HTML
         const requiereAprobacion = datos.requiere_aprobacion || false;
 
-        // 4. Construir el HTML (Alineado a la izquierda)
         let htmlInfo = `
             <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec; text-align: left;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="flex: 1; overflow: hidden;">
-                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Nombre del Calendario</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Nombre</span>
                         <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             ${datos.nombre || 'Sin nombre'}
                         </div>
                     </div>
-                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="flex-shrink: 0; margin-left: 10px;"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="${btnStyle}"><i class="fas fa-pencil-alt"></i></button>
                 </div>
-                
+
                 <hr style="border: none; border-top: 1px solid #fce4ec; margin: 12px 0;">
                 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="flex: 1; overflow: hidden;">
-                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;">Código de Invitación</span>
+                    <div style="min-width: 0; flex: 1;">
+                        <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Código</span>
                         <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datos.codigo_acceso || '---'}</div>
                     </div>
-                    ${esCreador 
-                        ? `<div style="display: flex; gap: 5px; flex-shrink: 0; margin-left: 10px;">
-                               <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" title="Generar código nuevo"><i class="fas fa-sync-alt"></i></button>
-                               <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();" title="Editar código"><i class="fas fa-pencil-alt"></i></button>
-                           </div>`
-                        : `<i class="fas fa-lock" style="color: #ccc; margin-left: 10px; flex-shrink: 0;"></i>`
-                    }
+                    <div style="display: flex; flex-shrink: 0;">
+                        ${esCreador ? `
+                            <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" style="${btnStyle}" title="Nuevo código"><i class="fas fa-sync-alt"></i></button>
+                            <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();" style="${btnStyle}" title="Editar código"><i class="fas fa-pencil-alt"></i></button>
+                        ` : '<i class="fas fa-lock" style="color:#ccc; margin-left: 10px;"></i>'}
+                    </div>
                 </div>
             </div>
 
@@ -675,24 +674,21 @@ window.abrirModalConfig = async () => {
             <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
         `;
 
-        let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+        let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">`;
         miembrosData.forEach(miembro => {
             const mEsCreador = datos.creador === miembro.id;
             const mEsAdmin = datos.admins && datos.admins.includes(miembro.id);
             const soyYo = miembro.id === idActivo;
-
-            let rolTxt = mEsCreador ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Creador</span>` : 
-                         mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : 
-                         `<span style="color: #999; font-size: 11px;">Miembro</span>`;
+            let rolTxt = mEsCreador ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Creador</span>` : mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : `<span style="color: #999; font-size: 11px;">Miembro</span>`;
 
             let botonesHtml = ``;
-            if (!mEsCreador && !soyYo) { 
+            if (!mEsCreador && !soyYo) {
                 if (esCreador) {
                     const iconoCorona = mEsAdmin ? `<i class="fas fa-user-times" style="color:#ffb300;"></i>` : `<i class="fas fa-user-shield" style="color:#ffb300;"></i>`;
-                    botonesHtml += `<button class="btn-icono-accion" onclick="toggleAdmin('${miembro.id}', ${mEsAdmin}); document.activeElement.blur();" title="Gestionar Rol">${iconoCorona}</button>`;
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="toggleAdmin('${miembro.id}', ${mEsAdmin}); document.activeElement.blur();" style="${btnStyle}">${iconoCorona}</button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 } else if (esAdmin && !mEsAdmin) {
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 }
             }
 
@@ -702,7 +698,7 @@ window.abrirModalConfig = async () => {
                         <span style="font-weight: bold; font-size: 14px; color: #333;">${miembro.nombre} ${miembro.apellidos || ''} ${soyYo ? '<span style="color:#ec407a;">(Tú)</span>' : ''}</span>
                         ${rolTxt}
                     </div>
-                    <div style="display: flex; gap: 10px; flex-shrink: 0;">${botonesHtml}</div>
+                    <div style="display: flex; gap: 5px; flex-shrink: 0;">${botonesHtml}</div>
                 </div>
             `;
         });
@@ -712,12 +708,8 @@ window.abrirModalConfig = async () => {
         if (esCreador) {
             htmlZonaPeligro = `
                 <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-                    <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
-                        <i class="fas fa-sign-out-alt"></i> Salir y ceder titularidad
-                    </button>
-                    <button onclick="eliminarCalendarioDefinitivo(); document.activeElement.blur();" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
-                        <i class="fas fa-trash-alt"></i> Eliminar Calendario
-                    </button>
+                    <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Traspasar titularidad</button>
+                    <button onclick="eliminarCalendarioDefinitivo(); document.activeElement.blur();" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Eliminar Calendario</button>
                 </div>
             `;
         }
@@ -726,6 +718,6 @@ window.abrirModalConfig = async () => {
 
     } catch (error) {
         console.error("Error:", error);
-        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar datos.</p>";
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar los ajustes.</p>";
     }
 };
