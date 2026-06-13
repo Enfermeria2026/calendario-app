@@ -87,23 +87,21 @@ async function asegurarColoresMiembros() {
 
 function configurarControles() {
     document.getElementById('btn-prev').onclick = function() {
-        this.blur();
+        setTimeout(() => this.blur(), 50); // <--- CAMBIO AQUÍ
         if (vistaActual === "mes") {
             if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
             fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
         } else {
             const lunesActualSemana = obtenerLunes(fechaVisualizada);
             const lunesSemanaHoy = obtenerLunes(HOY_REAL);
-            
             if (lunesActualSemana.getTime() <= lunesSemanaHoy.getTime()) return;
-            
             fechaVisualizada.setDate(fechaVisualizada.getDate() - 7);
         }
         renderizarCalendario();
     };
     
     document.getElementById('btn-next').onclick = function() {
-        this.blur();
+        setTimeout(() => this.blur(), 50); // <--- CAMBIO AQUÍ
         if (vistaActual === "mes") {
             fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
         } else {
@@ -113,7 +111,7 @@ function configurarControles() {
     };
 
     document.getElementById('btn-vista-mes').onclick = function() {
-        this.blur();
+        setTimeout(() => this.blur(), 50); // <--- (Opcional, pero recomendable)
         if (vistaActual === "mes") return;
         vistaActual = "mes";
         document.getElementById('btn-vista-semana').classList.remove('active');
@@ -123,7 +121,7 @@ function configurarControles() {
     };
 
     document.getElementById('btn-vista-semana').onclick = function() {
-        this.blur();
+        setTimeout(() => this.blur(), 50); // <--- (Opcional, pero recomendable)
         if (vistaActual === "semana") return;
         vistaActual = "semana";
         document.getElementById('btn-vista-mes').classList.remove('active');
