@@ -987,3 +987,180 @@ window.confirmarCodigoAleatorio = async () => {
         btnConfirmar.disabled = false;
     }
 };
+
+// =========================================================
+// FUNCIONALIDAD: ASIGNAR O QUITAR ROL DE ADMINISTRADOR
+// =========================================================
+window.toggleAdmin = (miembroId, esAdminActual) => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    // Cambiamos el texto dependiendo de si le vamos a dar o quitar el rol
+    const accionTexto = esAdminActual ? "quitarle el rol de Administrador a" : "hacer Administrador a";
+    
+    msg.innerText = `¿Deseas ${accionTexto} este usuario?`;
+    
+    extra.innerHTML = `
+        <p style="color: #666; font-size: 14px; margin: 0 0 15px 0; line-height: 1.5; text-align: left;">
+            Los administradores pueden cambiar el nombre del calendario, el código de invitación y gestionar a los miembros.
+        </p>
+    `;
+
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-confirmar-admin" onclick="confirmarToggleAdmin('${miembroId}', ${esAdminActual})" 
+                style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Aceptar
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+};
+
+window.confirmarToggleAdmin = async (miembroId, esAdminActual) => {
+    const btnConfirmar = document.getElementById('btn-confirmar-admin');
+    if (btnConfirmar) {
+        btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btnConfirmar.style.opacity = "0.7";
+        btnConfirmar.disabled = true;
+    }
+
+    try {
+        // Obtenemos la lista actual de administradores (o creamos una vacía si no existe)
+        let adminsActuales = datosCalendario.admins || [];
+        
+        if (esAdminActual) {
+            // Si ya es admin, lo filtramos para sacarlo de la lista
+            adminsActuales = adminsActuales.filter(id => id !== miembroId);
+        } else {
+            // Si no es admin, lo metemos en la lista
+            if (!adminsActuales.includes(miembroId)) {
+                adminsActuales.push(miembroId);
+            }
+        }
+
+        // Actualizamos Firebase
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { admins: adminsActuales });
+
+        // Actualizamos la memoria local
+        if (datosCalendario) {
+            datosCalendario.admins = adminsActuales;
+        }
+
+        // Cerramos modal y recargamos configuración
+        document.getElementById('miModal').classList.add('hidden');
+        await window.abrirModalConfig();
+
+    } catch (error) {
+        console.error("Error al cambiar rol:", error);
+        alert("Hubo un error al cambiar los permisos.");
+        if (btnConfirmar) {
+            btnConfirmar.innerHTML = 'Aceptar';
+            btnConfirmar.style.opacity = "1";
+            btnConfirmar.disabled = false;
+        }
+    }
+};
+
+
+// =========================================================
+// FUNCIONALIDAD: ELIMINAR / EXPULSAR A UN MIEMBRO
+// =========================================================
+window.expulsarMiembro = (miembroId, nombreMiembro) => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    msg.innerText = `¿Eliminar a ${nombreMiembro}?`;
+    
+    extra.innerHTML = `
+        <p style="color: #666; font-size: 14px; margin: 0 0 15px 0; line-height: 1.5; text-align: left;">
+            Estás a punto de expulsar a <strong>${nombreMiembro}</strong> del calendario. 
+            Perderá el acceso y su color asignado quedará libre. ¿Deseas continuar?
+        </p>
+    `;
+
+    // Usamos rojo (#ef5350) para el botón de expulsar, advirtiendo del peligro
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-confirmar-expulsion" onclick="confirmarExpulsion('${miembroId}')" 
+                style="background: #ef5350; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Expulsar
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+};
+
+window.confirmarExpulsion = async (miembroId) => {
+    const btnConfirmar = document.getElementById('btn-confirmar-expulsion');
+    if (btnConfirmar) {
+        btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+        btnConfirmar.style.opacity = "0.7";
+        btnConfirmar.disabled = true;
+    }
+
+    try {
+        // 1. Quitarlo de la lista de miembros
+        let miembrosActuales = datosCalendario.miembros || [];
+        miembrosActuales = miembrosActuales.filter(id => id !== miembroId);
+
+        // 2. Quitarlo de la lista de admins (por si era administrador)
+        let adminsActuales = datosCalendario.admins || [];
+        adminsActuales = adminsActuales.filter(id => id !== miembroId);
+
+        // 3. Quitarle el color que tenía reservado para que otro lo pueda usar
+        let coloresActuales = datosCalendario.colores_miembros || {};
+        if (coloresActuales[miembroId]) {
+            delete coloresActuales[miembroId];
+        }
+
+        // 4. Mandar la actualización completa a Firebase
+        const calRef = doc(db, "calendarios", calId);
+        await updateDoc(calRef, { 
+            miembros: miembrosActuales,
+            admins: adminsActuales,
+            colores_miembros: coloresActuales
+        });
+
+        // 5. Actualizar la memoria local para no tener que refrescar toda la página
+        if (datosCalendario) {
+            datosCalendario.miembros = miembrosActuales;
+            datosCalendario.admins = adminsActuales;
+            datosCalendario.colores_miembros = coloresActuales;
+            mapaColores = coloresActuales; // ¡Sincronizamos la variable global de colores!
+        }
+
+        document.getElementById('miModal').classList.add('hidden');
+        
+        // 6. Recargamos la configuración para que el miembro desaparezca de la lista
+        await window.abrirModalConfig();
+        
+        // 7. Recargamos el calendario de fondo para que desaparezcan sus estrellas/eventos
+        renderizarCalendario(); 
+
+    } catch (error) {
+        console.error("Error al expulsar miembro:", error);
+        alert("Hubo un error al intentar eliminar al miembro.");
+        if (btnConfirmar) {
+            btnConfirmar.innerHTML = 'Expulsar';
+            btnConfirmar.style.opacity = "1";
+            btnConfirmar.disabled = false;
+        }
+    }
+};
+
