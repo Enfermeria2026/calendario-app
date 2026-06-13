@@ -45,8 +45,8 @@ document.getElementById('btn-miembros').onclick = function() {
 window.abrirModalMiembros();
 this.blur();
 };
-// Botón de configuración SOLO para admins/creador
-if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
+// Botón de configuración SOLO para admins/titular
+if (datosCalendario.titular === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
 document.getElementById('btn-config').classList.remove('hidden');
 document.getElementById('btn-config').onclick = function() {
 window.abrirModalConfig();
@@ -428,21 +428,21 @@ miembrosData.forEach(miembro => {
 const esYo = miembro.id === idActivo;
 const miColor = mapaColores[miembro.id] || 'c-negro';
 
-const esCreador = datosCalendario.creador === miembro.id;
+const estitular = datosCalendario.titular === miembro.id;
 const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(miembro.id);
 let rolHtml = "";
 
 if (esYo) {
-if (esCreador) {
-rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Creador</span>`;
+if (estitular) {
+rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">titular</span>`;
 } else if (esAdmin) {
 rolHtml = `<span style="color: #ec407a; font-weight: 700; font-size: 11px; margin-top: 2px;">Eres Administrador</span>`;
 } else {
 rolHtml = `<span style="color: #999; font-weight: normal; font-size: 11px; margin-top: 2px;">Sin rol asignado</span>`;
 }
 } else {
-if (esCreador) {
-rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">Creador</span>`;
+if (estitular) {
+rolHtml = `<span style="color: #d32f2f; font-weight: 800; font-size: 12px; margin-top: 2px;">titular</span>`;
 } else if (esAdmin) {
 rolHtml = `<span style="color: #f06292; font-weight: 600; font-size: 11px; margin-top: 2px;">Administrador</span>`;
 } else {
@@ -596,10 +596,10 @@ if (!docSnap.exists()) throw new Error("Calendario no encontrado");
 const datos = docSnap.data();
 
 // 2. Verificación de permisos
-const esCreador = datos.creador === idActivo;
+const estitular = datos.titular === idActivo;
 const esAdmin = datos.admins && datos.admins.includes(idActivo);
 
-if (!esCreador && !esAdmin) {
+if (!estitular && !esAdmin) {
 container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos para ver esto.</p>";
 return;
 }
@@ -638,7 +638,7 @@ ${datos.nombre || 'Sin nombre'}
 <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datos.codigo_acceso || '---'}</div>
 </div>
 <div style="display: flex; flex-shrink: 0;">
-${esCreador ? `
+${estitular ? `
 <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" style="${btnStyle}" title="Nuevo código">
 <i class="fas fa-sync-alt"></i>
 </button>
@@ -670,14 +670,14 @@ ${esCreador ? `
 
 let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">`;
 miembrosData.forEach(miembro => {
-const mEsCreador = datos.creador === miembro.id;
+const mEstitular = datos.titular === miembro.id;
 const mEsAdmin = datos.admins && datos.admins.includes(miembro.id);
 const soyYo = miembro.id === idActivo;
-let rolTxt = mEsCreador ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">Creador</span>` : mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : `<span style="color: #999; font-size: 11px;">Miembro</span>`;
+let rolTxt = mEstitular ? `<span style="color: #d32f2f; font-size: 11px; font-weight: bold;">titular</span>` : mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : `<span style="color: #999; font-size: 11px;">Miembro</span>`;
 
 let botonesHtml = ``;
-if (!mEsCreador && !soyYo) {
-if (esCreador) {
+if (!mEstitular && !soyYo) {
+if (estitular) {
 const iconoCorona = mEsAdmin ? `<i class="fas fa-user-times" style="color:#ffb300;"></i>` 
 
 : `<i class="fas fa-user-shield" style="color:#ffb300;"></i>`;
@@ -701,10 +701,10 @@ ${rolTxt}
 htmlMiembros += `</div>`;
 
 let htmlZonaPeligro = ``;
-if (esCreador) {
+if (estitular) {
 htmlZonaPeligro = `
 <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-<button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Traspasar titularidad</button>
+<button onclick="iniciarTraspasotitular(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Traspasar titularidad</button>
 <button onclick="eliminarCalendarioDefinitivo(); document.activeElement.blur();" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Eliminar Calendario</button>
 </div>
 `;
