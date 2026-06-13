@@ -642,8 +642,9 @@ window.abrirModalConfig = async () => {
                             ${datos.nombre || 'Sin nombre'}
                         </div>
                     </div>
-                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); this.blur();" style="${btnStyle}">
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); setTimeout(() => document.activeElement.blur(), 100);" style="${btnStyle}">
     <i class="fas fa-pencil-alt"></i>
+</button>
 </button>
                 </div>
 
@@ -656,11 +657,11 @@ window.abrirModalConfig = async () => {
                     </div>
                     <div style="display: flex; flex-shrink: 0;">
                         ${esCreador ? `
-                           <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); this.blur();" style="${btnStyle}" title="Nuevo código">
+                          <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); setTimeout(() => document.activeElement.blur(), 100);" style="${btnStyle}" title="Nuevo código">
     <i class="fas fa-sync-alt"></i>
 </button>
 
-<button class="btn-icono-accion" onclick="editarCodigoInvitacion(); this.blur();" style="${btnStyle}" title="Editar código">
+<button class="btn-icono-accion" onclick="editarCodigoInvitacion(); setTimeout(() => document.activeElement.blur(), 100);" style="${btnStyle}" title="Editar código">
     <i class="fas fa-pencil-alt"></i>
 </button>
                         ` : '<i class="fas fa-lock" style="color:#ccc; margin-left: 10px;"></i>'}
@@ -696,9 +697,9 @@ window.abrirModalConfig = async () => {
                 if (esCreador) {
                     const iconoCorona = mEsAdmin ? `<i class="fas fa-user-times" style="color:#ffb300;"></i>` : `<i class="fas fa-user-shield" style="color:#ffb300;"></i>`;
                     botonesHtml += `<button class="btn-icono-accion" onclick="toggleAdmin('${miembro.id}', ${mEsAdmin}); document.activeElement.blur();" style="${btnStyle}">${iconoCorona}</button>`;
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); setTimeout(() => document.activeElement.blur(), 100);" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 } else if (esAdmin && !mEsAdmin) {
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); setTimeout(() => document.activeElement.blur(), 100);" style="${btnStyle} color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 }
             }
 
