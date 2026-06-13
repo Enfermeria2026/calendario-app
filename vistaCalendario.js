@@ -91,16 +91,45 @@ async function inicializarCalendario() {
 }
 
 window.cambiarPrivacidad = async (checked) => {
+    // 1. CAMBIO ESTÉTICO INSTANTÁNEO: Buscamos los elementos del botón y los movemos al vuelo
+    const inputPriv = document.getElementById('toggle-priv');
+    if (inputPriv) {
+        const fondoBoton = inputPriv.nextElementSibling; // El span del fondo gris/rosa
+        if (fondoBoton) {
+            // Cambiamos el color de fondo según esté activado (checked) o no
+            fondoBoton.style.backgroundColor = checked ? '#ec407a' : '#ccc';
+            
+            const circuloBoton = fondoBoton.firstElementChild; // El circulito blanco de dentro
+            if (circuloBoton) {
+                // Movemos el círculo a la derecha (23px) o a la izquierda (3px)
+                circuloBoton.style.left = checked ? '23px' : '3px';
+            }
+        }
+    }
+
+    // 2. PROCESO SILENCIOSO EN SEGUNDO PLANO: Guardamos en Firebase sin molestar al usuario
     try {
         const calRef = doc(db, "calendarios", calId);
         await updateDoc(calRef, { requiere_aprobacion: checked });
         datosCalendario.requiere_aprobacion = checked;
         
-        // Relanzamos la inicialización para ocultar o mostrar el buzón al instante
+        // Relanzamos la inicialización para ocultar o mostrar el buzón en la cabecera de fondo
         await inicializarCalendario();
-        await window.abrirModalConfig();
+  
     } catch (error) {
         console.error("Error al cambiar privacidad:", error);
+        alert("Hubo un error de conexión al guardar la privacidad.");
+        
+        // Si la base de datos falla, devolvemos el botón a su estado original para no engañar al usuario
+        if (inputPriv) {
+            inputPriv.checked = !checked;
+            const fondoBoton = inputPriv.nextElementSibling;
+            if (fondoBoton) {
+                fondoBoton.style.backgroundColor = !checked ? '#ec407a' : '#ccc';
+                const circuloBoton = fondoBoton.firstElementChild;
+                if (circuloBoton) circuloBoton.style.left = !checked ? '23px' : '3px';
+            }
+        }
     }
 };
 
