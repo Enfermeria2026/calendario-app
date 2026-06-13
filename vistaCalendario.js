@@ -639,7 +639,9 @@ window.abrirModalConfig = async () => {
                             ${datos.nombre || 'Sin nombre'}
                         </div>
                     </div>
-                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); document.activeElement.blur();" style="${btnStyle}"><i class="fas fa-pencil-alt"></i></button>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); this.blur();" style="${btnStyle}">
+    <i class="fas fa-pencil-alt"></i>
+</button>
                 </div>
 
                 <hr style="border: none; border-top: 1px solid #fce4ec; margin: 12px 0;">
