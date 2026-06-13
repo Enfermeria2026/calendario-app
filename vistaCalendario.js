@@ -58,8 +58,12 @@ async function inicializarCalendario() {
         // Botón de configuración SOLO para admins/creador
         if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
             document.getElementById('btn-config').classList.remove('hidden');
-            document.getElementById('btn-config').onclick = function() { this.blur(); };
+            document.getElementById('btn-config').onclick = function() { 
+                window.abrirModalConfig(); // <--- Ahora sí abre el modal
+                this.blur(); 
+            };
         }
+        
     } else {
         window.location.href = "dashboard.html";
     }
