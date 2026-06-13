@@ -384,3 +384,16 @@ html, body {
 /* --- NUEVO ROSA MÁS CLARO --- */
 .c-rosa { color: #FF80AB; } 
 .bg-c-rosa { background-color: #FF80AB !important; }
+
+/* --- NUEVOS COLORES COMPLEMENTARIOS --- */
+/* Cian (Un azul verdoso muy brillante) */
+.c-cian { color: #00BCD4; }
+.bg-c-cian { background-color: #00BCD4 !important; }
+
+/* Magenta (Un rosa oscuro / violeta muy vivo) */
+.c-magenta { color: #E91E63; }
+.bg-c-magenta { background-color: #E91E63 !important; }
+
+/* Celeste (Un azul cielo suave y pastel) */
+.c-celeste { color: #4FC3F7; }
+.bg-c-celeste { background-color: #4FC3F7 !important; }
