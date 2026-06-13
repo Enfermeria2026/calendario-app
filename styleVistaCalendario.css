@@ -451,3 +451,28 @@ button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
     }
 }
 
+/* --- 1. LIMPIEZA GLOBAL DE MÓVIL --- */
+* {
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+/* --- 2. ELIMINAR EL FOCO (El causante de que se queden clicados) --- */
+button:focus, 
+button:active:focus, 
+.btn-icono-accion:focus, 
+.btn-vista:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important; /* Mantiene tu fondo original */
+}
+
+/* --- 3. EFECTO ANIMADO (El color rosa/oscurecido al pulsar) --- */
+.btn-icono-accion:active,
+#btn-prev:active,
+#btn-next:active,
+.btn-vista:active {
+    transform: scale(0.95) !important;
+    filter: brightness(0.9) !important; /* Oscurece ligeramente cualquier color (rosa, blanco, etc) */
+    transition: all 0.1s ease;
+}
+
