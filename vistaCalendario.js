@@ -608,14 +608,12 @@ window.abrirModalConfig = async () => {
     const esCreador = datosCalendario.creador === idActivo;
     const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
 
-    // Seguridad extra: Si alguien abre esto hackeando, lo echamos
     if (!esCreador && !esAdmin) {
         container.innerHTML = "<p style='color:red; text-align:center;'>No tienes permisos.</p>";
         return;
     }
 
     try {
-        // Cargamos los usuarios igual que en miembros
         const promesas = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
         const docs = await Promise.all(promesas);
         let miembrosData = [];
@@ -623,9 +621,12 @@ window.abrirModalConfig = async () => {
             if (d.exists()) miembrosData.push({ id: d.id, ...d.data() });
         });
 
-        // HTML del Nombre
+        const requiereAprobacion = datosCalendario.requiere_aprobacion || false;
+
+        // 1. SECCIÓN DE INFO, CÓDIGO Y PRIVACIDAD
         let htmlInfo = `
             <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec;">
+                
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div>
                         <span style="font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px;">Nombre del Calendario</span>
@@ -642,18 +643,33 @@ window.abrirModalConfig = async () => {
                         <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datosCalendario.codigo_invitacion}</div>
                     </div>
                     ${esCreador 
-                        ? `<button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();"><i class="fas fa-pencil-alt"></i></button>`
-                        : `<i class="fas fa-lock" style="color: #ccc; margin-right: 5px;"></i>`
+                        ? `<div style="display: flex; gap: 5px;">
+                               <button class="btn-icono-accion" onclick="generarCodigoAleatorio(); document.activeElement.blur();" title="Generar código nuevo"><i class="fas fa-sync-alt"></i></button>
+                               <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); document.activeElement.blur();" title="Editar código"><i class="fas fa-pencil-alt"></i></button>
+                           </div>`
+                        : `<i class="fas fa-lock" style="color: #ccc; margin-right: 5px;" title="Solo el creador puede cambiarlo"></i>`
                     }
                 </div>
             </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px;">
+                <div>
+                    <div style="font-size: 14px; font-weight: bold; color: #333;">Privacidad</div>
+                    <div style="font-size: 11px; color: #999;">Requerir aprobación para unirse</div>
+                </div>
+                <label style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                    <input type="checkbox" id="toggle-priv" ${requiereAprobacion ? 'checked' : ''} onchange="cambiarPrivacidad(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                    <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${requiereAprobacion ? '#ec407a' : '#ccc'}; border-radius: 24px; transition: .3s;">
+                        <span style="position: absolute; content: ''; height: 18px; width: 18px; left: ${requiereAprobacion ? '23px' : '3px'}; bottom: 3px; background-color: white; border-radius: 50%; transition: .3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
+                    </span>
+                </label>
+            </div>
             
-            <h3 style="margin: 5px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
+            <h3 style="margin: 15px 0 -5px 0; font-size: 16px; color: #333;">Gestión de Miembros</h3>
         `;
 
-        // HTML de la Lista de Miembros
+        // 2. LISTA DE MIEMBROS
         let htmlMiembros = `<div style="display: flex; flex-direction: column; gap: 10px;">`;
-        
         miembrosData.forEach(miembro => {
             const mEsCreador = datosCalendario.creador === miembro.id;
             const mEsAdmin = datosCalendario.admins && datosCalendario.admins.includes(miembro.id);
@@ -663,18 +679,14 @@ window.abrirModalConfig = async () => {
                          mEsAdmin ? `<span style="color: #ec407a; font-size: 11px; font-weight: bold;">Administrador</span>` : 
                          `<span style="color: #999; font-size: 11px;">Miembro</span>`;
 
-            // Botones de acción según quién mira
             let botonesHtml = ``;
             if (!mEsCreador && !soyYo) { 
-                // Nadie puede echar al creador ni a sí mismo desde esta lista
                 if (esCreador) {
-                    // El creador puede coronar/quitar admin y echar
                     const iconoCorona = mEsAdmin ? `<i class="fas fa-user-times" style="color:#ffb300;"></i>` : `<i class="fas fa-user-shield" style="color:#ffb300;"></i>`;
                     botonesHtml += `<button class="btn-icono-accion" onclick="toggleAdmin('${miembro.id}', ${mEsAdmin}); document.activeElement.blur();" title="Gestionar Rol">${iconoCorona}</button>`;
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 } else if (esAdmin && !mEsAdmin) {
-                    // El admin solo puede echar a miembros rasos
-                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
+                    botonesHtml += `<button class="btn-icono-accion" onclick="expulsarMiembro('${miembro.id}', '${miembro.nombre}'); document.activeElement.blur();" style="color: #ef5350;"><i class="fas fa-trash"></i></button>`;
                 }
             }
 
@@ -692,17 +704,26 @@ window.abrirModalConfig = async () => {
         });
         htmlMiembros += `</div>`;
 
-        // Botón especial del Creador
-        let htmlAccionesBajas = ``;
+        // 3. ZONA DE PELIGRO (Solo Creador)
+        let htmlZonaPeligro = ``;
         if (esCreador) {
-            htmlAccionesBajas = `
-                <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="margin-top: 10px; background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">
-                    <i class="fas fa-sign-out-alt"></i> Salir y ceder titularidad
-                </button>
+            htmlZonaPeligro = `
+                <h3 style="margin: 20px 0 0 0; font-size: 14px; color: #d32f2f; text-transform: uppercase; letter-spacing: 1px;">Zona de Peligro</h3>
+                <div style="border: 1px solid #ffcdd2; background: #fff5f5; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    
+                    <button onclick="iniciarTraspasoCreador(); document.activeElement.blur();" style="background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
+                        <i class="fas fa-sign-out-alt"></i> Salir y ceder titularidad
+                    </button>
+                    
+                    <button onclick="eliminarCalendarioDefinitivo(); document.activeElement.blur();" style="background: #d32f2f; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;">
+                        <i class="fas fa-trash-alt"></i> Eliminar Calendario
+                    </button>
+                    
+                </div>
             `;
         }
 
-        container.innerHTML = htmlInfo + htmlMiembros + htmlAccionesBajas;
+        container.innerHTML = htmlInfo + htmlMiembros + htmlZonaPeligro;
 
     } catch (error) {
         console.error("Error cargando configuración:", error);
