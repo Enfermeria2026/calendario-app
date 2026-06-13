@@ -719,41 +719,106 @@ container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar 
 };
 
 // =========================================================
-// FUNCIONALIDAD: CAMBIAR NOMBRE DEL CALENDARIO
+// FUNCIONALIDAD: CAMBIAR NOMBRE DEL CALENDARIO (MODAL PERSONALIZADO)
 // =========================================================
-window.editarNombreCalendario = async () => {
-    // 1. Obtenemos el nombre actual de la variable global si está disponible
-    const nombreActual = datosCalendario ? datosCalendario.nombre : "Sin nombre";
+
+window.editarNombreCalendario = () => {
+    // 1. Pillamos el modal genérico que ya tienes en tu HTML
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    // 2. Obtenemos el nombre actual
+    const nombreActual = datosCalendario ? datosCalendario.nombre : "";
+
+    // 3. Montamos el diseño del modal al vuelo
+    msg.innerText = "Cambiar nombre del calendario";
     
-    // 2. Mostramos un cuadro de entrada de texto nativo con el nombre actual preestablecido
-    const nuevoNombre = prompt("Introduce el nuevo nombre para el calendario:", nombreActual);
+    // Metemos un input bonito que encaje con tu diseño
+    extra.innerHTML = `
+        <input type="text" id="input-nuevo-nombre" value="${nombreActual}" 
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; box-sizing: border-box; outline: none; margin-bottom: 10px; font-family: inherit; color: #333;"
+               placeholder="Escribe el nuevo nombre..." autocomplete="off">
+        <p id="error-nombre" style="color: #ef5350; font-size: 12px; margin: 0; min-height: 15px;"></p>
+    `;
+
+    // Metemos los botones de Cancelar y Guardar con los colores de tu app
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-guardar-nombre" onclick="guardarNuevoNombreCalendario()" 
+                style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Guardar
+        </button>
+    `;
+
+    // 4. Mostramos el modal
+    modal.classList.remove('hidden');
     
-    // Si el usuario presiona "Cancelar" o deja el campo completamente vacío, cancelamos el proceso
-    if (nuevoNombre === null || nuevoNombre.trim() === "") return;
+    // 5. Pequeño truco: ponemos el cursor directamente dentro del cuadro de texto
+    setTimeout(() => {
+        const input = document.getElementById('input-nuevo-nombre');
+        if (input) {
+            input.focus();
+            // Esto pone el cursor al final del texto existente
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+    }, 100);
+};
+
+// FUNCIÓN PARA CAMBIAR EL NOMBRE AL CALENDARIO
+// Esta es la función que se ejecuta al darle al botón rosa de "Guardar"
+window.guardarNuevoNombreCalendario = async () => {
+    const input = document.getElementById('input-nuevo-nombre');
+    const errorMsg = document.getElementById('error-nombre');
+    const btnGuardar = document.getElementById('btn-guardar-nombre');
     
-    const nombreLimpio = nuevoNombre.trim();
+    if (!input) return;
+    
+    const nuevoNombre = input.value.trim();
+    
+    // Validamos que no intente guardar un nombre vacío
+    if (nuevoNombre === "") {
+        errorMsg.innerText = "El nombre no puede estar vacío.";
+        input.style.borderColor = "#ef5350"; // Borde rojo para avisar
+        return;
+    }
+
+    // Efecto de carga en el botón para que el usuario sepa que está trabajando
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    btnGuardar.style.opacity = "0.7";
+    btnGuardar.disabled = true;
 
     try {
-        // 3. Actualizamos el documento correspondiente en Firebase Firestore
+        // Actualizamos en Firebase
         const calRef = doc(db, "calendarios", calId);
-        await updateDoc(calRef, { nombre: nombreLimpio });
+        await updateDoc(calRef, { nombre: nuevoNombre });
 
-        // 4. Sincronizamos la variable global en memoria del script
+        // Actualizamos en memoria
         if (datosCalendario) {
-            datosCalendario.nombre = nombreLimpio;
+            datosCalendario.nombre = nuevoNombre;
         }
 
-        // 5. Actualizamos el título del calendario que se muestra en la pantalla principal
+        // Actualizamos el título de la pantalla de fondo
         const tituloMain = document.getElementById('titulo-calendario');
         if (tituloMain) {
-            tituloMain.innerText = nombreLimpio;
+            tituloMain.innerText = nuevoNombre;
         }
 
-        // 6. Forzamos la actualización del modal de configuración abierto para que muestre el nuevo nombre al instante
+        // Cerramos el modal de edición y recargamos el modal de configuración de fondo
+        document.getElementById('miModal').classList.add('hidden');
         await window.abrirModalConfig();
 
     } catch (error) {
         console.error("Error al actualizar el nombre del calendario:", error);
-        alert("Hubo un problema con la base de datos al intentar cambiar el nombre.");
+        errorMsg.innerText = "Hubo un error de conexión.";
+        btnGuardar.innerHTML = 'Guardar';
+        btnGuardar.style.opacity = "1";
+        btnGuardar.disabled = false;
     }
 };
