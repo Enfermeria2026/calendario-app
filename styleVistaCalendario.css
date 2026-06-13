@@ -401,58 +401,52 @@ html, body {
 /* --- FORZAR QUITAR EL SOMBREADO/FOCO AL PULSAR EN MÓVILES --- */
 button:focus, .nav-btn:focus, .btn-icono-accion:focus, .btn-vista:focus {
     outline: none !important;
-    background-color: transparent; 
-} /* <-- ¡ESTA ES LA LLAVE QUE FALTABA! */
+}
 
 /* =========================================================
-   PROTECCIÓN ANTI-CLIC FANTASMA PARA MÓVILES
+   COMPORTAMIENTO EXACTO DE LOS BOTONES Y ANTI-CLIC MÓVIL
    ========================================================= */
 
-/* 1. Evitar el recuadro gris o azul al hacer tap en la pantalla */
+/* Eliminar recuadro azul nativo de los móviles */
 * {
     -webkit-tap-highlight-color: transparent !important;
 }
 
-button, a {
-    outline: none !important;
+/* --- 1. BOTONES < y > (Pasar de mes/semana) --- */
+#btn-prev, #btn-next {
+    background-color: white !important; /* Estado normal: fondo blanco */
+    transition: background-color 0.1s, transform 0.1s;
+}
+#btn-prev:active, #btn-next:active {
+    background-color: #fce4ec !important; /* Estado apretado: rosita claro */
+    transform: scale(0.9) !important; /* Se hacen un pelín más pequeños al pulsar */
 }
 
-/* 2. Si el dispositivo es táctil (no tiene ratón), anulamos el hover pegajoso */
+/* --- 2. PROTECCIÓN TÁCTIL (Solo para móviles) --- */
 @media (hover: none) {
-    
-    /* A) BOTÓN DEL LÁPIZ Y DEL OJO: Vuelven a su gris al soltar */
+    /* Flechas: Forzamos que vuelvan a blanco en cuanto levantes el dedo */
+    #btn-prev:hover, #btn-next:hover {
+        background-color: white !important;
+        transform: none !important;
+    }
+    #btn-prev:active, #btn-next:active {
+        background-color: #fce4ec !important; 
+        transform: scale(0.9) !important;
+    }
+
+    /* Lápiz y ojo: Limpiamos el hover enganchado para que vuelvan a su estado gris/inactivo */
     .btn-icono-accion:hover {
         background-color: transparent !important;
         color: #999 !important;
         transform: none !important;
     }
-    
-    /* B) FLECHAS DE PASAR MES/SEMANA: Vuelven a su ROSITA original al soltar */
-    #btn-prev:hover, 
-    #btn-next:hover {
-        background-color: transparent !important;
-        color: #ec407a !important; 
-        transform: none !important;
-    }
-
-    /* C) BOTONES DE VISTA (MES / SEMANA) */
-    .btn-vista:hover {
-        background-color: transparent !important;
-        color: #ec407a !important; /* Texto rosa cuando no están activos */
-    }
-    
-    /* ESCUDO: Si el botón de Mes o Semana está pulsado (.active), se queda rosa con letras blancas */
-    .btn-vista.active,
-    .btn-vista.active:hover {
-        background-color: #ec407a !important;
-        color: white !important;
-        font-weight: bold !important;
-    }
-    
-    /* Efecto momentáneo en el milisegundo que el dedo aprieta la pantalla */
-    .btn-icono-accion:active,
-    #btn-prev:active,
-    #btn-next:active {
+    .btn-icono-accion:active {
+        color: #ec407a !important;
         transform: scale(0.9) !important;
+    }
+    
+    /* Mes/Semana: Anulamos el efecto pegajoso SIN cambiar tus colores originales */
+    .btn-vista:hover:not(.active) {
+        background-color: transparent !important;
     }
 }
