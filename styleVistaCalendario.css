@@ -278,20 +278,41 @@ html, body {
 
 .day-other-month { opacity: 0.3; }
 
-/* --- ESTRELLAS --- */
-.stars-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 1px; 
-    flex-grow: 1;
-    align-items: center;
-    justify-items: center;
-    margin-top: 3px;
+/* --- ESTRELLAS Y REJILLAS ADAPTATIVAS --- */
+
+/* Por defecto: Mes (3x3) */
+.stars-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    grid-template-rows: repeat(3, 1fr); 
+    gap: 1px; flex-grow: 1; 
+    align-items: center; justify-content: center; 
     min-height: 0; 
 }
 
-.star-icon { font-size: 8px; }
+/* Fila 1 Semanal: L-V (2 columnas x 5 filas) */
+.stars-grid-semana-fila1 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 1px;
+    flex-grow: 1;
+    align-items: center; justify-content: center;
+    min-height: 0;
+}
+
+/* Fila 2 Semanal: S-D (5 columnas x 2 filas) */
+.stars-grid-semana-fila2 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1px;
+    flex-grow: 1;
+    align-items: center; justify-content: center;
+    min-height: 0;
+}
+
+.star-icon { width: 6px; height: 6px; border-radius: 50%; }
 
 /* --- COLORES Y FONDOS --- */
 .bg-c-azul { background-color: #2196F3 !important; }
