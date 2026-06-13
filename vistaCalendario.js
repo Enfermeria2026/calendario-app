@@ -9,30 +9,21 @@ const HOY_REAL = new Date();
 let datosCalendario = null;
 let mapaColores = {};
 let vistaActual = "mes"; 
-
-// AÑADIDOS LOS 12 COLORES
 const COLORES_DISPONIBLES = ['c-azul', 'c-naranja', 'c-rojo', 'c-verde', 'c-morado', 'c-rosa', 'c-marron', 'c-amarillo', 'c-negro', 'c-cian', 'c-magenta', 'c-celeste'];
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!idActivo || !calId) { window.location.href = "dashboard.html"; return; }
-    
     fechaVisualizada = new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate());
-    
     try {
         await cargarDatosUsuario();
         await inicializarCalendario();
         configurarControles();
-    } catch (error) {
-        console.error("Error al iniciar:", error);
-    }
+    } catch (error) { console.error("Error al iniciar:", error); }
 });
 
 async function cargarDatosUsuario() {
     const uSnap = await getDoc(doc(db, "usuarios", idActivo));
-    if (uSnap.exists()) {
-        const uData = uSnap.data();
-        document.getElementById('header-user-name').innerText = uData.nombre;
-    }
+    if (uSnap.exists()) document.getElementById('header-user-name').innerText = uSnap.data().nombre;
 }
 
 async function inicializarCalendario() {
@@ -40,102 +31,46 @@ async function inicializarCalendario() {
     if (docSnap.exists()) {
         datosCalendario = docSnap.data();
         document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
-        
         await asegurarColoresMiembros();
-        
-        const miColor = mapaColores[idActivo] || 'c-negro';
-        const ind = document.getElementById('user-color-indicator');
-        if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
-        
         renderizarCalendario();
-        
-        // Botón de miembros para TODOS
-        document.getElementById('btn-miembros').onclick = function() { 
-            window.abrirModalMiembros(); 
-            this.blur(); 
-        };
-        
-        // Botón de configuración SOLO para admins/creador
+        document.getElementById('btn-miembros').onclick = function() { window.abrirModalMiembros(); this.blur(); };
         if (datosCalendario.creador === idActivo || (datosCalendario.admins && datosCalendario.admins.includes(idActivo))) {
             document.getElementById('btn-config').classList.remove('hidden');
-            document.getElementById('btn-config').onclick = function() { 
-                window.abrirModalConfig(); 
-                this.blur(); 
-            };
+            document.getElementById('btn-config').onclick = function() { window.abrirModalConfig(); this.blur(); };
         }
-    } else {
-        window.location.href = "dashboard.html";
-    }
+    } else { window.location.href = "dashboard.html"; }
 }
 
 async function asegurarColoresMiembros() {
     let necesitaActualizar = false;
     mapaColores = datosCalendario.colores_miembros || {};
     let coloresUsados = Object.values(mapaColores);
-    
-    datosCalendario.miembros.forEach(miembroId => {
-        if (!mapaColores[miembroId]) {
+    datosCalendario.miembros.forEach(mId => {
+        if (!mapaColores[mId]) {
             const colorLibre = COLORES_DISPONIBLES.find(c => !coloresUsados.includes(c)) || 'c-negro'; 
-            mapaColores[miembroId] = colorLibre;
+            mapaColores[mId] = colorLibre;
             coloresUsados.push(colorLibre);
             necesitaActualizar = true;
         }
     });
-
-    if (necesitaActualizar) {
-        await updateDoc(doc(db, "calendarios", calId), { colores_miembros: mapaColores });
-        datosCalendario.colores_miembros = mapaColores;
-    }
+    if (necesitaActualizar) { await updateDoc(doc(db, "calendarios", calId), { colores_miembros: mapaColores }); datosCalendario.colores_miembros = mapaColores; }
 }
 
 function configurarControles() {
     document.getElementById('btn-prev').onclick = function() {
-   
-        if (vistaActual === "mes") {
-            if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return;
-            fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1);
-        } else {
-            const lunesActualSemana = obtenerLunes(fechaVisualizada);
-            const lunesSemanaHoy = obtenerLunes(HOY_REAL);
-            if (lunesActualSemana.getTime() <= lunesSemanaHoy.getTime()) return;
-            fechaVisualizada.setDate(fechaVisualizada.getDate() - 7);
-        }
+        this.blur();
+        if (vistaActual === "mes") { if (fechaVisualizada.getFullYear() === HOY_REAL.getFullYear() && fechaVisualizada.getMonth() === HOY_REAL.getMonth()) return; fechaVisualizada.setMonth(fechaVisualizada.getMonth() - 1); } 
+        else { fechaVisualizada.setDate(fechaVisualizada.getDate() - 7); }
         renderizarCalendario();
     };
-    
     document.getElementById('btn-next').onclick = function() {
-       
-        if (vistaActual === "mes") {
-            fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1);
-        } else {
-            fechaVisualizada.setDate(fechaVisualizada.getDate() + 7);
-        }
-        renderizarCalendario();
-       
-    };
-
-    document.getElementById('btn-vista-mes').onclick = function() {
         this.blur();
-       
-        if (vistaActual === "mes") return;
-        vistaActual = "mes";
-        document.getElementById('btn-vista-semana').classList.remove('active');
-        this.classList.add('active');
-        fechaVisualizada = new Date(fechaVisualizada.getFullYear(), fechaVisualizada.getMonth(), 1);
-        renderizarCalendario();
-      
-    };
-
-    document.getElementById('btn-vista-semana').onclick = function() {
-        this.blur();
-       
-        if (vistaActual === "semana") return;
-        vistaActual = "semana";
-        document.getElementById('btn-vista-mes').classList.remove('active');
-        this.classList.add('active');
+        if (vistaActual === "mes") { fechaVisualizada.setMonth(fechaVisualizada.getMonth() + 1); } 
+        else { fechaVisualizada.setDate(fechaVisualizada.getDate() + 7); }
         renderizarCalendario();
     };
-   
+    document.getElementById('btn-vista-mes').onclick = function() { this.blur(); vistaActual="mes"; document.getElementById('btn-vista-semana').classList.remove('active'); this.classList.add('active'); renderizarCalendario(); };
+    document.getElementById('btn-vista-semana').onclick = function() { this.blur(); vistaActual="semana"; document.getElementById('btn-vista-mes').classList.remove('active'); this.classList.add('active'); renderizarCalendario(); };
 }
 
 function obtenerLunes(d) {
@@ -146,6 +81,38 @@ function obtenerLunes(d) {
     return date;
 }
 
+window.abrirModalConfig = async () => {
+    const modal = document.getElementById('modal-config');
+    const container = document.getElementById('config-container');
+    if (!modal || !container) return;
+    modal.classList.remove('hidden');
+    container.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando...</p>";
+    try {
+        const docSnap = await getDoc(doc(db, "calendarios", calId));
+        const datos = docSnap.data();
+        const esCreador = datos.creador === idActivo;
+        const blur = "setTimeout(() => document.activeElement.blur(), 100);";
+
+        let htmlInfo = `
+            <div style="background: #fdf5f8; padding: 15px; border-radius: 12px; border: 1px solid #fce4ec; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="min-width: 0; flex: 1;"><span style="font-size: 11px; color: #999; text-transform: uppercase;">Nombre</span>
+                    <div style="font-size: 16px; font-weight: bold; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${datos.nombre || 'Sin nombre'}</div></div>
+                    <button class="btn-icono-accion" onclick="editarNombreCalendario(); ${blur}"><i class="fas fa-pencil-alt"></i></button>
+                </div>
+                <hr style="border: none; border-top: 1px solid #fce4ec; margin: 12px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="min-width: 0; flex: 1;"><span style="font-size: 11px; color: #999; text-transform: uppercase;">Código</span>
+                    <div style="font-size: 16px; font-weight: bold; color: #ec407a; margin-top: 2px; letter-spacing: 2px;">${datos.codigo_acceso || '---'}</div></div>
+                    <div style="display: flex; flex-shrink: 0;">
+                        ${esCreador ? `<button class="btn-icono-accion" onclick="generarCodigoAleatorio(); ${blur}"><i class="fas fa-sync-alt"></i></button>
+                                       <button class="btn-icono-accion" onclick="editarCodigoInvitacion(); ${blur}"><i class="fas fa-pencil-alt"></i></button>` : '<i class="fas fa-lock" style="color:#ccc; margin-left:10px;"></i>'}
+                    </div>
+                </div>
+            </div>`;
+        container.innerHTML = htmlInfo;
+    } catch (e) { container.innerHTML = "Error."; }
+};
 // =========================================================
 // SISTEMA DE CARGA BASADO EN LOS MIEMBROS DEL CALENDARIO
 // =========================================================
