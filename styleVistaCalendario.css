@@ -341,20 +341,47 @@ html, body {
 
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0, 0, 0, 0.65); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-box { background: white; border-radius: 18px; position: relative; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.modal-close-btn { position: absolute; top: 15px; right: 18px; background: transparent; border: none; font-size: 22px; color: #aaa; cursor: pointer; padding: 0; outline: none; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+
+/* --- CRUZ REDONDA EN LA ESQUINA --- */
+.modal-close-btn { 
+    position: absolute; 
+    top: -12px; 
+    right: -12px; 
+    background: white; 
+    border: 1px solid #eee; 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 16px; 
+    color: #888; 
+    cursor: pointer; 
+    padding: 0; 
+    outline: none; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: 0.2s; 
+    -webkit-tap-highlight-color: transparent; 
+    z-index: 10;
+}
 .modal-close-btn:active { color: #ec407a; transform: scale(0.9); }
 
 /* Filas de los miembros */
 .miembro-row { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
 .miembro-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
 .miembro-foto { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #ddd; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; flex-shrink: 0; }
-.miembro-detalles { display: flex; flex-direction: column; overflow: hidden; }
+.miembro-detalles { display: flex; flex-direction: row; align-items: center; gap: 6px; overflow: hidden; width: 100%; }
 .miembro-nombre { font-weight: bold; color: #333; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.miembro-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.btn-icono-accion { background: none; border: none; color: #999; font-size: 18px; cursor: pointer; padding: 5px; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
+.miembro-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; height: 100%; }
+.btn-icono-accion { background: none; border: none; color: #999; font-size: 18px; cursor: pointer; padding: 0 5px; margin: 0; display: flex; align-items: center; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
 .btn-icono-accion:active { color: #ec407a; transform: scale(0.9); }
 
 /* Selector de colores */
 .color-picker-box { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: -5px; margin-bottom: 15px; padding: 15px; background: #fdf5f8; border-radius: 12px; border: 1px solid #fce4ec; }
 .color-picker-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid transparent; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
 .color-picker-dot:active { transform: scale(0.8); }
+
+/* --- NUEVO ROSA MÁS CLARO --- */
+.c-rosa { color: #FF80AB; } 
+.bg-c-rosa { background-color: #FF80AB !important; }
