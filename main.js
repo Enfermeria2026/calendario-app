@@ -6,6 +6,14 @@ import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, addDoc, query, whe
 window.mostrarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); };
 window.ocultarCarga = () => { const el = document.getElementById('pantalla-carga'); if(el) el.classList.add('hidden'); };
 
+const idActivo = localStorage.getItem('usuario_activo');
+
+// --- AUTO-LOGIN: REDIRECCIÓN AUTOMÁTICA ---
+const rutaActual = window.location.pathname;
+if (idActivo && (rutaActual.endsWith('index.html') || rutaActual === '/' || rutaActual === '')) {
+    window.location.replace("dashboard.html");
+}
+
 // --- MODALES ---
 function lanzarAviso(mensaje, tipo = "ok", callback = null) {
     const overlay = document.getElementById('miModal');
