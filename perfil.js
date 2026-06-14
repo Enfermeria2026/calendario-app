@@ -84,6 +84,40 @@ function actualizarNombreHeader() {
 }
 
 // 5. Guardar los cambios en Firebase
+// Función mágica para encoger fotos del móvil y que pesen muy poco
+function comprimirImagenBase64(base64Str, maxAncho = 300, maxAlto = 300) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let ancho = img.width;
+            let alto = img.height;
+
+            // Calculamos las nuevas proporciones para que no se deforme
+            if (ancho > alto) {
+                if (ancho > maxAncho) {
+                    alto *= maxAncho / ancho;
+                    ancho = maxAncho;
+                }
+            } else {
+                if (alto > maxAlto) {
+                    ancho *= maxAlto / alto;
+                    alto = maxAlto;
+                }
+            }
+
+            canvas.width = ancho;
+            canvas.height = alto;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, ancho, alto);
+            
+            // Convertimos a JPEG con calidad 0.7 (70%) para que pese ridículamente poco
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+    });
+}
+
 async function guardarPerfil() {
     if (!miID) return;
 
@@ -98,6 +132,17 @@ async function guardarPerfil() {
         input.style.borderColor = "#eee";
     });
 
+    // --- NUEVO: COMPRESIÓN DE FOTO ANTES DE ENVIAR ---
+    let fotoOptimizada = fotoBase64;
+    if (fotoBase64 && fotoBase64.startsWith("data:image")) {
+        try {
+            fotoOptimizada = await comprimirImagenBase64(fotoBase64);
+        } catch (e) {
+            console.error("No se pudo comprimir la imagen, se intentará enviar la original:", e);
+        }
+    }
+    // -------------------------------------------------
+
     const datosAGuardar = {
         userId: miID,
         nombre: document.getElementById('perfil-nombre').value,
@@ -105,7 +150,7 @@ async function guardarPerfil() {
         fecha: document.getElementById('perfil-fecha').value,
         descripcion: document.getElementById('perfil-desc').value,
         trabajos: trabajosLocal,
-        foto: fotoBase64 
+        foto: fotoOptimizada // NUEVO: Guardamos la versión ligerita
     };
 
     try {
@@ -119,7 +164,6 @@ async function guardarPerfil() {
         ocultarCarga();
     }
 }
-
 // --- LÓGICA DE TRABAJOS ---
 function cargarListaTrabajos() {
     const lista = document.getElementById('lista-trabajos');
