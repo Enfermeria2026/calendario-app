@@ -876,9 +876,21 @@ window.toggleFiltroMiembro = (mId) => {
 async function asegurarColoresMiembros() {
     let necesitaActualizar = false;
     mapaColores = datosCalendario.colores_miembros || {};
-    let coloresUsados = Object.values(mapaColores);
     const miembrosList = datosCalendario.miembros || [];
 
+    // --- NUEVO: AUTO-LIMPIEZA DE COLORES FANTASMA ---
+    // Revisamos todos los colores guardados. Si el dueño ya no está en la lista de miembros, borramos su color.
+    Object.keys(mapaColores).forEach(id => {
+        if (!miembrosList.includes(id)) {
+            delete mapaColores[id];
+            necesitaActualizar = true;
+        }
+    });
+    // ------------------------------------------------
+
+    let coloresUsados = Object.values(mapaColores);
+
+    // Asignamos color a los miembros que no tengan
     miembrosList.forEach(miembroId => {
         if (!mapaColores[miembroId]) {
             const colorLibre = COLORES_DISPONIBLES.find(c => !coloresUsados.includes(c)) || 'c-negro';
@@ -887,6 +899,7 @@ async function asegurarColoresMiembros() {
             necesitaActualizar = true;
         }
     });
+
     if (necesitaActualizar) {
         await updateDoc(doc(db, "calendarios", calId), { colores_miembros: mapaColores });
         datosCalendario.colores_miembros = mapaColores;
