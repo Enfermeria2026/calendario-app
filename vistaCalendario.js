@@ -594,13 +594,11 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                 }
             }
 
-            // LÓGICA DE PERMISOS: Solo ves los botones si el evento es tuyo, o si eres Titular/Admin
+           // LÓGICA DE PERMISOS ESTRICTA: Solo ves los botones si el evento es exclusivamente tuyo, sin importar tu rol
             const esMio = ev.userId === idActivo;
-            const esTitular = datosCalendario.titular === idActivo;
-            const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
             
             let accionesHtml = '';
-            if (esMio || esTitular || esAdmin) {
+            if (esMio) {
                 accionesHtml = `
                     <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px dashed #eee; padding-top: 12px;">
                         <button onclick="window.editarAcontecimiento('${ev.id}')" style="background: #fdfdfd; color: #666; border: 1px solid #ddd; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: 0.2s; outline:none;"><i class="fas fa-edit" style="color:#2196F3;"></i> Editar</button>
