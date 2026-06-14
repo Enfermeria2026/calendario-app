@@ -1690,10 +1690,35 @@ window.cerrarModalSolicitudes = () => {
 };
 
 window.aceptarSolicitud = async (solicitanteId) => {
-    // --- NUEVA RESTRICCIÓN: LÍMITE DE 9 PARTICIPANTES ---
+   // --- NUEVA RESTRICCIÓN: LÍMITE DE 9 PARTICIPANTES ---
     if (datosCalendario.miembros && datosCalendario.miembros.length >= 9) {
-        alert("No puedes aceptar la solicitud. El calendario ya ha alcanzado el límite máximo de 9 participantes.");
-        return; // Cortamos la función para que no lo meta en la base de datos
+        const modalAlerta = document.getElementById('miModal');
+        const msgAlerta = document.getElementById('modalMsg');
+        const extraAlerta = document.getElementById('modalExtra');
+        const btnsAlerta = document.getElementById('modalBtnsContainer');
+
+        if (modalAlerta) {
+            msgAlerta.innerText = "Calendario Completo";
+            
+            extraAlerta.innerHTML = `
+                <p style="color: #666; font-size: 14px; margin: 0 0 15px 0; line-height: 1.5; text-align: left;">
+                    <i class="fas fa-exclamation-circle" style="color: #ef5350; margin-right: 5px;"></i>
+                    No puedes aceptar esta solicitud. El calendario ya ha alcanzado el límite máximo de <strong>9 participantes</strong>.
+                </p>
+            `;
+            
+            btnsAlerta.innerHTML = `
+                <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                        style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none;">
+                    Entendido
+                </button>
+            `;
+            
+            // Forzamos que este cuadro se muestre por encima del buzón de solicitudes
+            modalAlerta.style.zIndex = "9999";
+            modalAlerta.classList.remove('hidden');
+        }
+        return; // Cortamos la ejecución para que no lo meta en la base de datos
     }
     // ----------------------------------------------------
 
