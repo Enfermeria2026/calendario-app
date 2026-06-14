@@ -145,7 +145,7 @@ if(menuToggle && sidebar) {
 }
 
 const headerUser = document.getElementById('header-usuario');
-const idActivo = localStorage.getItem('usuario_activo');
+
 
 async function cargarCalendarios() {
     const contenedor = document.getElementById('lista-calendarios');
