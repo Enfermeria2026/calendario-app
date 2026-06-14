@@ -88,6 +88,15 @@ async function inicializarCalendario() {
     } else {
         window.location.href = "dashboard.html";
     }
+
+  // --- NUEVO: CONFIGURAR BOTÓN DE AÑADIR ACONTECIMIENTO ---
+        const btnNuevoEvento = document.getElementById('btn-nuevo-evento');
+        if (btnNuevoEvento) {
+            btnNuevoEvento.onclick = function() {
+                window.abrirModalNuevoAcontecimiento();
+                this.blur();
+            };
+        }
 }
 
 window.cambiarPrivacidad = async (checked) => {
@@ -1698,5 +1707,188 @@ window.rechazarSolicitud = async (solicitanteId) => {
         
     } catch (error) {
         console.error("Error al rechazar solicitud:", error);
+    }
+};
+
+// =========================================================
+// FUNCIONALIDAD: AÑADIR NUEVO ACONTECIMIENTO DESDE EL CALENDARIO
+// =========================================================
+window.abrirModalNuevoAcontecimiento = () => {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    msg.innerText = "Nuevo Acontecimiento";
+
+    // Estilos comunes para los inputs del formulario
+    const inputStyle = "width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; margin-bottom: 12px; font-family: inherit; color: #333;";
+    const labelStyle = "display: block; font-size: 12px; color: #777; font-weight: bold; margin-bottom: 4px; text-align: left;";
+
+    // Inyectamos el formulario completo dentro de la caja modal
+    extra.innerHTML = `
+        <div style="max-height: 420px; overflow-y: auto; padding-right: 5px;">
+            <label style="${labelStyle}">Título *</label>
+            <input type="text" id="event-titulo" placeholder="Ej: Guardia de noche, Cumpleaños..." style="${inputStyle}" autocomplete="off">
+
+            <label style="${labelStyle}">Tipo de Acontecimiento</label>
+            <select id="event-tipo" onchange="window.toggleCamposTipoEvento()" style="${inputStyle} background: white; cursor: pointer;">
+                <option value="Acontecimiento">Acontecimiento Normal</option>
+                <option value="Turno">Turno de Trabajo</option>
+                <option value="Tarea">Tarea / Recordatorio</option>
+                <option value="Viaje">Viaje (Varios días)</option>
+            </select>
+
+            <label style="${labelStyle}">Lugar (Opcional)</label>
+            <input type="text" id="event-lugar" placeholder="Ej: Hospital Clínico, Madrid..." style="${inputStyle}" autocomplete="off">
+
+            <div id="bloque-fecha-normal">
+                <label style="${labelStyle}">Fecha *</label>
+                <input type="date" id="event-fecha" style="${inputStyle}">
+                
+                <label style="${labelStyle}">Hora (Opcional)</label>
+                <input type="time" id="event-hora" style="${inputStyle}">
+            </div>
+
+            <div id="bloque-fecha-viaje" style="display: none;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="${labelStyle}">Fecha Ida *</label>
+                        <input type="date" id="event-fecha-ida" style="${inputStyle}">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="${labelStyle}">Hora Ida (Opcional)</label>
+                        <input type="time" id="event-hora-ida" style="${inputStyle}">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="${labelStyle}">Fecha Vuelta *</label>
+                        <input type="date" id="event-fecha-vuelta" style="${inputStyle}">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="${labelStyle}">Hora Vuelta (Opcional)</label>
+                        <input type="time" id="event-hora-vuelta" style="${inputStyle}">
+                    </div>
+                </div>
+            </div>
+
+            <p id="error-evento" style="color: #ef5350; font-size: 12px; margin: 0; min-height: 15px; text-align: left; font-weight: bold;"></p>
+        </div>
+    `;
+
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Cancelar
+        </button>
+        <button id="btn-guardar-evento" onclick="window.guardarNuevoAcontecimiento()" 
+                style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+            Crear
+        </button>
+    `;
+
+    modal.classList.remove('hidden');
+
+    // Auto-establecemos la fecha del día actual en los campos para ahorrarle clics al usuario
+    const hoyStr = new Date().toISOString().split('T')[0];
+    if(document.getElementById('event-fecha')) document.getElementById('event-fecha').value = hoyStr;
+    if(document.getElementById('event-fecha-ida')) document.getElementById('event-fecha-ida').value = hoyStr;
+    if(document.getElementById('event-fecha-vuelta')) document.getElementById('event-fecha-vuelta').value = hoyStr;
+};
+
+// Función que oculta o muestra los bloques de fecha en tiempo real según el tipo seleccionado
+window.toggleCamposTipoEvento = () => {
+    const tipo = document.getElementById('event-tipo').value;
+    const bloqueNormal = document.getElementById('bloque-fecha-normal');
+    const bloqueViaje = document.getElementById('bloque-fecha-viaje');
+    
+    if (tipo === "Viaje") {
+        bloqueNormal.style.display = "none";
+        bloqueViaje.style.display = "block";
+    } else {
+        bloqueNormal.style.display = "block";
+        bloqueViaje.style.display = "none";
+    }
+};
+
+// Validación y envío de datos hacia la colección de acontecimientos en Firebase
+window.guardarNuevoAcontecimiento = async () => {
+    const errorMsg = document.getElementById('error-evento');
+    const btnGuardar = document.getElementById('btn-guardar-evento');
+
+    const titulo = document.getElementById('event-titulo').value.trim();
+    const tipo = document.getElementById('event-tipo').value;
+    const lugar = document.getElementById('event-lugar').value.trim();
+
+    if (titulo === "") {
+        errorMsg.innerText = "Por favor, escribe un título.";
+        return;
+    }
+
+    // Estructura de datos base obligatoria
+    let objetoAcontecimiento = {
+        titulo: titulo,
+        tipo: tipo,
+        lugar: lugar,
+        userId: idActivo, // Vinculado a ti automáticamente
+        fecha_registro: new Date().toISOString()
+    };
+
+    if (tipo === "Viaje") {
+        const fechaIda = document.getElementById('event-fecha-ida').value;
+        const fechaVuelta = document.getElementById('event-fecha-vuelta').value;
+        const horaIda = document.getElementById('event-hora-ida').value;
+        const horaVuelta = document.getElementById('event-hora-vuelta').value;
+
+        if (!fechaIda || !fechaVuelta) {
+            errorMsg.innerText = "Las fechas de ida y vuelta son obligatorias.";
+            return;
+        }
+        if (new Date(fechaVuelta) < new Date(fechaIda)) {
+            errorMsg.innerText = "La fecha de vuelta no puede ser anterior a la ida.";
+            return;
+        }
+
+        objetoAcontecimiento.fechaIda = fechaIda;
+        objetoAcontecimiento.fechaVuelta = fechaVuelta;
+        if (horaIda) objetoAcontecimiento.horaIda = horaIda;
+        if (horaVuelta) objetoAcontecimiento.horaVuelta = horaVuelta;
+    } else {
+        const fecha = document.getElementById('event-fecha').value;
+        const hora = document.getElementById('event-hora').value;
+
+        if (!fecha) {
+            errorMsg.innerText = "La fecha es obligatoria.";
+            return;
+        }
+
+        objetoAcontecimiento.fecha = fecha;
+        if (hora) objetoAcontecimiento.hora = hora;
+    }
+
+    // Activamos la animación de carga en el botón
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    btnGuardar.disabled = true;
+    btnGuardar.style.opacity = "0.7";
+
+    try {
+        // Guardamos de forma efectiva el nuevo documento en Firestore
+        await addDoc(collection(db, "acontecimientos"), objetoAcontecimiento);
+
+        // Cerramos el modal de creación
+        document.getElementById('miModal').classList.add('hidden');
+
+        // Forzamos al calendario de fondo a repintarse. ¡Pintará la nueva estrellita sola!
+        renderizarCalendario();
+
+    } catch (error) {
+        console.error("Error al guardar el acontecimiento:", error);
+        errorMsg.innerText = "Error de red al intentar guardar.";
+        btnGuardar.innerHTML = 'Crear';
+        btnGuardar.disabled = false;
+        btnGuardar.style.opacity = "1";
     }
 };
