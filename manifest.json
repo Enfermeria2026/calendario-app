@@ -1,0 +1,22 @@
+{
+  "name": "Mi Calendario Compartido",
+  "short_name": "Calendario",
+  "description": "Aplicación para gestionar turnos y eventos compartidos.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff5f8",
+  "theme_color": "#ec407a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
