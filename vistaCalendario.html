@@ -34,24 +34,30 @@
             <button id="btn-config" class="icon-btn hidden" title="Configuración"><i class="fas fa-cog"></i></button>
         </div>
 </header>
+
 <main class="main-content">
 
-<div class="calendar-controls">
-<span id="titulo-calendario" style="color: #ec407a; font-weight: 800; font-size: 20px; margin-bottom: 15px; display: block; text-align: center;">Cargando...</span>
-<div class="view-toggles">
-<button id="btn-vista-mes" class="btn-vista active">Mes</button>
-<button id="btn-vista-semana" class="btn-vista">Semana</button>
-</div>
+    <div class="calendar-controls">
+        <span id="titulo-calendario" style="color: #ec407a; font-weight: 800; font-size: 20px; margin-bottom: 15px; display: block; text-align: center;">Cargando...</span>
+        <div class="view-toggles">
+            <button id="btn-vista-mes" class="btn-vista active">Mes</button>
+            <button id="btn-vista-semana" class="btn-vista">Semana</button>
+        </div>
 
-<div class="date-navigation">
-<button id="btn-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-<h2 id="mes-actual-display">Mes Año</h2>
-<button id="btn-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-</div>
-</div>
-<div class="dias-semana-header" id="dias-header"></div>
-<div class="calendar-grid" id="calendar-grid"></div>
+        <div class="date-navigation">
+            <button id="btn-prev" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+            <h2 id="mes-actual-display">Mes Año</h2>
+            <button id="btn-next" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <div id="filtro-miembros-container" style="display: flex; gap: 12px; overflow-x: auto; padding: 5px 15px 15px 15px; margin-bottom: 5px; scrollbar-width: none; -ms-overflow-style: none;"></div>
+
+    <div class="dias-semana-header" id="dias-header"></div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+    
 </main>
+            
 <div id="miModal" class="modal-overlay hidden">
 <div class="modal-box" style="padding: 30px; max-width: 380px; text-align: left;">
 <p id="modalMsg" style="font-weight: bold; color: #333; font-size: 16px; margin-bottom: 25px;"></p>
