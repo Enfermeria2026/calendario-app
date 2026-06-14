@@ -494,7 +494,7 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
     // Formatear la fecha para el título del modal (Ej: "lunes, 14 de junio")
     const opcionesFecha = { weekday: 'long', day: 'numeric', month: 'long' };
     let fechaStr = fecha.toLocaleDateString('es-ES', opcionesFecha);
-    fechaStr = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1); // Mayúscula inicial
+    fechaStr = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
     msg.innerText = `Acontecimientos del ${fechaStr}`;
     
     // 2. Si no hay eventos ese día, mostramos un mensaje vacío
@@ -505,13 +505,12 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
         return;
     }
 
-    // 3. Mostrar estado de carga mientras buscamos los nombres de los usuarios
+    // 3. Mostrar estado de carga mientras buscamos los nombres
     extra.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando detalles...</p>";
     btns.innerHTML = `<button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline:none;">Cerrar</button>`;
     modal.classList.remove('hidden');
 
     try {
-        // Extraemos los IDs únicos para no hacer lecturas duplicadas en Firebase
         const usersIds = [...new Set(delDia.map(ev => ev.userId))];
         const promesas = usersIds.map(id => getDoc(doc(db, "usuarios", id)));
         const docs = await Promise.all(promesas);
@@ -531,7 +530,7 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
             // Datos comunes
             const titulo = ev.titulo || 'Sin título';
             const tipo = ev.tipo || 'Evento';
-            const lugarHtml = ev.lugar ? `<div style="color: #666; font-size: 13px; margin-top: 6px;"><i class="fas fa-map-marker-alt" style="color:#ef5350; width:16px;"></i> ${ev.lugar}</div>` : '';
+            const lugarHtml = ev.lugar ? `<div style="color: #666; font-size: 13px; margin-top: 4px;"><i class="fas fa-map-marker-alt" style="color:#ef5350; width:16px;"></i> ${ev.lugar}</div>` : '';
 
             let tiempoHtml = '';
             
@@ -542,7 +541,6 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                 const fIdaStr = fIda.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
                 const fVueltaStr = fVuelta.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
                 
-                // Soporta diferentes formas en las que hayas podido guardar la hora en base de datos
                 const hIda = ev.horaIda || ev.hora_ida || '';
                 const hVuelta = ev.horaVuelta || ev.hora_vuelta || '';
 
@@ -556,14 +554,27 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                     </div>
                 `;
             } 
-            // Si es un evento normal (Mostramos solo la hora si la hay)
+            // Si es un evento normal (Mostramos Inicio y Fin debajo del título)
             else {
-                if (ev.hora) {
-                    tiempoHtml = `<div style="color: #666; font-size: 13px; margin-top: 6px;"><i class="far fa-clock" style="color:#ff9800; width:16px;"></i> <b>Hora:</b> ${ev.hora}</div>`;
+                // Soportamos diferentes formas de llamar a las variables en Firebase
+                const hInicio = ev.horaInicio || ev.hora_inicio || ev.hora || '';
+                const hFin = ev.horaFin || ev.hora_fin || '';
+
+                if (hInicio || hFin) {
+                    let textoHora = '';
+                    if (hInicio && hFin) {
+                        textoHora = `<b>Inicio:</b> ${hInicio} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Fin:</b> ${hFin}`;
+                    } else if (hInicio) {
+                        textoHora = `<b>Inicio:</b> ${hInicio}`;
+                    } else if (hFin) {
+                        textoHora = `<b>Fin:</b> ${hFin}`;
+                    }
+                    
+                    tiempoHtml = `<div style="color: #666; font-size: 13px; margin-top: 5px;"><i class="far fa-clock" style="color:#ff9800; width:16px;"></i> ${textoHora}</div>`;
                 }
             }
 
-            // Diseño de la tarjeta del evento
+            // Diseño de la tarjeta: Título -> Tiempo -> Lugar
             htmlContenido += `
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f5f5f5; padding-bottom: 8px;">
@@ -576,8 +587,8 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                         <span style="background: #fdf5f8; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #ec407a; border: 1px solid #fce4ec; white-space: nowrap;">${tipo}</span>
                     </div>
                     <div style="font-size: 16px; font-weight: 900; color: #333;">${titulo}</div>
-                    ${lugarHtml}
                     ${tiempoHtml}
+                    ${lugarHtml}
                 </div>
             `;
         });
