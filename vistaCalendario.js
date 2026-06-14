@@ -28,12 +28,28 @@ document.getElementById('header-user-name').innerText = uData.nombre;
 }
 }
 
+window.miembrosFiltroActivos = [];
+window.mapaPerfilesMiembros = {};
+
 async function inicializarCalendario() {
     const docSnap = await getDoc(doc(db, "calendarios", calId));
     if (docSnap.exists()) {
         datosCalendario = docSnap.data();
         document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
+        
+        // --- NUEVO: Cargar perfiles y activar TODOS en el filtro por defecto ---
+        window.miembrosFiltroActivos = [...datosCalendario.miembros]; // Todos seleccionados de inicio
+        const promesasUsuarios = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+        const docsUsuarios = await Promise.all(promesasUsuarios);
+        docsUsuarios.forEach(d => { 
+            if (d.exists()) window.mapaPerfilesMiembros[d.id] = d.data(); 
+        });
+        // ----------------------------------------------------------------------
+
         await asegurarColoresMiembros();
+        
+        // --- NUEVO: Dibujamos la barra de filtros ---
+        window.dibujarFiltroMiembros();
 
         const miColor = mapaColores[idActivo] || 'c-negro';
         const ind = document.getElementById('user-color-indicator');
