@@ -302,14 +302,17 @@ container.innerHTML = "";
 const fActualClean = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
 const delDia = acontecimientos.filter(a => {
-if (a.esViaje) {
-return fActualClean >= a.fechaIdaObjeto && fActualClean <= a.fechaVueltaObjeto;
-} else {
-return a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
-a.fechaObjeto.getMonth() === fecha.getMonth() &&
-a.fechaObjeto.getDate() === fecha.getDate();
-}
-});
+        // --- NUEVO: Comprobamos si el dueño del evento está seleccionado en el filtro ---
+        if (!window.miembrosFiltroActivos.includes(a.userId)) return false;
+        
+        if (a.esViaje) {
+            return fActualClean >= a.fechaIdaObjeto && fActualClean <= a.fechaVueltaObjeto;
+        } else {
+            return a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
+                   a.fechaObjeto.getMonth() === fecha.getMonth() &&
+                   a.fechaObjeto.getDate() === fecha.getDate();
+        }
+    });
 
 const usuariosVistos = new Set();
 const eventosUnicosPorUsuario = [];
@@ -508,7 +511,10 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
 
     const fActualClean = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
     
-    const delDia = todosLosAcontecimientos.filter(a => {
+   const delDia = todosLosAcontecimientos.filter(a => {
+        // --- NUEVO: Comprobamos si el dueño del evento está seleccionado en el filtro ---
+        if (!window.miembrosFiltroActivos.includes(a.userId)) return false;
+
         if (a.esViaje) {
             return fActualClean >= a.fechaIdaObjeto && fActualClean <= a.fechaVueltaObjeto;
         } else {
