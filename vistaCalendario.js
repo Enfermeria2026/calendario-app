@@ -1692,6 +1692,13 @@ window.cerrarModalSolicitudes = () => {
 };
 
 window.aceptarSolicitud = async (solicitanteId) => {
+    // --- NUEVA RESTRICCIÓN: LÍMITE DE 9 PARTICIPANTES ---
+    if (datosCalendario.miembros && datosCalendario.miembros.length >= 9) {
+        alert("No puedes aceptar la solicitud. El calendario ya ha alcanzado el límite máximo de 9 participantes.");
+        return; // Cortamos la función para que no lo meta en la base de datos
+    }
+    // ----------------------------------------------------
+
     try {
         const calRef = doc(db, "calendarios", calId);
         
@@ -2292,13 +2299,13 @@ window.dibujarFiltroMiembros = () => {
         const inicial = u.nombre.charAt(0).toUpperCase();
 
         html += `
-            <div onclick="window.toggleFiltroMiembro('${mId}')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; opacity: ${opacidad}; transform: ${escala}; filter: ${filtroVisual}; flex-shrink: 0; width: 45px;">
-                <div class="bg-${colorClass}" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); margin-bottom: 4px;">
-                    ${inicial}
-                </div>
-                <span style="font-size: 10px; color: #555; font-weight: 700; white-space: nowrap; max-width: 45px; overflow: hidden; text-overflow: ellipsis;">${u.nombre}</span>
-            </div>
-        `;
+                    <div onclick="window.toggleFiltroMiembro('${mId}')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; opacity: ${opacidad}; transform: ${escala}; filter: ${filtroVisual}; flex-shrink: 0; width: 38px;">
+                        <div class="bg-${colorClass}" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); margin-bottom: 4px;">
+                            ${inicial}
+                        </div>
+                        <span style="font-size: 9px; color: #555; font-weight: 700; white-space: nowrap; max-width: 38px; overflow: hidden; text-overflow: ellipsis;">${u.nombre}</span>
+                    </div>
+                `;
     });
     
     container.innerHTML = html;
