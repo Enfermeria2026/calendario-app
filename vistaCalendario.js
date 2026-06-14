@@ -487,7 +487,9 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
 
     if (!modal) return;
 
-    // 1. Filtrar los acontecimientos exactos del día clickeado
+    // Reseteamos el mapa temporal de eventos para usarlos al editar o eliminar
+    window.mapaEventos = {};
+
     const fActualClean = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
     
     const delDia = todosLosAcontecimientos.filter(a => {
@@ -500,13 +502,11 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
         }
     });
 
-    // Formatear la fecha para el título del modal (Ej: "lunes, 14 de junio")
     const opcionesFecha = { weekday: 'long', day: 'numeric', month: 'long' };
     let fechaStr = fecha.toLocaleDateString('es-ES', opcionesFecha);
     fechaStr = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1);
     msg.innerText = `Acontecimientos del ${fechaStr}`;
     
-    // 2. Si no hay eventos ese día, mostramos un mensaje vacío
     if (delDia.length === 0) {
         extra.innerHTML = `<p style="text-align:center; color:#888; margin: 20px 0;">No hay ningún acontecimiento para este día.</p>`;
         btns.innerHTML = `<button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline:none;">Cerrar</button>`;
@@ -514,7 +514,6 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
         return;
     }
 
-    // 3. Mostrar estado de carga mientras buscamos los nombres
     extra.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando detalles...</p>";
     btns.innerHTML = `<button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline:none;">Cerrar</button>`;
     modal.classList.remove('hidden');
@@ -529,30 +528,28 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
             if (d.exists()) mapaUsuarios[d.id] = d.data();
         });
 
-        // 4. Construimos la lista en formato "Scroll" con tarjetas elegantes
         let htmlContenido = `<div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 5px; text-align: left;">`;
 
         delDia.forEach(ev => {
+            // Guardamos el evento entero en la memoria temporal asociándolo a su ID
+            window.mapaEventos[ev.id] = ev;
+
             const u = mapaUsuarios[ev.userId] || { nombre: "Usuario", apellidos: "Desconocido" };
             const colorClase = mapaColores[ev.userId] || 'c-negro'; 
 
-            // Datos comunes
             const titulo = ev.titulo || 'Sin título';
             const tipo = ev.tipo || 'Evento';
             const lugarHtml = ev.lugar ? `<div style="color: #666; font-size: 13px; margin-top: 4px;"><i class="fas fa-map-marker-alt" style="color:#ef5350; width:16px;"></i> ${ev.lugar}</div>` : '';
 
             let tiempoHtml = '';
             
-            // Si es un Viaje (Mostramos ida y vuelta detalladas)
             if (ev.esViaje) {
                 const fIda = new Date(ev.fechaIda);
                 const fVuelta = new Date(ev.fechaVuelta);
                 const fIdaStr = fIda.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
                 const fVueltaStr = fVuelta.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-                
                 const hIda = ev.horaIda || ev.hora_ida || '';
                 const hVuelta = ev.horaVuelta || ev.hora_vuelta || '';
-
                 const txtIda = hIda ? `${fIdaStr} - ${hIda}` : fIdaStr;
                 const txtVuelta = hVuelta ? `${fVueltaStr} - ${hVuelta}` : fVueltaStr;
 
@@ -562,28 +559,34 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                         <span><i class="fas fa-plane-arrival" style="color:#4CAF50; width:18px;"></i> <b>Vuelta:</b> ${txtVuelta}</span>
                     </div>
                 `;
-            } 
-            // Si es un evento normal (Mostramos Inicio y Fin debajo del título)
-            else {
-                // Soportamos diferentes formas de llamar a las variables en Firebase
+            } else {
                 const hInicio = ev.horaInicio || ev.hora_inicio || ev.hora || '';
                 const hFin = ev.horaFin || ev.hora_fin || '';
 
                 if (hInicio || hFin) {
                     let textoHora = '';
-                    if (hInicio && hFin) {
-                        textoHora = `<b>Inicio:</b> ${hInicio} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Fin:</b> ${hFin}`;
-                    } else if (hInicio) {
-                        textoHora = `<b>Inicio:</b> ${hInicio}`;
-                    } else if (hFin) {
-                        textoHora = `<b>Fin:</b> ${hFin}`;
-                    }
-                    
+                    if (hInicio && hFin) textoHora = `<b>Inicio:</b> ${hInicio} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Fin:</b> ${hFin}`;
+                    else if (hInicio) textoHora = `<b>Inicio:</b> ${hInicio}`;
+                    else if (hFin) textoHora = `<b>Fin:</b> ${hFin}`;
                     tiempoHtml = `<div style="color: #666; font-size: 13px; margin-top: 5px;"><i class="far fa-clock" style="color:#ff9800; width:16px;"></i> ${textoHora}</div>`;
                 }
             }
 
-            // Diseño de la tarjeta: Título -> Tiempo -> Lugar
+            // LÓGICA DE PERMISOS: Solo ves los botones si el evento es tuyo, o si eres Titular/Admin
+            const esMio = ev.userId === idActivo;
+            const esTitular = datosCalendario.titular === idActivo;
+            const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
+            
+            let accionesHtml = '';
+            if (esMio || esTitular || esAdmin) {
+                accionesHtml = `
+                    <div style="display: flex; gap: 8px; margin-top: 12px; border-top: 1px dashed #eee; padding-top: 12px;">
+                        <button onclick="window.editarAcontecimiento('${ev.id}')" style="background: #fdfdfd; color: #666; border: 1px solid #ddd; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: 0.2s; outline:none;"><i class="fas fa-edit" style="color:#2196F3;"></i> Editar</button>
+                        <button onclick="window.eliminarAcontecimiento('${ev.id}')" style="background: #fff5f5; color: #ef5350; border: 1px solid #ffcdd2; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: 0.2s; outline:none;"><i class="fas fa-trash"></i> Eliminar</button>
+                    </div>
+                `;
+            }
+
             htmlContenido += `
                 <div style="border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f5f5f5; padding-bottom: 8px;">
@@ -598,6 +601,7 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
                     <div style="font-size: 16px; font-weight: 900; color: #333;">${titulo}</div>
                     ${tiempoHtml}
                     ${lugarHtml}
+                    ${accionesHtml}
                 </div>
             `;
         });
@@ -610,7 +614,6 @@ async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
         extra.innerHTML = "<p style='color:red; text-align:center;'>Error de conexión al cargar los detalles.</p>";
     }
 }
-
 // =========================================================
 // SISTEMA DE MIEMBROS, PERFILES Y COLORES
 // =========================================================
@@ -1977,6 +1980,265 @@ window.guardarNuevoAcontecimiento = async () => {
         console.error("Error al guardar el acontecimiento:", error);
         errorMsg.innerText = "Error de red al intentar guardar.";
         btnGuardar.innerHTML = 'Crear';
+        btnGuardar.disabled = false;
+        btnGuardar.style.opacity = "1";
+    }
+};
+
+// =========================================================
+// FUNCIONALIDAD: ELIMINAR ACONTECIMIENTO DESDE LA LISTA
+// =========================================================
+window.eliminarAcontecimiento = (eventoId) => {
+    const ev = window.mapaEventos[eventoId];
+    if (!ev) return;
+
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+    document.getElementById('modalMsg').innerText = "¿Eliminar acontecimiento?";
+    
+    // Cambiamos el contenido del modal actual a un aviso de advertencia
+    extra.innerHTML = `
+        <p style="color: #666; font-size: 14px; text-align: left; line-height: 1.5; margin: 0;">
+            Estás a punto de eliminar <strong>${ev.titulo}</strong>. Esta acción borrará el acontecimiento del calendario de todos los miembros.
+        </p>
+    `;
+    
+    btns.innerHTML = `
+        <button onclick="document.getElementById('miModal').classList.add('hidden');" 
+                style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            Cancelar
+        </button>
+        <button id="btn-confirmar-eliminar-ev" onclick="window.confirmarEliminarAcontecimiento('${eventoId}')" 
+                style="background: #ef5350; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            Eliminar
+        </button>
+    `;
+};
+
+window.confirmarEliminarAcontecimiento = async (eventoId) => {
+    const btn = document.getElementById('btn-confirmar-eliminar-ev');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+    }
+
+    try {
+        await deleteDoc(doc(db, "acontecimientos", eventoId));
+        document.getElementById('miModal').classList.add('hidden');
+        renderizarCalendario(); // Se borra la estrella mágicamente al instante
+    } catch(error) {
+        console.error(error);
+        alert("Hubo un problema al intentar eliminar el acontecimiento.");
+    }
+};
+
+// =========================================================
+// FUNCIONALIDAD: EDITAR ACONTECIMIENTO DESDE LA LISTA
+// =========================================================
+window.editarAcontecimiento = async (eventoId) => {
+    const ev = window.mapaEventos[eventoId];
+    if (!ev) return;
+
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+    document.getElementById('modalMsg').innerText = "Editar Acontecimiento";
+
+    extra.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Abriendo editor...</p>";
+    btns.innerHTML = "";
+
+    try {
+        // Replicamos la carga de trabajos del usuario como en la función de Crear
+        const uSnap = await getDoc(doc(db, "usuarios", idActivo));
+        let opcionesTrabajo = '<option value="">Selecciona qué trabajo es...</option>';
+        if (uSnap.exists()) {
+            const uData = uSnap.data();
+            const listaTrabajos = uData.trabajos || uData.empleos || (uData.trabajo ? [uData.trabajo] : []);
+            if (Array.isArray(listaTrabajos) && listaTrabajos.length > 0) {
+                listaTrabajos.forEach(t => opcionesTrabajo += `<option value="${t}">${t}</option>`);
+            } else if (typeof listaTrabajos === 'string' && listaTrabajos.trim() !== '') {
+                opcionesTrabajo += `<option value="${listaTrabajos}">${listaTrabajos}</option>`;
+            } else {
+                opcionesTrabajo += `<option value="Mi trabajo principal">Mi trabajo principal</option>`;
+            }
+        }
+
+        const inputStyle = "width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box; outline: none; margin-bottom: 12px; font-family: inherit; color: #333;";
+        const labelStyle = "display: block; font-size: 12px; color: #777; font-weight: bold; margin-bottom: 4px; text-align: left;";
+
+        // Dibujamos el formulario exacto que tienes en Crear
+        extra.innerHTML = `
+            <div style="max-height: 420px; overflow-y: auto; padding-right: 5px;">
+                <label style="${labelStyle}">Título *</label>
+                <input type="text" id="event-titulo" style="${inputStyle}" autocomplete="off">
+
+                <label style="${labelStyle}">Tipo de Acontecimiento *</label>
+                <select id="event-tipo" onchange="window.toggleCamposTipoEvento()" style="${inputStyle} background: white; cursor: pointer;">
+                    <option value="Trabajo">Trabajo</option>
+                    <option value="Escuela">Escuela</option>
+                    <option value="Tarea">Tarea</option>
+                    <option value="Evento">Evento</option>
+                    <option value="Viaje">Viaje</option>
+                    <option value="Otro">Otro</option>
+                </select>
+
+                <div id="bloque-tipo-otro" style="display: none;">
+                    <label style="${labelStyle}">Especifica qué es *</label>
+                    <input type="text" id="event-tipo-otro" style="${inputStyle}" autocomplete="off">
+                </div>
+
+                <div id="bloque-trabajo" style="display: block;">
+                    <label style="${labelStyle}">Selecciona tu trabajo *</label>
+                    <select id="event-trabajo-select" style="${inputStyle} background: white; cursor: pointer;">
+                        ${opcionesTrabajo}
+                    </select>
+                </div>
+
+                <label style="${labelStyle}">Lugar (Opcional)</label>
+                <input type="text" id="event-lugar" style="${inputStyle}" autocomplete="off">
+
+                <div id="bloque-fecha-normal">
+                    <label style="${labelStyle}">Fecha *</label>
+                    <input type="date" id="event-fecha" style="${inputStyle}">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label style="${labelStyle}">Hora de Inicio *</label><input type="time" id="event-hora-inicio" style="${inputStyle}"></div>
+                        <div style="flex: 1;"><label style="${labelStyle}">Hora de Fin *</label><input type="time" id="event-hora-fin" style="${inputStyle}"></div>
+                    </div>
+                </div>
+
+                <div id="bloque-fecha-viaje" style="display: none;">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label style="${labelStyle}">Fecha Ida *</label><input type="date" id="event-fecha-ida" style="${inputStyle}"></div>
+                        <div style="flex: 1;"><label style="${labelStyle}">Hora Ida *</label><input type="time" id="event-hora-ida" style="${inputStyle}"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label style="${labelStyle}">Fecha Vuelta *</label><input type="date" id="event-fecha-vuelta" style="${inputStyle}"></div>
+                        <div style="flex: 1;"><label style="${labelStyle}">Hora Vuelta *</label><input type="time" id="event-hora-vuelta" style="${inputStyle}"></div>
+                    </div>
+                </div>
+
+                <p id="error-evento" style="color: #ef5350; font-size: 12px; margin: 0; min-height: 15px; text-align: left; font-weight: bold;"></p>
+            </div>
+        `;
+
+        btns.innerHTML = `
+            <button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer;">Cancelar</button>
+            <button id="btn-guardar-edicion" onclick="window.guardarEdicionAcontecimiento('${eventoId}')" style="background: #2196F3; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer;">Guardar Cambios</button>
+        `;
+
+        // ==========================================
+        // AUTO-RELLENADO INTELIGENTE (LA MAGIA)
+        // ==========================================
+        document.getElementById('event-titulo').value = ev.titulo || '';
+        document.getElementById('event-lugar').value = ev.lugar || '';
+        
+        const tipoSelect = document.getElementById('event-tipo');
+        if (ev.categoria_original) {
+            tipoSelect.value = ev.categoria_original;
+        } else if (["Trabajo", "Escuela", "Tarea", "Evento", "Viaje"].includes(ev.tipo)) {
+            tipoSelect.value = ev.tipo;
+        } else {
+            tipoSelect.value = "Otro";
+            document.getElementById('event-tipo-otro').value = ev.tipo;
+        }
+        
+        window.toggleCamposTipoEvento(); // Adaptamos las cajas visualmente
+
+        if (tipoSelect.value === "Trabajo" && ev.trabajo_seleccionado) {
+            document.getElementById('event-trabajo-select').value = ev.trabajo_seleccionado;
+        }
+
+        if (ev.esViaje) {
+            document.getElementById('event-fecha-ida').value = ev.fechaIda || '';
+            document.getElementById('event-fecha-vuelta').value = ev.fechaVuelta || '';
+            document.getElementById('event-hora-ida').value = ev.horaIda || '';
+            document.getElementById('event-hora-vuelta').value = ev.horaVuelta || '';
+        } else {
+            document.getElementById('event-fecha').value = ev.fecha || '';
+            document.getElementById('event-hora-inicio').value = ev.horaInicio || ev.hora_inicio || '';
+            document.getElementById('event-hora-fin').value = ev.horaFin || ev.hora_fin || '';
+        }
+
+    } catch (error) {
+        console.error("Error al abrir editor:", error);
+    }
+};
+
+window.guardarEdicionAcontecimiento = async (eventoId) => {
+    const errorMsg = document.getElementById('error-evento');
+    const btnGuardar = document.getElementById('btn-guardar-edicion');
+
+    const titulo = document.getElementById('event-titulo').value.trim();
+    const tipoSeleccionado = document.getElementById('event-tipo').value;
+    const lugar = document.getElementById('event-lugar').value.trim();
+
+    if (titulo === "") { errorMsg.innerText = "Por favor, escribe un título."; return; }
+
+    let tipoFinal = tipoSeleccionado;
+    let trabajoElegido = "";
+
+    if (tipoSeleccionado === "Otro") {
+        const txtOtro = document.getElementById('event-tipo-otro').value.trim();
+        if (txtOtro === "") { errorMsg.innerText = "Por favor, especifica el tipo de acontecimiento."; return; }
+        tipoFinal = txtOtro;
+    }
+
+    if (tipoSeleccionado === "Trabajo") {
+        trabajoElegido = document.getElementById('event-trabajo-select').value;
+        if (!trabajoElegido) { errorMsg.innerText = "Por favor, selecciona a qué trabajo pertenece."; return; }
+    }
+
+    let objetoUpdate = {
+        titulo: titulo,
+        tipo: tipoFinal,
+        categoria_original: tipoSeleccionado,
+        lugar: lugar === "" && tipoSeleccionado === "Trabajo" ? trabajoElegido : lugar
+    };
+
+    if (tipoSeleccionado === "Trabajo") objetoUpdate.trabajo_seleccionado = trabajoElegido;
+
+    if (tipoSeleccionado === "Viaje") {
+        const fechaIda = document.getElementById('event-fecha-ida').value;
+        const fechaVuelta = document.getElementById('event-fecha-vuelta').value;
+        const horaIda = document.getElementById('event-hora-ida').value;
+        const horaVuelta = document.getElementById('event-hora-vuelta').value;
+
+        if (!fechaIda || !fechaVuelta || !horaIda || !horaVuelta) {
+            errorMsg.innerText = "Para un viaje, debes indicar todas las fechas y horas de ida y vuelta."; return;
+        }
+        if (new Date(fechaVuelta) < new Date(fechaIda)) {
+            errorMsg.innerText = "La fecha de vuelta no puede ser anterior a la ida."; return;
+        }
+
+        objetoUpdate.esViaje = true;
+        objetoUpdate.fechaIda = fechaIda; objetoUpdate.fechaVuelta = fechaVuelta;
+        objetoUpdate.horaIda = horaIda; objetoUpdate.horaVuelta = horaVuelta;
+    } else {
+        const fecha = document.getElementById('event-fecha').value;
+        const horaInicio = document.getElementById('event-hora-inicio').value;
+        const horaFin = document.getElementById('event-hora-fin').value;
+
+        if (!fecha) { errorMsg.innerText = "La fecha es obligatoria."; return; }
+        if (!horaInicio || !horaFin) { errorMsg.innerText = "Las horas de inicio y fin son obligatorias."; return; }
+
+        objetoUpdate.esViaje = false;
+        objetoUpdate.fecha = fecha;
+        objetoUpdate.horaInicio = horaInicio;
+        objetoUpdate.horaFin = horaFin;
+    }
+
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    btnGuardar.disabled = true;
+    btnGuardar.style.opacity = "0.7";
+
+    try {
+        await updateDoc(doc(db, "acontecimientos", eventoId), objetoUpdate);
+        document.getElementById('miModal').classList.add('hidden');
+        renderizarCalendario();
+    } catch (error) {
+        console.error("Error al actualizar:", error);
+        errorMsg.innerText = "Error de red al intentar guardar los cambios.";
+        btnGuardar.innerHTML = 'Guardar Cambios';
         btnGuardar.disabled = false;
         btnGuardar.style.opacity = "1";
     }
