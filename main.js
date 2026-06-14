@@ -108,7 +108,7 @@ function lanzarAviso(mensaje, tipo = "ok", callback = null) {
                 fecha: new Date().toLocaleDateString()
             });
             overlay.style.display = "none";
-            setTimeout(() => lanzarAviso("Solicitud enviada. El administrador se pondrá en contacto contigo."), 300);
+            setTimeout(() => lanzarAviso("Solicitud enviada. El equipo de soporte se pondrá en contacto contigo."), 300);
         };
 
         container.appendChild(btnCan);
@@ -419,7 +419,7 @@ if (formLog) {
         const id = document.getElementById('login-id').value.trim();
         
         if (id.toLowerCase() === "administrador") {
-            lanzarAviso("Contraseña maestra:", "admin_pass");
+            lanzarAviso("Contraseña de seguridad:", "admin_pass");
             return;
         }
         
