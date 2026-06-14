@@ -444,6 +444,46 @@ if (linkOlvido) {
     };
 }
 
+
+// =========================================================
+// NUEVO: FUNCIONALIDAD DE LIMPIEZA TOTAL PARA EL ADMIN
+// =========================================================
+async function purgarDatosDeUsuario(userIdABorrar) {
+    try {
+        console.log("Iniciando purga de datos para el usuario:", userIdABorrar);
+
+        // 1. ELIMINAR TODOS SUS ACONTECIMIENTOS
+        const qEventos = query(collection(db, "acontecimientos"), where("userId", "==", userIdABorrar));
+        const snapshotEventos = await getDocs(qEventos);
+        const promesasEventos = [];
+        snapshotEventos.forEach(docSnap => {
+            promesasEventos.push(deleteDoc(doc(db, "acontecimientos", docSnap.id)));
+        });
+        await Promise.all(promesasEventos);
+        console.log(`Se han borrado ${snapshotEventos.size} acontecimientos.`);
+
+        // 2. SACARLO DE TODOS LOS CALENDARIOS
+        const qCalendarios = query(collection(db, "calendarios"), where("miembros", "array-contains", userIdABorrar));
+        const snapshotCalendarios = await getDocs(qCalendarios);
+        const promesasCalendarios = [];
+        snapshotCalendarios.forEach(docSnap => {
+            promesasCalendarios.push(updateDoc(doc(db, "calendarios", docSnap.id), {
+                miembros: arrayRemove(userIdABorrar),
+                admins: arrayRemove(userIdABorrar),
+                solicitudes: arrayRemove(userIdABorrar)
+            }));
+        });
+        await Promise.all(promesasCalendarios);
+        console.log(`El usuario ha sido expulsado de ${snapshotCalendarios.size} calendarios.`);
+
+        return true; 
+    } catch (error) {
+        console.error("Error crítico al purgar datos del usuario:", error);
+        return false;
+    }
+}
+
+
 // --- ADMIN PANEL ---
 const listaAdmin = document.getElementById('lista-usuarios');
 const listaCalendariosAdmin = document.getElementById('lista-calendarios-admin');
@@ -462,7 +502,26 @@ if (listaAdmin) {
                 item.innerHTML = `<div><strong>${u.nombre} ${u.apellidos}</strong><br><small>${u.userId}</small></div>`;
                 const btn = document.createElement('button');
                 btn.innerText = "Borrar"; btn.style.width = "auto"; btn.style.background = "red";
-                btn.onclick = () => { lanzarAviso(`¿Borrar a ${u.nombre}?`, "confirmar", async () => { await deleteDoc(doc(db, "usuarios", d.id)); cargarUsuarios(); }); };
+                
+                // --- NUEVO: IMPLEMENTADA LA BARREDORA ANTES DE BORRAR AL USUARIO ---
+                btn.onclick = () => { 
+                    lanzarAviso(`¿Borrar a ${u.nombre}?`, "confirmar", async () => { 
+                        window.mostrarCarga();
+                        try {
+                            // 1. Limpiamos calendarios y eventos del usuario
+                            await purgarDatosDeUsuario(d.id);
+                            // 2. Borramos la cuenta de la colección usuarios
+                            await deleteDoc(doc(db, "usuarios", d.id)); 
+                            // 3. Recargamos la lista
+                            cargarUsuarios(); 
+                        } catch(e) {
+                            console.error("Error al borrar usuario:", e);
+                        } finally {
+                            window.ocultarCarga();
+                        }
+                    }); 
+                };
+                
                 item.appendChild(btn);
                 listaAdmin.appendChild(item);
             });
