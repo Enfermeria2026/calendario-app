@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc, arrayUnion, arrayRemove, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const idActivo = localStorage.getItem('usuario_activo');
 const calId = localStorage.getItem('calendario_activo');
 let fechaVisualizada = new Date();
@@ -7,6 +7,10 @@ const HOY_REAL = new Date();
 let datosCalendario = null;
 let mapaColores = {};
 let vistaActual = "mes";
+// VARIABLES PARA EL TIEMPO REAL
+window.unsubscribeCalendario = null;
+window.unsubscribeEventos = null;
+window.listaEventosActivos = []; // Aquí guardaremos todos los eventos descargados
 // AÑADIDOS LOS 12 COLORES
 const COLORES_DISPONIBLES = ['c-azul', 'c-naranja', 'c-rojo', 'c-verde', 'c-morado', 'c-rosa', 'c-marron', 'c-amarillo', 'c-negro', 'c-cian', 'c-magenta', 'c-celeste'];
 document.addEventListener('DOMContentLoaded', async () => {
@@ -32,88 +36,89 @@ window.miembrosFiltroActivos = [];
 window.mapaPerfilesMiembros = {};
 
 async function inicializarCalendario() {
-    const docSnap = await getDoc(doc(db, "calendarios", calId));
-    if (docSnap.exists()) {
-        datosCalendario = docSnap.data();
-        document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
-        
-        // --- NUEVO: Cargar perfiles y activar TODOS en el filtro por defecto ---
-        window.miembrosFiltroActivos = [...datosCalendario.miembros]; // Todos seleccionados de inicio
-        const promesasUsuarios = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
-        const docsUsuarios = await Promise.all(promesasUsuarios);
-        docsUsuarios.forEach(d => { 
-            if (d.exists()) window.mapaPerfilesMiembros[d.id] = d.data(); 
-        });
-        // ----------------------------------------------------------------------
+    // 1. Apagamos "la radio" anterior si existía (por seguridad)
+    if (window.unsubscribeCalendario) window.unsubscribeCalendario();
 
-        await asegurarColoresMiembros();
-        
-        // --- NUEVO: Dibujamos la barra de filtros ---
-        window.dibujarFiltroMiembros();
+    // 2. Encendemos la radio en el canal de TU calendario activo
+    window.unsubscribeCalendario = onSnapshot(doc(db, "calendarios", calId), async (docSnap) => {
+        if (docSnap.exists()) {
+            datosCalendario = docSnap.data();
+            document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
+            
+            window.miembrosFiltroActivos = [...datosCalendario.miembros];
+            const promesasUsuarios = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
+            const docsUsuarios = await Promise.all(promesasUsuarios);
+            docsUsuarios.forEach(d => { 
+                if (d.exists()) window.mapaPerfilesMiembros[d.id] = d.data(); 
+            });
 
-        const miColor = mapaColores[idActivo] || 'c-negro';
-        const ind = document.getElementById('user-color-indicator');
-        if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
+            await asegurarColoresMiembros();
+            window.dibujarFiltroMiembros();
 
-        renderizarCalendario();
+            const miColor = mapaColores[idActivo] || 'c-negro';
+            const ind = document.getElementById('user-color-indicator');
+            if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
 
-        // Botón de miembros para TODOS
-        document.getElementById('btn-miembros').onclick = function() {
-            window.abrirModalMiembros();
-            this.blur();
-        };
+            // --- INICIAMOS LA ESCUCHA DE LOS EVENTOS EN TIEMPO REAL ---
+            iniciarEscuchaEventos();
 
-        // Extraemos estas dos variables para saber si quien mira es Titular o Admin
-        const esTitular = datosCalendario.titular === idActivo;
-        const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
+            // Configuración de botones (Miembros, Config, Buzón y Nuevo Evento)
+            document.getElementById('btn-miembros').onclick = function() { window.abrirModalMiembros(); this.blur(); };
+            
+            const esTitular = datosCalendario.titular === idActivo;
+            const esAdmin = datosCalendario.admins && datosCalendario.admins.includes(idActivo);
 
-        // Botón de configuración SOLO para admins/titular
-        if (esTitular || esAdmin) {
-            document.getElementById('btn-config').classList.remove('hidden');
-            document.getElementById('btn-config').onclick = function() {
-                window.abrirModalConfig();
-                this.blur();
-            };
-        }
-
-        // --- NUEVO: GESTIÓN DEL BUZÓN DE SOLICITUDES ---
-        const btnSolicitudes = document.getElementById('btn-solicitudes');
-        const badgeSolicitudes = document.getElementById('solicitudes-badge');
-        
-        if (btnSolicitudes) {
-            // El buzón solo se muestra si eres titular/admin Y la privacidad está activada
-            if ((esTitular || esAdmin) && datosCalendario.requiere_aprobacion === true) {
-                btnSolicitudes.classList.remove('hidden');
-                btnSolicitudes.onclick = function() { 
-                    window.abrirModalSolicitudes(); 
-                    this.blur(); 
-                };
-                
-                // Si hay solicitudes pendientes, mostramos el puntito rojo flotante
-                if (datosCalendario.solicitudes && datosCalendario.solicitudes.length > 0) {
-                    if (badgeSolicitudes) badgeSolicitudes.classList.remove('hidden');
-                } else {
-                    if (badgeSolicitudes) badgeSolicitudes.classList.add('hidden');
-                }
-            } else {
-                btnSolicitudes.classList.add('hidden');
+            if (esTitular || esAdmin) {
+                document.getElementById('btn-config').classList.remove('hidden');
+                document.getElementById('btn-config').onclick = function() { window.abrirModalConfig(); this.blur(); };
             }
-        }
-        // -----------------------------------------------
 
-    } else {
-        window.location.href = "dashboard.html";
-    }
+            const btnSolicitudes = document.getElementById('btn-solicitudes');
+            const badgeSolicitudes = document.getElementById('solicitudes-badge');
+            if (btnSolicitudes) {
+                if ((esTitular || esAdmin) && datosCalendario.requiere_aprobacion === true) {
+                    btnSolicitudes.classList.remove('hidden');
+                    btnSolicitudes.onclick = function() { window.abrirModalSolicitudes(); this.blur(); };
+                    if (datosCalendario.solicitudes && datosCalendario.solicitudes.length > 0) {
+                        if (badgeSolicitudes) badgeSolicitudes.classList.remove('hidden');
+                    } else {
+                        if (badgeSolicitudes) badgeSolicitudes.classList.add('hidden');
+                    }
+                } else {
+                    btnSolicitudes.classList.add('hidden');
+                }
+            }
 
-  // --- NUEVO: CONFIGURAR BOTÓN DE AÑADIR ACONTECIMIENTO ---
-        const btnNuevoEvento = document.getElementById('btn-nuevo-evento');
-        if (btnNuevoEvento) {
-            btnNuevoEvento.onclick = function() {
-                window.abrirModalNuevoAcontecimiento();
-                this.blur();
-            };
+            const btnNuevoEvento = document.getElementById('btn-nuevo-evento');
+            if (btnNuevoEvento) {
+                btnNuevoEvento.onclick = function() { window.abrirModalNuevoAcontecimiento(); this.blur(); };
+            }
+
+        } else {
+            window.location.href = "dashboard.html";
         }
+    });
 }
+
+// NUEVA FUNCIÓN: Deja la radio encendida escuchando a todos los miembros
+function iniciarEscuchaEventos() {
+    if (window.unsubscribeEventos) window.unsubscribeEventos();
+    if (!datosCalendario || !datosCalendario.miembros || datosCalendario.miembros.length === 0) return;
+
+    // Buscamos de golpe TODOS los eventos de todos los miembros del calendario
+    const q = query(collection(db, "acontecimientos"), where("userId", "in", datosCalendario.miembros));
+    
+    window.unsubscribeEventos = onSnapshot(q, (snapshot) => {
+        window.listaEventosActivos = []; // Vaciamos la lista local
+        snapshot.forEach(docSnap => {
+            window.listaEventosActivos.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        
+        // ¡Magia! Si alguien añade, borra o edita algo, se repinta el calendario solo
+        renderizarCalendario();
+    });
+}
+
 
 window.cambiarPrivacidad = async (checked) => {
     // 1. CAMBIO ESTÉTICO INSTANTÁNEO: Buscamos los elementos del botón y los movemos al vuelo
@@ -231,63 +236,39 @@ const diasPorRestar = (day === 0) ? 6 : day - 1;
 date.setDate(date.getDate() - diasPorRestar);
 return date;
 }
+
 // =========================================================
-// SISTEMA DE CARGA BASADO EN LOS MIEMBROS DEL CALENDARIO
+// SISTEMA DE CARGA (AHORA FILTRA DE LA MEMORIA EN TIEMPO REAL)
 // =========================================================
-async function cargarAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
-const acontecimientos = [];
-try {
-if (!datosCalendario || !datosCalendario.miembros || datosCalendario.miembros.length === 0) {
-return acontecimientos;
+function obtenerAcontecimientosDelPeriodo(fechaInicio, fechaFin) {
+    const acontecimientos = [];
+    
+    window.listaEventosActivos.forEach(data => {
+        if (data.tipo === "Viaje" && data.fechaIda && data.fechaVuelta) {
+            const fIdaDoc = new Date(data.fechaIda);
+            const fVueltaDoc = new Date(data.fechaVuelta);
+            const fIdaClean = new Date(fIdaDoc.getFullYear(), fIdaDoc.getMonth(), fIdaDoc.getDate());
+            const fVueltaClean = new Date(fVueltaDoc.getFullYear(), fVueltaDoc.getMonth(), fVueltaDoc.getDate());
+            const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+            const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+
+            if (fIdaClean <= fFinClean && fVueltaClean >= fInicioClean) {
+                acontecimientos.push({ ...data, esViaje: true, fechaIdaObjeto: fIdaClean, fechaVueltaObjeto: fVueltaClean });
+            }
+        } else if (data.fecha) {
+            let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
+            const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
+            const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
+            const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+
+            if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
+                acontecimientos.push({ ...data, esViaje: false, fechaObjeto: fDocClean });
+            }
+        }
+    });
+    return acontecimientos;
 }
 
-const promesas = datosCalendario.miembros.map(miembroId => {
-const q = query(collection(db, "acontecimientos"), where("userId", "==", miembroId));
-return getDocs(q);
-});
-
-const resultados = await Promise.all(promesas);
-
-resultados.forEach(querySnapshot => {
-querySnapshot.forEach((docSnap) => {
-const data = docSnap.data();
-
-if (data.tipo === "Viaje" && data.fechaIda && data.fechaVuelta) {
-const fIdaDoc = new Date(data.fechaIda);
-const fVueltaDoc = new Date(data.fechaVuelta);
-
-const fIdaClean = new Date(fIdaDoc.getFullYear(), fIdaDoc.getMonth(), fIdaDoc.getDate());
-const fVueltaClean = new Date(fVueltaDoc.getFullYear(), fVueltaDoc.getMonth(), 
-fVueltaDoc.getDate());
-const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-
-if (fIdaClean <= fFinClean && fVueltaClean >= fInicioClean) {
-acontecimientos.push({
-id: docSnap.id,
-...data,
-esViaje: true,
-fechaIdaObjeto: fIdaClean,
-fechaVueltaObjeto: fVueltaClean
-});
-}
-} else if (data.fecha) {
-let fechaDoc = (typeof data.fecha.toDate === 'function') ? data.fecha.toDate() : new Date(data.fecha);
-const fDocClean = new Date(fechaDoc.getFullYear(), fechaDoc.getMonth(), fechaDoc.getDate());
-const fInicioClean = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-const fFinClean = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-
-if (fDocClean >= fInicioClean && fDocClean <= fFinClean) {
-acontecimientos.push({ id: docSnap.id, ...data, esViaje: false, fechaObjeto: fDocClean });
-}
-}
-});
-});
-} catch (error) {
-console.error("Error cargando acontecimientos de los miembros:", error);
-}
-return acontecimientos;
-}
 
 function pintarEstrellas(acontecimientos, fecha, esFilaSemana1 = false, esFilaSemana2 = false) {
 const idContainer = `estrellas-${fecha.getFullYear()}-${fecha.getMonth()+1}-${fecha.getDate()}`;
@@ -344,156 +325,149 @@ renderizarSemana();
 }
 }
 
+
 // =========================================================
 // RENDERIZADO VISUAL DE LAS VISTAS
 // =========================================================
+function renderizarMes() {
+    const grid = document.getElementById('calendar-grid');
+    const header = document.getElementById('dias-header');
+    const display = document.getElementById('mes-actual-display');
+    if(!grid || !header || !display) return;
 
-async function renderizarMes() {
-const grid = document.getElementById('calendar-grid');
-const header = document.getElementById('dias-header');
-const display = document.getElementById('mes-actual-display');
-if(!grid || !header || !display) return;
+    header.style.display = "";
+    grid.className = "calendar-grid";
+    header.innerHTML = "<div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>";
+    grid.innerHTML = "";
 
-header.style.display = "";
-grid.className = "calendar-grid";
-header.innerHTML = "<div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>";
-grid.innerHTML = "";
+    const anio = fechaVisualizada.getFullYear();
+    const mes = fechaVisualizada.getMonth();
+    display.innerText = fechaVisualizada.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
-const anio = fechaVisualizada.getFullYear();
-const mes = fechaVisualizada.getMonth();
+    const btnPrev = document.getElementById('btn-prev');
+    const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
+    btnPrev.disabled = esMesActual;
+    btnPrev.style.opacity = esMesActual ? "0.3" : "1";
+    btnPrev.style.cursor = esMesActual ? "default" : "pointer";
 
-display.innerText = fechaVisualizada.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    const primerDia = new Date(anio, mes, 1);
+    const ultimoDia = new Date(anio, mes + 1, 0);
+    const ultimoDiaPasado = new Date(anio, mes, 0);
 
-const btnPrev = document.getElementById('btn-prev');
-const esMesActual = anio === HOY_REAL.getFullYear() && mes === HOY_REAL.getMonth();
-btnPrev.disabled = esMesActual;
-btnPrev.style.opacity = esMesActual ? "0.3" : "1";
-btnPrev.style.cursor = esMesActual ? "default" : "pointer";
+    let diaSemInicio = primerDia.getDay() - 1;
+    if (diaSemInicio === -1) diaSemInicio = 6;
 
-const primerDia = new Date(anio, mes, 1);
-const ultimoDia = new Date(anio, mes + 1, 0);
-const ultimoDiaPasado = new Date(anio, mes, 0);
+    const fechaInicioCarga = new Date(anio, mes, 1 - diaSemInicio);
+    const celdasVaciasFinal = (diaSemInicio + ultimoDia.getDate()) < 42 ? 42 - (diaSemInicio + ultimoDia.getDate()) : 0;
+    const fechaFinCarga = new Date(anio, mes + 1, celdasVaciasFinal);
 
-let diaSemInicio = primerDia.getDay() - 1;
-if (diaSemInicio === -1) diaSemInicio = 6;
+    // OJO AQUÍ: Ya no lleva "await", lee directamente de la memoria súper rápido
+    const listaAcontecimientos = obtenerAcontecimientosDelPeriodo(fechaInicioCarga, fechaFinCarga);
 
-const fechaInicioCarga = new Date(anio, mes, 1 - diaSemInicio);
-const celdasVaciasFinal = (diaSemInicio + ultimoDia.getDate()) < 42 ? 42 - (diaSemInicio + ultimoDia.getDate()) : 0;
-const fechaFinCarga = new Date(anio, mes + 1, celdasVaciasFinal);
+    for (let i = 0; i < diaSemInicio; i++) {
+        const celda = document.createElement('div');
+        celda.className = "day-cell day-other-month day-past";
+        const diaPasado = (ultimoDiaPasado.getDate() - diaSemInicio + 1) + i;
+        const fPasada = new Date(anio, mes - 1, diaPasado);
+        celda.innerHTML = `<div class="day-number">${diaPasado}</div><div class="stars-grid" id="estrellas-${fPasada.getFullYear()}-${fPasada.getMonth()+1}-${diaPasado}"></div>`;
+        grid.appendChild(celda);
+        pintarEstrellas(listaAcontecimientos, fPasada);
+    }
 
-const listaAcontecimientos = await cargarAcontecimientosDelPeriodo(fechaInicioCarga, fechaFinCarga);
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+        const celda = document.createElement('div');
+        celda.className = "day-cell";
+        const fCelda = new Date(anio, mes, dia);
+        if (fCelda < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
+        if (fCelda.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
 
-for (let i = 0; i < diaSemInicio; i++) {
-const celda = document.createElement('div');
-celda.className = "day-cell day-other-month day-past";
-const diaPasado = (ultimoDiaPasado.getDate() - diaSemInicio + 1) + i;
-const fPasada = new Date(anio, mes - 1, diaPasado);
-celda.innerHTML = `<div class="day-number">${diaPasado}</div><div class="stars-grid" id="estrellas-${fPasada.getFullYear()}-${fPasada.getMonth()+1}-${diaPasado}"></div>`;
-grid.appendChild(celda);
-pintarEstrellas(listaAcontecimientos, fPasada);
+        celda.innerHTML = `<div class="day-number">${dia}</div><div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}"></div>`;
+        celda.onclick = () => abrirDetalleDia(fCelda, listaAcontecimientos);
+        grid.appendChild(celda);
+        pintarEstrellas(listaAcontecimientos, fCelda);
+    }
+
+    if (celdasVaciasFinal > 0) {
+        for (let j = 1; j <= celdasVaciasFinal; j++) {
+            const celdaVacia = document.createElement('div');
+            celdaVacia.className = "day-cell day-other-month";
+            const fSiguiente = new Date(anio, mes + 1, j);
+            celdaVacia.innerHTML = `<div class="day-number">${j}</div><div class="stars-grid" id="estrellas-${fSiguiente.getFullYear()}-${fSiguiente.getMonth()+1}-${j}"></div>`;
+            grid.appendChild(celdaVacia);
+            pintarEstrellas(listaAcontecimientos, fSiguiente);
+        }
+    }
 }
 
-for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
-const celda = document.createElement('div');
-celda.className = "day-cell";
+function renderizarSemana() {
+    const grid = document.getElementById('calendar-grid');
+    const header = document.getElementById('dias-header');
+    const display = document.getElementById('mes-actual-display');
+    if(!grid || !header || !display) return;
 
-const fCelda = new Date(anio, mes, dia);
-if (fCelda < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
-if (fCelda.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
+    header.style.display = "none";
+    grid.className = "vista-semanal-container";
+    grid.innerHTML = "";
 
-celda.innerHTML = `<div class="day-number">${dia}</div><div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}"></div>`;
-celda.onclick = () => abrirDetalleDia(fCelda, listaAcontecimientos);
-grid.appendChild(celda);
-pintarEstrellas(listaAcontecimientos, fCelda);
+    let lunes = obtenerLunes(fechaVisualizada);
+    display.innerText = "Semana del " + lunes.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+
+    const btnPrev = document.getElementById('btn-prev');
+    const esSemanaActual = lunes.toDateString() === obtenerLunes(HOY_REAL).toDateString();
+    btnPrev.disabled = esSemanaActual;
+    btnPrev.style.opacity = esSemanaActual ? "0.3" : "1";
+    btnPrev.style.cursor = esSemanaActual ? "default" : "pointer";
+
+    const fila1 = document.createElement('div');
+    fila1.className = "semana-fila-1";
+    const fila2 = document.createElement('div');
+    fila2.className = "semana-fila-2";
+
+    const nombresDias = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    
+    // OJO AQUÍ: Ya no lleva "await", lee directamente de la memoria súper rápido
+    const listaAcontecimientos = obtenerAcontecimientosDelPeriodo(lunes, domingo);
+    const llamadasPintar = [];
+
+    for (let i = 0; i < 7; i++) {
+        const diaSemana = new Date(lunes);
+        diaSemana.setDate(lunes.getDate() + i);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = "dia-wrapper";
+        const headerDia = document.createElement('div');
+        headerDia.className = "dia-header-semana";
+        headerDia.innerText = nombresDias[i];
+
+        const celda = document.createElement('div');
+        celda.className = "day-cell";
+        celda.style.flex = "1";
+
+        if (diaSemana < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
+        if (diaSemana.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
+
+        celda.innerHTML = `<div class="day-number">${diaSemana.getDate()} <span style="font-size:10px; color:#aaa; font-weight:normal;">${diaSemana.toLocaleDateString('es-ES', {month:'short'})}</span></div><div class="stars-grid" id="estrellas-${diaSemana.getFullYear()}-${diaSemana.getMonth()+1}-${diaSemana.getDate()}"></div>`;
+        celda.onclick = () => abrirDetalleDia(diaSemana, listaAcontecimientos);
+
+        wrapper.appendChild(headerDia);
+        wrapper.appendChild(celda);
+
+        if (i < 5) {
+            fila1.appendChild(wrapper);
+            llamadasPintar.push({ fecha: diaSemana, f1: true, f2: false });
+        } else {
+            fila2.appendChild(wrapper);
+            llamadasPintar.push({ fecha: diaSemana, f1: false, f2: true });
+        }
+    }
+
+    grid.appendChild(fila1);
+    grid.appendChild(fila2);
+    llamadasPintar.forEach(item => pintarEstrellas(listaAcontecimientos, item.fecha, item.f1, item.f2));
 }
 
-if (celdasVaciasFinal > 0) {
-for (let j = 1; j <= celdasVaciasFinal; j++) {
-const celdaVacia = document.createElement('div');
-celdaVacia.className = "day-cell day-other-month";
-const fSiguiente = new Date(anio, mes + 1, j);
-celdaVacia.innerHTML = `<div class="day-number">${j}</div><div class="stars-grid" id="estrellas-${fSiguiente.getFullYear()}-${fSiguiente.getMonth()+1}-${j}"></div>`;
-grid.appendChild(celdaVacia);
-pintarEstrellas(listaAcontecimientos, fSiguiente);
-  }
-}
-}
-
-async function renderizarSemana() {
-const grid = document.getElementById('calendar-grid');
-const header = document.getElementById('dias-header');
-const display = document.getElementById('mes-actual-display');
-if(!grid || !header || !display) return;
-
-header.style.display = "none";
-grid.className = "vista-semanal-container";
-grid.innerHTML = "";
-
-let lunes = obtenerLunes(fechaVisualizada);
-display.innerText = "Semana del " + lunes.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-
-const btnPrev = document.getElementById('btn-prev');
-const esSemanaActual = lunes.toDateString() === obtenerLunes(HOY_REAL).toDateString();
-btnPrev.disabled = esSemanaActual;
-btnPrev.style.opacity = esSemanaActual ? "0.3" : "1";
-btnPrev.style.cursor = esSemanaActual ? "default" : "pointer";
-
-const fila1 = document.createElement('div');
-fila1.className = "semana-fila-1";
-const fila2 = document.createElement('div');
-fila2.className = "semana-fila-2";
-
-const nombresDias = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-
-const domingo = new Date(lunes);
-domingo.setDate(lunes.getDate() + 6);
-const listaAcontecimientos = await cargarAcontecimientosDelPeriodo(lunes, domingo);
-
-const llamadasPintar = [];
-
-for (let i = 0; i < 7; i++) {
-const diaSemana = new Date(lunes);
-diaSemana.setDate(lunes.getDate() + i);
-
-const wrapper = document.createElement('div');
-wrapper.className = "dia-wrapper";
-const headerDia = document.createElement('div');
-headerDia.className = "dia-header-semana";
-headerDia.innerText = nombresDias[i];
-
-const celda = document.createElement('div');
-celda.className = "day-cell";
-celda.style.flex = "1";
-
-if (diaSemana < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getDate())) celda.classList.add('day-past');
-if (diaSemana.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
-
-celda.innerHTML = `
-<div class="day-number">${diaSemana.getDate()} <span style="font-size:10px; color:#aaa; font-weight:normal;">${diaSemana.toLocaleDateString('es-ES', {month:'short'})}</span></div>
-<div class="stars-grid" id="estrellas-${diaSemana.getFullYear()}-${diaSemana.getMonth()+1}-${diaSemana.getDate()}"></div>
-`;
-
-celda.onclick = () => abrirDetalleDia(diaSemana, listaAcontecimientos);
-
-wrapper.appendChild(headerDia);
-wrapper.appendChild(celda);
-
-if (i < 5) {
-fila1.appendChild(wrapper);
-llamadasPintar.push({ fecha: diaSemana, f1: true, f2: false });
-} else {
-fila2.appendChild(wrapper);
-llamadasPintar.push({ fecha: diaSemana, f1: false, f2: true });
-}
-}
-
-grid.appendChild(fila1);
-grid.appendChild(fila2);
-
-llamadasPintar.forEach(item => {
-pintarEstrellas(listaAcontecimientos, item.fecha, item.f1, item.f2);
-});
-}
 
 // =========================================================
 // FUNCIONALIDAD: VER DETALLES DE UN DÍA ESPECÍFICO
