@@ -36,21 +36,56 @@ window.miembrosFiltroActivos = [];
 window.mapaPerfilesMiembros = {};
 
 async function inicializarCalendario() {
-    // 1. Apagamos "la radio" anterior si existía (por seguridad)
     if (window.unsubscribeCalendario) window.unsubscribeCalendario();
 
-    // 2. Encendemos la radio en el canal de TU calendario activo
     window.unsubscribeCalendario = onSnapshot(doc(db, "calendarios", calId), async (docSnap) => {
         if (docSnap.exists()) {
             datosCalendario = docSnap.data();
             document.getElementById('titulo-calendario').innerText = datosCalendario.nombre;
             
             window.miembrosFiltroActivos = [...datosCalendario.miembros];
+            
+            // 1. Consultamos qué usuarios de la lista existen realmente en Firebase
             const promesasUsuarios = datosCalendario.miembros.map(mId => getDoc(doc(db, "usuarios", mId)));
             const docsUsuarios = await Promise.all(promesasUsuarios);
+            
+            let miembrosExistentesIds = [];
             docsUsuarios.forEach(d => { 
-                if (d.exists()) window.mapaPerfilesMiembros[d.id] = d.data(); 
+                if (d.exists()) {
+                    window.mapaPerfilesMiembros[d.id] = d.data(); 
+                    miembrosExistentesIds.push(d.id); // Guardamos solo los que SÍ existen
+                }
             });
+
+            // =====================================================================
+            // ¡SISTEMA DE AUTO-LIMPIEZA!: Si hay descuadre, purgamos a los eliminados
+            // =====================================================================
+            if (miembrosExistentesIds.length !== datosCalendario.miembros.length) {
+                console.log("¡Detectados miembros eliminados! Limpiando el calendario...");
+                
+                // Filtramos la lista de administradores para dejar solo a los que existen
+                let nuevosAdmins = (datosCalendario.admins || []).filter(id => miembrosExistentesIds.includes(id));
+                
+                // Limpiamos el mapa de colores para quitar los colores de las cuentas borradas
+                let mapaColoresOriginal = datosCalendario.colores_miembros || {};
+                let nuevosColores = {};
+                miembrosExistentesIds.forEach(id => {
+                    if (mapaColoresOriginal[id]) nuevosColores[id] = mapaColoresOriginal[id];
+                });
+
+                // Actualizamos Firebase de forma silenciosa con los datos limpios
+                const calRef = doc(db, "calendarios", calId);
+                await updateDoc(calRef, {
+                    miembros: miembrosExistentesIds,
+                    admins: nuevosAdmins,
+                    colores_miembros: nuevosColores
+                });
+                
+                // Cortamos la ejecución aquí. El 'onSnapshot' se volverá a disparar solo 
+                // un milisegundo después con los datos ya limpios y perfectos.
+                return; 
+            }
+            // =====================================================================
 
             await asegurarColoresMiembros();
             window.dibujarFiltroMiembros();
@@ -59,10 +94,10 @@ async function inicializarCalendario() {
             const ind = document.getElementById('user-color-indicator');
             if(ind) ind.className = `color-dot-indicator bg-${miColor}`;
 
-            // --- INICIAMOS LA ESCUCHA DE LOS EVENTOS EN TIEMPO REAL ---
+            // Iniciamos la escucha de eventos (Solo descargará los de los miembros reales)
             iniciarEscuchaEventos();
 
-            // Configuración de botones (Miembros, Config, Buzón y Nuevo Evento)
+            // Configuración de botones habituales
             document.getElementById('btn-miembros').onclick = function() { window.abrirModalMiembros(); this.blur(); };
             
             const esTitular = datosCalendario.titular === idActivo;
@@ -99,26 +134,6 @@ async function inicializarCalendario() {
         }
     });
 }
-
-// NUEVA FUNCIÓN: Deja la radio encendida escuchando a todos los miembros
-function iniciarEscuchaEventos() {
-    if (window.unsubscribeEventos) window.unsubscribeEventos();
-    if (!datosCalendario || !datosCalendario.miembros || datosCalendario.miembros.length === 0) return;
-
-    // Buscamos de golpe TODOS los eventos de todos los miembros del calendario
-    const q = query(collection(db, "acontecimientos"), where("userId", "in", datosCalendario.miembros));
-    
-    window.unsubscribeEventos = onSnapshot(q, (snapshot) => {
-        window.listaEventosActivos = []; // Vaciamos la lista local
-        snapshot.forEach(docSnap => {
-            window.listaEventosActivos.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        
-        // ¡Magia! Si alguien añade, borra o edita algo, se repinta el calendario solo
-        renderizarCalendario();
-    });
-}
-
 
 window.cambiarPrivacidad = async (checked) => {
     // 1. CAMBIO ESTÉTICO INSTANTÁNEO: Buscamos los elementos del botón y los movemos al vuelo
