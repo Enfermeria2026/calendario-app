@@ -1,6 +1,6 @@
-// 1. Importamos la base de datos y las herramientas de Firestore
+// 1. Importamos la base de datos y las herramientas de Firestore (AÑADIDAS NUEVAS HERRAMIENTAS DE BÚSQUEDA Y BORRADO MASIVO)
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 // Funciones globales de carga
 function mostrarCarga() { const el = document.getElementById('pantalla-carga'); if(el) el.classList.remove('hidden'); }
@@ -186,7 +186,49 @@ function abrirModalEliminar() {
     document.getElementById('modal-eliminar').style.display = 'flex';
 }
 
-// 6. ELIMINAR CUENTA DEFINITIVAMENTE
+// =========================================================
+// NUEVO: LIMPIEZA PROFUNDA AL ELIMINAR UNA CUENTA
+// =========================================================
+async function purgarDatosDeUsuario(userIdABorrar) {
+    try {
+        console.log("Iniciando purga de datos para el usuario:", userIdABorrar);
+
+        // 1. ELIMINAR TODOS SUS ACONTECIMIENTOS
+        const qEventos = query(collection(db, "acontecimientos"), where("userId", "==", userIdABorrar));
+        const snapshotEventos = await getDocs(qEventos);
+        
+        const promesasEventos = [];
+        snapshotEventos.forEach(docSnap => {
+            promesasEventos.push(deleteDoc(doc(db, "acontecimientos", docSnap.id)));
+        });
+        
+        await Promise.all(promesasEventos);
+        console.log(`Se han borrado ${snapshotEventos.size} acontecimientos.`);
+
+        // 2. SACARLO DE TODOS LOS CALENDARIOS
+        const qCalendarios = query(collection(db, "calendarios"), where("miembros", "array-contains", userIdABorrar));
+        const snapshotCalendarios = await getDocs(qCalendarios);
+        
+        const promesasCalendarios = [];
+        snapshotCalendarios.forEach(docSnap => {
+            promesasCalendarios.push(updateDoc(doc(db, "calendarios", docSnap.id), {
+                miembros: arrayRemove(userIdABorrar),
+                admins: arrayRemove(userIdABorrar),
+                solicitudes: arrayRemove(userIdABorrar)
+            }));
+        });
+        
+        await Promise.all(promesasCalendarios);
+        console.log(`El usuario ha sido expulsado de ${snapshotCalendarios.size} calendarios.`);
+
+        return true; 
+    } catch (error) {
+        console.error("Error crítico al purgar datos del usuario:", error);
+        return false;
+    }
+}
+
+// 6. ELIMINAR CUENTA DEFINITIVAMENTE (ACTUALIZADO)
 async function confirmarEliminacionFinal() {
     if (!miID) return;
     
@@ -194,7 +236,19 @@ async function confirmarEliminacionFinal() {
         cerrarModales(); 
         mostrarCarga();
         
+        // --- 1. EJECUTAMOS LA PURGA DE DATOS PRIMERO ---
+        const purgaExitosa = await purgarDatosDeUsuario(miID);
+        
+        if (!purgaExitosa) {
+            mostrarMensaje("Error", "Hubo un problema limpiando tus datos. Inténtalo de nuevo.");
+            ocultarCarga();
+            return; // Cortamos si falla para no dejar la cuenta a medias
+        }
+        
+        // --- 2. BORRAMOS EL DOCUMENTO DEL USUARIO ---
         await deleteDoc(doc(db, "usuarios", miID));
+        
+        // --- 3. LIMPIAMOS LA SESIÓN Y SALIMOS ---
         localStorage.clear();
         window.location.href = "index.html"; 
         
