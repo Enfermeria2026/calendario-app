@@ -374,7 +374,7 @@ if (fCelda < new Date(HOY_REAL.getFullYear(), HOY_REAL.getMonth(), HOY_REAL.getD
 if (fCelda.toDateString() === HOY_REAL.toDateString()) celda.classList.add('day-today');
 
 celda.innerHTML = `<div class="day-number">${dia}</div><div class="stars-grid" id="estrellas-${anio}-${mes+1}-${dia}"></div>`;
-celda.onclick = () => abrirDetalleDia(fCelda);
+celda.onclick = () => abrirDetalleDia(fCelda, listaAcontecimientos);
 grid.appendChild(celda);
 pintarEstrellas(listaAcontecimientos, fCelda);
 }
@@ -445,7 +445,7 @@ celda.innerHTML = `
 <div class="stars-grid" id="estrellas-${diaSemana.getFullYear()}-${diaSemana.getMonth()+1}-${diaSemana.getDate()}"></div>
 `;
 
-celda.onclick = () => abrirDetalleDia(diaSemana);
+celda.onclick = () => abrirDetalleDia(diaSemana, listaAcontecimientos);
 
 wrapper.appendChild(headerDia);
 wrapper.appendChild(celda);
@@ -467,8 +467,128 @@ pintarEstrellas(listaAcontecimientos, item.fecha, item.f1, item.f2);
 });
 }
 
-function abrirDetalleDia(fecha) {
-console.log("Día clickeado:", fecha.toLocaleDateString());
+// =========================================================
+// FUNCIONALIDAD: VER DETALLES DE UN DÍA ESPECÍFICO
+// =========================================================
+async function abrirDetalleDia(fecha, todosLosAcontecimientos) {
+    const modal = document.getElementById('miModal');
+    const msg = document.getElementById('modalMsg');
+    const extra = document.getElementById('modalExtra');
+    const btns = document.getElementById('modalBtnsContainer');
+
+    if (!modal) return;
+
+    // 1. Filtrar los acontecimientos exactos del día clickeado
+    const fActualClean = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+    
+    const delDia = todosLosAcontecimientos.filter(a => {
+        if (a.esViaje) {
+            return fActualClean >= a.fechaIdaObjeto && fActualClean <= a.fechaVueltaObjeto;
+        } else {
+            return a.fechaObjeto.getFullYear() === fecha.getFullYear() &&
+                   a.fechaObjeto.getMonth() === fecha.getMonth() &&
+                   a.fechaObjeto.getDate() === fecha.getDate();
+        }
+    });
+
+    // Formatear la fecha para el título del modal (Ej: "lunes, 14 de junio")
+    const opcionesFecha = { weekday: 'long', day: 'numeric', month: 'long' };
+    let fechaStr = fecha.toLocaleDateString('es-ES', opcionesFecha);
+    fechaStr = fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1); // Mayúscula inicial
+    msg.innerText = `Acontecimientos del ${fechaStr}`;
+    
+    // 2. Si no hay eventos ese día, mostramos un mensaje vacío
+    if (delDia.length === 0) {
+        extra.innerHTML = `<p style="text-align:center; color:#888; margin: 20px 0;">No hay ningún acontecimiento para este día.</p>`;
+        btns.innerHTML = `<button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #ec407a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline:none;">Cerrar</button>`;
+        modal.classList.remove('hidden');
+        return;
+    }
+
+    // 3. Mostrar estado de carga mientras buscamos los nombres de los usuarios
+    extra.innerHTML = "<p style='text-align:center; color:#999;'><i class='fas fa-spinner fa-spin'></i> Cargando detalles...</p>";
+    btns.innerHTML = `<button onclick="document.getElementById('miModal').classList.add('hidden');" style="background: #f5f5f5; color: #666; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; outline:none;">Cerrar</button>`;
+    modal.classList.remove('hidden');
+
+    try {
+        // Extraemos los IDs únicos para no hacer lecturas duplicadas en Firebase
+        const usersIds = [...new Set(delDia.map(ev => ev.userId))];
+        const promesas = usersIds.map(id => getDoc(doc(db, "usuarios", id)));
+        const docs = await Promise.all(promesas);
+        
+        const mapaUsuarios = {};
+        docs.forEach(d => {
+            if (d.exists()) mapaUsuarios[d.id] = d.data();
+        });
+
+        // 4. Construimos la lista en formato "Scroll" con tarjetas elegantes
+        let htmlContenido = `<div style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 5px; text-align: left;">`;
+
+        delDia.forEach(ev => {
+            const u = mapaUsuarios[ev.userId] || { nombre: "Usuario", apellidos: "Desconocido" };
+            const colorClase = mapaColores[ev.userId] || 'c-negro'; 
+
+            // Datos comunes
+            const titulo = ev.titulo || 'Sin título';
+            const tipo = ev.tipo || 'Evento';
+            const lugarHtml = ev.lugar ? `<div style="color: #666; font-size: 13px; margin-top: 6px;"><i class="fas fa-map-marker-alt" style="color:#ef5350; width:16px;"></i> ${ev.lugar}</div>` : '';
+
+            let tiempoHtml = '';
+            
+            // Si es un Viaje (Mostramos ida y vuelta detalladas)
+            if (ev.esViaje) {
+                const fIda = new Date(ev.fechaIda);
+                const fVuelta = new Date(ev.fechaVuelta);
+                const fIdaStr = fIda.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                const fVueltaStr = fVuelta.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                
+                // Soporta diferentes formas en las que hayas podido guardar la hora en base de datos
+                const hIda = ev.horaIda || ev.hora_ida || '';
+                const hVuelta = ev.horaVuelta || ev.hora_vuelta || '';
+
+                const txtIda = hIda ? `${fIdaStr} - ${hIda}` : fIdaStr;
+                const txtVuelta = hVuelta ? `${fVueltaStr} - ${hVuelta}` : fVueltaStr;
+
+                tiempoHtml = `
+                    <div style="color: #666; font-size: 13px; margin-top: 6px; display:flex; flex-direction:column; gap:4px; background: #f5f5f5; padding: 8px; border-radius: 6px;">
+                        <span><i class="fas fa-plane-departure" style="color:#2196F3; width:18px;"></i> <b>Ida:</b> ${txtIda}</span>
+                        <span><i class="fas fa-plane-arrival" style="color:#4CAF50; width:18px;"></i> <b>Vuelta:</b> ${txtVuelta}</span>
+                    </div>
+                `;
+            } 
+            // Si es un evento normal (Mostramos solo la hora si la hay)
+            else {
+                if (ev.hora) {
+                    tiempoHtml = `<div style="color: #666; font-size: 13px; margin-top: 6px;"><i class="far fa-clock" style="color:#ff9800; width:16px;"></i> <b>Hora:</b> ${ev.hora}</div>`;
+                }
+            }
+
+            // Diseño de la tarjeta del evento
+            htmlContenido += `
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f5f5f5; padding-bottom: 8px;">
+                        <div style="display: flex; align-items: center;">
+                            <div class="color-dot-indicator bg-${colorClase}" style="width:12px; height:12px; min-width:12px; border:none; box-shadow:none; margin-right:8px;"></div>
+                            <span style="font-size: 13px; color: #555; font-weight: bold; text-transform: uppercase;">
+                                ${u.nombre} ${u.apellidos || ''}
+                            </span>
+                        </div>
+                        <span style="background: #fdf5f8; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: #ec407a; border: 1px solid #fce4ec; white-space: nowrap;">${tipo}</span>
+                    </div>
+                    <div style="font-size: 16px; font-weight: 900; color: #333;">${titulo}</div>
+                    ${lugarHtml}
+                    ${tiempoHtml}
+                </div>
+            `;
+        });
+
+        htmlContenido += `</div>`;
+        extra.innerHTML = htmlContenido;
+
+    } catch (error) {
+        console.error("Error cargando detalles del día:", error);
+        extra.innerHTML = "<p style='color:red; text-align:center;'>Error de conexión al cargar los detalles.</p>";
+    }
 }
 
 // =========================================================
