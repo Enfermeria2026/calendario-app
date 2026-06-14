@@ -2259,3 +2259,58 @@ window.guardarEdicionAcontecimiento = async (eventoId) => {
         btnGuardar.style.opacity = "1";
     }
 };
+
+// =========================================================
+// FUNCIONALIDAD: FILTRO DE MIEMBROS EN EL CALENDARIO
+// =========================================================
+window.dibujarFiltroMiembros = () => {
+    const container = document.getElementById('filtro-miembros-container');
+    if (!container) return;
+
+    let html = '';
+    
+    datosCalendario.miembros.forEach(mId => {
+        // Recuperamos los datos que ya descargamos en inicializarCalendario
+        const u = window.mapaPerfilesMiembros[mId] || { nombre: "U", apellidos: "" };
+        const colorClass = mapaColores[mId] || 'c-negro';
+        
+        // Comprobamos si este miembro está en nuestro array de activos
+        const estaActivo = window.miembrosFiltroActivos.includes(mId);
+        
+        // Lógica visual: Si está inactivo, lo encogemos un poquito, lo ponemos gris y semi-transparente
+        const opacidad = estaActivo ? '1' : '0.4';
+        const escala = estaActivo ? 'scale(1)' : 'scale(0.85)';
+        const filtroVisual = estaActivo ? 'none' : 'grayscale(100%)';
+        
+        // Sacamos la primera letra del nombre
+        const inicial = u.nombre.charAt(0).toUpperCase();
+
+        html += `
+            <div onclick="window.toggleFiltroMiembro('${mId}')" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; opacity: ${opacidad}; transform: ${escala}; filter: ${filtroVisual}; flex-shrink: 0; width: 45px;">
+                <div class="bg-${colorClass}" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); margin-bottom: 4px;">
+                    ${inicial}
+                </div>
+                <span style="font-size: 10px; color: #555; font-weight: 700; white-space: nowrap; max-width: 45px; overflow: hidden; text-overflow: ellipsis;">${u.nombre}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+};
+
+window.toggleFiltroMiembro = (mId) => {
+    // Si ya estaba activo, lo quitamos de la lista
+    if (window.miembrosFiltroActivos.includes(mId)) {
+        window.miembrosFiltroActivos = window.miembrosFiltroActivos.filter(id => id !== mId);
+    } 
+    // Si no estaba activo, lo metemos en la lista
+    else {
+        window.miembrosFiltroActivos.push(mId);
+    }
+    
+    // 1. Repintamos la barra para que el avatar se ponga gris o coja color
+    window.dibujarFiltroMiembros();
+    
+    // 2. Repintamos el calendario entero para que desaparezcan/aparezcan sus estrellas
+    renderizarCalendario();
+};
