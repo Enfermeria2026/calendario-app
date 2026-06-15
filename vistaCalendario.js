@@ -1519,3 +1519,36 @@ window.verPerfilUsuario = (user) => {
     `;
     modal.classList.remove('hidden');
 };
+
+// --- FILTRO INTELIGENTE DE EVENTOS CADUCADOS ---
+function limpiarEventosPasados(listaEventos) {
+    const ahora = new Date(); // Coge la fecha y hora exacta de este segundo
+    const eventosVigentes = [];
+
+    listaEventos.forEach(evento => {
+        let fechaFinCadena = "";
+
+        // Comprobamos si es un viaje (porque tiene 'fechaVuelta') o normal
+        if (evento.fechaVuelta && evento.horaVuelta) {
+            fechaFinCadena = `${evento.fechaVuelta}T${evento.horaVuelta}:00`;
+        } else if (evento.fecha && evento.horaFin) {
+            fechaFinCadena = `${evento.fecha}T${evento.horaFin}:00`;
+        } else {
+            // Si por algún motivo es un evento de todo el día sin hora, usamos las 23:59
+            fechaFinCadena = `${evento.fecha || evento.fechaIda}T23:59:59`;
+        }
+
+        const fechaFinEvento = new Date(fechaFinCadena);
+
+        // Si la hora de fin es mayor que la hora actual, el evento se salva
+        if (fechaFinEvento > ahora) {
+            eventosVigentes.push(evento);
+        } else {
+            // OPCIONAL: Si además de ocultarlo quieres BORRARLO para siempre de Firebase
+            // para no ocupar espacio en tu base de datos, descomenta esta línea de abajo:
+            // deleteDoc(doc(db, "coleccionEventos", evento.id)).catch(e => console.log(e));
+        }
+    });
+
+    return eventosVigentes; // Devuelve solo los eventos del presente y futuro
+}
