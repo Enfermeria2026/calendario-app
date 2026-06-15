@@ -1552,9 +1552,7 @@ function limpiarEventosPasados(listaEventos) {
         if (fechaFinEvento > ahora) {
             eventosVigentes.push(evento);
         } else {
-            // OPCIONAL: Si además de ocultarlo quieres BORRARLO para siempre de Firebase
-            // para no ocupar espacio en tu base de datos, descomenta esta línea de abajo:
-            // deleteDoc(doc(db, "coleccionEventos", evento.id)).catch(e => console.log(e));
+            deleteDoc(doc(db, "acontecimientos", evento.id)).catch(e => console.log(e));
         }
     });
 
