@@ -161,18 +161,26 @@ function iniciarEscuchaEventos() {
     try {
         const q = query(collection(db, "acontecimientos"), where("userId", "in", datosCalendario.miembros));
         window.unsubscribeEventos = onSnapshot(q, (snapshot) => {
-            window.listaEventosActivos = []; 
+            
+            // 1. Creamos una lista temporal con TODO lo que viene de Firebase
+            let eventosBrutos = []; 
             snapshot.forEach(docSnap => {
-                window.listaEventosActivos.push({ id: docSnap.id, ...docSnap.data() });
+                eventosBrutos.push({ id: docSnap.id, ...docSnap.data() });
             });
-            renderizarCalendario(); // Repinta automáticamente
+
+            // =========================================================
+            // 2. ¡NUEVO! PASAMOS EL FILTRO INTELIGENTE ANTES DE PINTAR
+            // =========================================================
+            window.listaEventosActivos = limpiarEventosPasados(eventosBrutos);
+            // =========================================================
+
+            renderizarCalendario(); // Repinta automáticamente la pantalla limpia
         });
     } catch (error) {
         console.error("Error en escucha de eventos:", error);
         renderizarCalendario();
     }
 }
-
 // =========================================================================
 // 4. LÓGICA DE CARGA Y FILTRADO
 // =========================================================================
